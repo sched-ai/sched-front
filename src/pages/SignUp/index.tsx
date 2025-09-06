@@ -104,7 +104,7 @@ export const SignUp = () => {
         </div>
       </div>
       <div
-        className="flex p-6 w-full min-h-screen bg-cover bg-center"
+        className="flex md:hidden p-6 w-full min-h-screen bg-cover bg-center"
         style={{ backgroundImage: `url(${abstract})` }}
       >
         <div className="flex flex-col justify-between w-full gap-4">
