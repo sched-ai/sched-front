@@ -1,6 +1,5 @@
 import { Button } from "../../components/ui/button";
 import abstract from "../../assets/abstract_signup.png";
-import { Eye } from "lucide-react";
 import { Input } from "../../components/ui/input";
 
 export const SignUp = () => {
@@ -36,8 +35,8 @@ export const SignUp = () => {
             </div>
           </div>
         </div>
-        <div className="w-full max-w-md m-auto">
-          <form className="space-y-6 px-8">
+        <div className="w-full max-w-[510px] m-auto">
+          <form className="space-y-6 px-8 py-12 bg-[#F5F5F5]">
             <div className="text-start">
               <h1 className="lg:text-[40px] font-semibold leading-[1.01] text-2xl">
                 Crie sua conta
@@ -69,13 +68,6 @@ export const SignUp = () => {
                   required
                   placeholder="Insira sua senha"
                 />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                >
-                  <Eye />
-                </Button>
               </div>
             </div>
 
@@ -113,7 +105,7 @@ export const SignUp = () => {
               Login
             </Button>
           </div>
-          <div className="w-full max-w-md m-auto">
+          <div className="w-full max-w-[510px] m-auto">
             <form
               className="space-y-6 px-6 py-8
                         [background-clip:padding-box,border-box] 
@@ -138,7 +130,7 @@ export const SignUp = () => {
                   id="email"
                   required
                   placeholder="scheapp@gmail.com"
-                  className="text-white"
+                  className="text-white border-white"
                 />
               </div>
 
@@ -155,15 +147,8 @@ export const SignUp = () => {
                     id="password"
                     required
                     placeholder="Insira sua senha"
-                    className="text-white"
+                    className="text-white border-white"
                   />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                  >
-                    <Eye />
-                  </Button>
                 </div>
               </div>
 

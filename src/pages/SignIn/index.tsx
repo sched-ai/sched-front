@@ -44,7 +44,7 @@ export const SignIn = () => {
                 id="email"
                 required
                 placeholder="scheapp@gmail.com"
-                className="text-white"
+                className="text-white border-white"
               />
             </div>
 
@@ -61,7 +61,7 @@ export const SignIn = () => {
                   id="password"
                   required
                   placeholder="Insira sua senha"
-                  className="text-white"
+                  className="text-white border-white"
                 />
                 <Button variant="link">Esqueci minha senha</Button>
               </div>
