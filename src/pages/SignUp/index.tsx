@@ -1,6 +1,7 @@
 import { Button } from "../../components/ui/button";
 import abstract from "../../assets/abstract_signup.png";
 import { Eye } from "lucide-react";
+import { Input } from "../../components/ui/input";
 
 export const SignUp = () => {
   return (
@@ -27,7 +28,7 @@ export const SignUp = () => {
                 variant="seccondary"
                 className="w-full"
                 onClick={() => {
-                  window.location.href = "/signin";
+                  window.location.href = "/";
                 }}
               >
                 LOGIN
@@ -51,13 +52,7 @@ export const SignUp = () => {
               >
                 Email
               </label>
-              <input
-                type="email"
-                id="email"
-                required
-                placeholder="scheapp@gmail.com"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-              />
+              <Input title="Email" type="email" id="email" required placeholder="scheapp@gmail.com"  />
             </div>
 
             <div>
@@ -68,12 +63,11 @@ export const SignUp = () => {
                 Senha
               </label>
               <div className="relative">
-                <input
+                <Input
                   type="password"
                   id="password"
                   required
                   placeholder="Insira sua senha"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors pr-12"
                 />
                 <Button
                   type="button"
@@ -94,7 +88,7 @@ export const SignUp = () => {
               <Button
                 variant="link"
                 onClick={() => {
-                  window.location.href = "/signin";
+                  window.location.href = "/";
                 }}
               >
                 Login
@@ -113,7 +107,7 @@ export const SignUp = () => {
             <Button
               variant="seccondary"
               onClick={() => {
-                window.location.href = "/signin";
+                window.location.href = "/";
               }}
             >
               Login
@@ -139,12 +133,12 @@ export const SignUp = () => {
                 >
                   Email
                 </label>
-                <input
+                <Input
                   type="email"
                   id="email"
                   required
                   placeholder="scheapp@gmail.com"
-                  className="w-full text-white px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+                  className="text-white"
                 />
               </div>
 
@@ -156,12 +150,12 @@ export const SignUp = () => {
                   Senha
                 </label>
                 <div className="relative">
-                  <input
+                  <Input
                     type="password"
                     id="password"
                     required
                     placeholder="Insira sua senha"
-                    className="w-full px-4 py-3 border text-white border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors pr-12"
+                    className="text-white"
                   />
                   <Button
                     type="button"
@@ -182,7 +176,7 @@ export const SignUp = () => {
                 <Button
                   variant="link"
                   onClick={() => {
-                    window.location.href = "/signin";
+                    window.location.href = "/";
                   }}
                 >
                   Login
