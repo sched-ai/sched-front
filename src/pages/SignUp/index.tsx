@@ -13,7 +13,7 @@ export const SignUp = () => {
 					<div>
                         <h2 className="text-4xl font-light text-white">Já possui uma conta?</h2>
                         <h2 className="text-4xl font-semibold text-white max-w-[290px] mb-10">Bem vindo de volta!</h2>
-                        <Button variant="default" size="lg" className="w-full bg-white text-black hover:bg-slate-100 hover:text-black p-4 h-[48px]" onClick={() => {
+                        <Button variant="seccondary" className="w-full" onClick={() => {
                             window.location.href = '/signin'
                         }}>LOGIN</Button>
                     </div>
@@ -66,14 +66,16 @@ export const SignUp = () => {
 
                     <Button
                         type="submit"
-                        className="w-full bg-black text-white p-4 h-[48px] rounded-lg font-semibold text-lg hover:bg-gray-800 transition-colors"
+                        className="w-full"
                     >
                         CADASTRAR
                     </Button>
 
                     <div className="text-center">
                         <span className="text-gray-600">Já Possui Uma Conta? </span>
-                        <a href="signin" className="text-blue-600 hover:text-blue-700 font-medium">Login</a>
+                        <Button variant="link" onClick={() => {
+                            window.location.href = '/signin'
+                        }}>Login</Button>
                     </div>
                 </form>
             </div>
