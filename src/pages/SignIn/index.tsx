@@ -3,6 +3,12 @@ import abstract from "../../assets/abstract_waves.jpg";
 import { Input } from "../../components/ui/input";
 
 export const SignIn = () => {
+
+  const onSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    window.location.href = "/firstLogin";
+  }
+
   return (
     <div
       className="flex p-11 w-full min-h-screen bg-cover bg-center"
@@ -41,6 +47,7 @@ export const SignIn = () => {
             </div>
             <div className="w-full max-w-[510px] m-auto">
             <form
+                onSubmit={onSubmit}
                 className="space-y-6 px-6 py-8 lg:px-10 lg:py-14
                             [background-clip:padding-box,border-box] 
                             backdrop-blur-md bg-black/45"
