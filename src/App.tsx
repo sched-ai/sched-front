@@ -1,19 +1,25 @@
 import { Route, Routes } from 'react-router-dom'
-import { SignIn } from './pages/SignIn'
-import { SignUp } from './pages/SignUp'
-import { FirstLogin } from './pages/FirstLogin'
-import { Home } from './pages/Home'
+import { Layout } from './components/Layout'
+import { routesConfig } from './router/routesConfig'
 
 function App() {
-
   return (
     <>
-     <Routes>
-      <Route path="/" element={<SignIn />}  />
-      <Route path="/signup" element={<SignUp />}  />
-      <Route path="/firstLogin" element={<FirstLogin />}  />
-      <Route path="/home" element={<Home />}  />
-     </Routes>
+      <Routes>
+        {routesConfig.map((route) => (
+          <Route
+            key={route.path}
+            path={route.path}
+            element={
+              route.template ? (
+                <Layout>{route.element}</Layout>
+              ) : (
+                route.element
+              )
+            }
+          />
+        ))}
+      </Routes>
     </>
   )
 }

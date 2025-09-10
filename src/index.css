@@ -148,7 +148,7 @@ body {
     @apply bg-background text-foreground;
     font-family: 'Poppins', system-ui, Avenir, Helvetica, Arial, sans-serif;
   }
-  
+
   /* Garantir que todos os elementos herdem a fonte Poppins */
   html, body, input, textarea, select, button {
     font-family: 'Poppins', system-ui, Avenir, Helvetica, Arial, sans-serif;
