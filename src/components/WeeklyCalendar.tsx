@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React from "react";
+import { format, startOfWeek, addDays, isSameDay } from "date-fns";
 
 const weekDays = [
   "Domingo",
@@ -22,6 +23,8 @@ export type EventType = {
 
 interface WeeklyCalendarProps {
 	events: EventType[];
+	currentDate: Date;
+	onDateClick?: (day: string, hour: string) => void;
 }
 
 function getDayIndex(day: string) {
@@ -32,17 +35,29 @@ function getHourIndex(time: string) {
 	return parseInt(time.split(":")[0], 10);
 }
 
-export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ events }) => {
-	const [modalInfo, setModalInfo] = useState<{day: string, hour: string} | null>(null);
+export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ 
+  events, 
+  currentDate,
+  onDateClick 
+}) => {
+  const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
+  
+  const weekDates = Array.from({ length: 7 }, (_, index) => 
+    addDays(weekStart, index)
+  );
+
 	const eventMap = events.map((event) => {
 		const dayIdx = getDayIndex(event.day);
 		const startIdx = getHourIndex(event.start);
 		const endIdx = getHourIndex(event.end);
 		return { ...event, dayIdx, startIdx, endIdx };
 	});
-  const dayNumber = 1; // Placeholder for the day number
 
-  console.log(modalInfo);
+  const handleCellClick = (dayName: string, hour: string) => {
+    if (onDateClick) {
+      onDateClick(dayName, hour);
+    }
+  };
 
 	return (
 		<div className="overflow-x-auto w-full">
@@ -51,19 +66,24 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ events }) => {
 
 				<div className="bg-white border-b max-w-[120px] w-full"></div>
 				<div className="grid grid-cols-7 border-b bg-white sticky top-0 z-10 w-full">
-					{weekDays.map((day, idx) => (
-						<div
-						key={day}
-						className={`py-2 px-2 text-center font-semibold border-l flex justify-center flex-col ${
-							idx >= 5 ? "bg-gray-50" : "bg-white"
-						}`}
-						>
-							<p>
-                {day} 
-              </p>
-              {dayNumber}
-						</div>
-					))}
+					{weekDays.map((day, idx) => {
+            const currentDayDate = weekDates[idx];
+            const isToday = isSameDay(currentDayDate, new Date());
+            
+            return (
+              <div
+                key={day}
+                className={`py-2 px-2 text-center font-semibold border-l flex justify-center flex-col ${
+                  idx >= 5 ? "bg-gray-50" : "bg-white"
+                } ${isToday ? "bg-blue-100 text-blue-600" : ""}`}
+              >
+                <p className="text-sm">{day}</p>
+                <p className={`text-lg ${isToday ? "font-bold" : ""}`}>
+                  {format(currentDayDate, "d")}
+                </p>
+              </div>
+            );
+          })}
 				</div>
 				</div>
 				<div className="flex">
@@ -89,7 +109,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ events }) => {
 								<div
 								key={hour}
 								className="h-[80px] border-b border-gray-200 cursor-pointer hover:bg-blue-50"
-								onClick={() => setModalInfo({ day, hour })}
+								onClick={() => handleCellClick(day, hour)}
 								></div>
 							))}
 							{eventMap
