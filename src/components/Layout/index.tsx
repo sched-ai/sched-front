@@ -1,6 +1,6 @@
 import { type ReactNode } from "react"
 import { AppSidebar } from "../ui/appSidebar"
-import { SidebarProvider, SidebarTrigger } from "../ui/sidebar"
+import { SidebarProvider } from "../ui/sidebar"
 
 interface LayoutProps {
   children: ReactNode
@@ -11,8 +11,7 @@ export const Layout = ({ children }: LayoutProps) => {
     <div>
       <SidebarProvider>
         <AppSidebar />
-        <main>
-          <SidebarTrigger />
+        <main className="w-full ml-66">
           {children}
         </main>
       </SidebarProvider>

@@ -11,7 +11,7 @@ import { CalendarFold, NotepadText } from "lucide-react";
 
 export function AppSidebar() {
   return (
-  <Sidebar collapsible="none" className="!max-w-[260px] md:w-[260px] w-auto" >
+  <Sidebar collapsible="none" className="!max-w-[260px] md:w-[260px] w-auto fixed" >
       <div
         className="absolute inset-0 bg-cover bg-center !max-w-[260px] md:w-[260px] w-auto"
         style={{ backgroundImage: `url(${backgroundImage})` }}
