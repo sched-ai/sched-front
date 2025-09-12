@@ -41,6 +41,8 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ events }) => {
 		return { ...event, dayIdx, startIdx, endIdx };
 	});
 
+  console.log(modalInfo);
+
 	return (
 		<div className="overflow-x-auto w-full">
 			<div className="min-w-[900px]">
@@ -115,21 +117,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ events }) => {
 			</div>
 				</div>
 			</div>
-			{modalInfo && (
-				<div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-					<div className="bg-white rounded shadow-lg p-6 min-w-[300px] text-center relative">
-						<button
-							className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-							onClick={() => setModalInfo(null)}
-						>
-							&times;
-						</button>
-						<h2 className="text-lg font-bold mb-2">Informações Selecionadas</h2>
-						<p><b>Dia:</b> {modalInfo.day}</p>
-						<p><b>Horário:</b> {modalInfo.hour}</p>
-					</div>
-				</div>
-			)}
+			
 		</div>
 	);
 };

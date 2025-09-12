@@ -26,9 +26,9 @@ export function AppSidebar() {
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup className="p-2">
-						<p className="font-semibold text-white px-4 pt-2">Bem Vindo!</p>
-						<p className="font-medium text-[#A5B4CB] px-4">Fulano</p>
-					</SidebarGroup>
+				<p className="font-semibold text-white px-4 pt-2">Bem Vindo!</p>
+				<p className="font-medium text-[#A5B4CB] px-4">Fulano</p>
+			</SidebarGroup>
           <SidebarGroup title="Navegação" className="p-0 gap-2">
             <NavItem title="Página Inicial" icon={<CalendarFold />} href="/home" />
 						<NavItem title="Atendimentos" icon={<NotepadText />} href="/atendimentos" />
