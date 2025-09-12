@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 
 const weekDays = [
+  "Domingo",
 	"Segunda",
 	"Terça",
 	"Quarta",
 	"Quinta",
 	"Sexta",
 	"Sábado",
-	"Domingo",
 ];
 
 const hours = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, "0")}:00`);
@@ -40,6 +40,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ events }) => {
 		const endIdx = getHourIndex(event.end);
 		return { ...event, dayIdx, startIdx, endIdx };
 	});
+  const dayNumber = 1; // Placeholder for the day number
 
   console.log(modalInfo);
 
@@ -53,11 +54,14 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ events }) => {
 					{weekDays.map((day, idx) => (
 						<div
 						key={day}
-						className={`py-2 px-2 text-center font-semibold border-l ${
+						className={`py-2 px-2 text-center font-semibold border-l flex justify-center flex-col ${
 							idx >= 5 ? "bg-gray-50" : "bg-white"
 						}`}
 						>
-							{day}
+							<p>
+                {day} 
+              </p>
+              {dayNumber}
 						</div>
 					))}
 				</div>
