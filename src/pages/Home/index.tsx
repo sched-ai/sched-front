@@ -26,8 +26,9 @@ export const Home = () => {
 
   const handleToday = () => {
     const now = new Date();
-    setCurrentDate(now);
-    setDate(now);
+    setCurrentDate(new Date(now));
+    setDate(undefined);
+    setTimeout(() => setDate(new Date(now)), 0);
   };
 
   const handleDateClick = (day: string, hour: string) => {
@@ -36,7 +37,7 @@ export const Home = () => {
 
 	const [date, setDate] = useState<Date | undefined>(new Date())
 
-  return (
+  return (	
     <div className="w-full">
       <header className="border-b border-b-[#DADCE0]">
         <div className="p-4 text-[30px] flex items-center gap-4 justify-between">
@@ -88,7 +89,7 @@ export const Home = () => {
             onDateClick={handleDateClick}
           />
         )}
-        <div className="h-full max-w-[280px] w-full flex justify-center">
+        <div className="w-fit flex justify-center border-l border-l-[#DADCE0] p-2 h-[calc(100vh-85px)]">
           <Calendar
             mode="single"
             locale={ptBR}
