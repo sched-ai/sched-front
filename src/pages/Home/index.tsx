@@ -38,7 +38,7 @@ export const Home = () => {
 	const [date, setDate] = useState<Date | undefined>(new Date())
 
   return (	
-    <div className="w-full">
+    <div className="w-full flex flex-col">
       <header className="border-b border-b-[#DADCE0]">
         <div className="p-4 text-[30px] flex items-center gap-4 justify-between">
           <div className="font-medium text-[#141736] flex items-center gap-4">
@@ -69,7 +69,7 @@ export const Home = () => {
               </Button>
             </div>
           </div>
-          <Select defaultValue="semana" onValueChange={setCalendarView}>
+          <Select defaultValue="semana" onValueChange={setCalendarView} disabled>
             <SelectTrigger className="w-[180px] text-[#141736] border-[#141736] [&_svg]:text-[#141736] cursor-pointer !h-[48px]">
               <SelectValue placeholder="Theme" />
             </SelectTrigger>

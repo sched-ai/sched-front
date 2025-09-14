@@ -60,7 +60,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
   };
 
 		return (
-			<div className="overflow-x-auto w-full">
+			<div className="overflow-x-auto w-full custom-scrollbar">
 				<div className="min-w-[900px]">
 					<div className="flex">
 						<div className="bg-white border-b max-w-[90px] w-full"></div>
