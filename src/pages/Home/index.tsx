@@ -11,6 +11,8 @@ import { useState } from "react";
 import { format, addWeeks, subWeeks } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
+import { Plus } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export const Home = () => {
   const [calendarView, setCalendarView] = useState("semana");
@@ -35,9 +37,9 @@ export const Home = () => {
     console.log(`Clicou em ${day} às ${hour}`);
   };
 
-	const [date, setDate] = useState<Date | undefined>(new Date())
+  const [date, setDate] = useState<Date | undefined>(new Date());
 
-  return (	
+  return (
     <div className="w-full flex flex-col">
       <header className="border-b border-b-[#DADCE0]">
         <div className="p-4 text-[30px] flex items-center gap-4 justify-between">
@@ -69,7 +71,11 @@ export const Home = () => {
               </Button>
             </div>
           </div>
-          <Select defaultValue="semana" onValueChange={setCalendarView} disabled>
+          <Select
+            defaultValue="semana"
+            onValueChange={setCalendarView}
+            disabled
+          >
             <SelectTrigger className="w-[180px] text-[#141736] border-[#141736] [&_svg]:text-[#141736] cursor-pointer !h-[48px]">
               <SelectValue placeholder="Theme" />
             </SelectTrigger>
@@ -89,14 +95,41 @@ export const Home = () => {
             onDateClick={handleDateClick}
           />
         )}
-        <div className="w-fit flex justify-center border-l border-l-[#DADCE0] p-2 h-[calc(100vh-85px)]">
-          <Calendar
-            mode="single"
-            locale={ptBR}
-            selected={date}
-            onSelect={setDate}
-            className="rounded-lg"
-          />
+        <div className="w-fit flex flex-col gap-4 border-l border-l-[#DADCE0] p-2 h-[calc(100vh-85px)]">
+          <div className="h-[340px]">
+            <Calendar
+              mode="single"
+              locale={ptBR}
+              selected={date}
+              onSelect={setDate}
+              className="rounded-lg"
+            />
+          </div>
+
+          <Button className="!text-[16px] font-normal">
+            <Plus /> Novo Agendamento
+          </Button>
+          <div className="px-2">
+            <p className="text-[16px] mb-2">Filtrar por</p>
+            <div className="flex items-center gap-2 mb-1">
+              <Checkbox
+                className="border-foreground text-foreground cursor-pointer"
+                title="bloqueios"
+              />
+              <label>Bloqueios</label>
+            </div>
+            <div className="flex items-center gap-2 mb-1">
+              <Checkbox
+                className="border-foreground cursor-pointer text-foreground"
+                title="agendamentos"
+              />
+              <label>Agendamentos</label>
+            </div>
+          </div>
+
+          {/* <section className="px-2 font-medium">
+            <p>Próximos Agendamentos</p>
+          </section> */}
         </div>
       </div>
     </div>
