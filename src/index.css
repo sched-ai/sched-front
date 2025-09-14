@@ -50,6 +50,22 @@
   --sidebar-ring: oklch(0.704 0.04 256.788);
 }
 
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #141736 #f1f1f1;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  position: relative;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #141736;
+  border-radius: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
 body {
   min-height: 100vh;
   height: 100%;
