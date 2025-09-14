@@ -11,7 +11,7 @@ export const Layout = ({ children }: LayoutProps) => {
     <div>
       <SidebarProvider>
         <AppSidebar />
-        <main className="w-full ml-66">
+        <main className="w-full ml-1 relative">
           {children}
         </main>
       </SidebarProvider>

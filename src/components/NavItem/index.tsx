@@ -1,21 +1,35 @@
-import type { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Button } from "../ui/button";
+import type { ComponentType } from "react";
 
-export const NavItem = ({ title, icon, href }: { title: string; icon: ReactNode; href: string }) => {
+interface NavItemProps {
+  title: string;
+  icon: ComponentType<{ size?: number }>;
+  href: string;
+  isSidebarOpen?: boolean;
+  iconSize?: number;
+}
+
+export const NavItem = ({
+  title,
+  icon: Icon,
+  href,
+  isSidebarOpen,
+  iconSize,
+}: NavItemProps) => {
   const location = useLocation();
   const isActive = location.pathname === href;
   const navigate = useNavigate();
   return (
-    <Button
-      variant="ghost"
+    <div
       onClick={() => {
         navigate(href);
       }}
-      className={`flex items-center font-medium gap-3 p-3 border-l-4 rounded-none text-[16px] justify-start hover:text-white border-transparent cursor-pointer hover:bg-[#0177FB]/10 ${!isActive ? "text-[#fff]" : "text-[#0177FB] border-l-[#0177FB]"}`}
+      className={`flex items-center font-medium gap-3 p-3 border-l-4 rounded-none justify-start hover:text-white border-transparent cursor-pointer hover:bg-[#0177FB]/10 pl-6 ${
+        !isActive ? "text-[#fff]" : "text-[#0177FB] border-l-[#0177FB]"
+      }`}
     >
-      {icon}
-      <span>{title}</span>
-    </Button>
+      <Icon size={iconSize || 20} />
+      {isSidebarOpen && <span className="truncate">{title}</span>}
+    </div>
   );
-}
+};
