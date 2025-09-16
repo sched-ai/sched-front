@@ -6,6 +6,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ClockPlus, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "../ui/input";
@@ -14,9 +15,36 @@ import { NaturalLanguagePicker } from "../NaturalLanguagePicker";
 import { Switch } from "../ui/switch";
 interface FormModalProps {
   isOpen?: boolean;
+  selectedDateTime?: { day: string; hour: string } | null;
+  onClose?: () => void;
 }
 
-export const FormModal = ({ isOpen }: FormModalProps) => {
+export const FormModal = ({
+  isOpen = false,
+  selectedDateTime = null,
+  onClose = () => {},
+}: FormModalProps) => {
+  function getEndHour(startHour: string | undefined) {
+    if (!startHour) return "";
+    const [h, m] = startHour.split(":").map(Number);
+    let endH = h + 1;
+    if (endH > 23) endH = 23;
+    return `${String(endH).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+  }
+
+  const [startHour, setStartHour] = useState("");
+  const [endHour, setEndHour] = useState("");
+
+  useEffect(() => {
+    if (isOpen && selectedDateTime) {
+      setStartHour(selectedDateTime.hour);
+      setEndHour(getEndHour(selectedDateTime.hour));
+    } else if (isOpen && !selectedDateTime) {
+      setStartHour("");
+      setEndHour("");
+    }
+  }, [isOpen, selectedDateTime]);
+
   return (
     <Dialog open={isOpen}>
       <DialogContent
@@ -36,6 +64,7 @@ export const FormModal = ({ isOpen }: FormModalProps) => {
           <Button
             variant="ghost"
             className="bg-transparent !p-0 hover:bg-transparent h-fit"
+            onClick={onClose}
           >
             <X className="text-white cursor-pointer" size={20} />
           </Button>
@@ -71,11 +100,15 @@ export const FormModal = ({ isOpen }: FormModalProps) => {
                   <Input
                     type="time"
                     className="bg-white/15 border-white max-w-[100px]"
+                    value={startHour}
+                    onChange={e => setStartHour(e.target.value)}
                   />
                   -
                   <Input
                     type="time"
                     className="bg-white/15 border-white max-w-[100px]"
+                    value={endHour}
+                    onChange={e => setEndHour(e.target.value)}
                   />
                 </div>
                 <div className="flex gap-2 items-center text-[16px]">

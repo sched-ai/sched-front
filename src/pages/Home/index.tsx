@@ -18,6 +18,7 @@ import { FormModal } from "@/components/FormModal";
 export const Home = () => {
   const [calendarView, setCalendarView] = useState("semana");
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handlePreviousWeek = () => {
     setCurrentDate((prev) => subWeeks(prev, 1));
@@ -33,9 +34,16 @@ export const Home = () => {
     setDate(undefined);
     setTimeout(() => setDate(new Date(now)), 0);
   };
+  const [selectedDateTime, setSelectedDateTime] = useState<{ day: string; hour: string } | null>(null);
 
   const handleDateClick = (day: string, hour: string) => {
+    setSelectedDateTime({ day, hour });
+    setIsModalOpen(true);
     console.log(`Clicou em ${day} às ${hour}`);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
   };
 
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -133,7 +141,7 @@ export const Home = () => {
           </section> */}
         </div>
       </div>
-      <FormModal isOpen/>
+  <FormModal isOpen={isModalOpen} selectedDateTime={selectedDateTime} onClose={handleCloseModal}/>
     </div>
   );
 };
