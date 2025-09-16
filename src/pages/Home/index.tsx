@@ -13,6 +13,7 @@ import { ptBR } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
 import { Plus } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { FormModal } from "@/components/FormModal";
 
 export const Home = () => {
   const [calendarView, setCalendarView] = useState("semana");
@@ -132,6 +133,7 @@ export const Home = () => {
           </section> */}
         </div>
       </div>
+      <FormModal isOpen/>
     </div>
   );
 };
