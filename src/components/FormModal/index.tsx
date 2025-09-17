@@ -11,11 +11,11 @@ import { Button } from "../ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "../ui/input";
 import background from "../../assets/schedule_modal_background.png";
-import { NaturalLanguagePicker } from "../NaturalLanguagePicker";
+import { DatePicker } from "../DatePicker";
 import { Switch } from "../ui/switch";
 interface FormModalProps {
   isOpen?: boolean;
-  selectedDateTime?: { day: string; hour: string } | null;
+  selectedDateTime?: { day: number; month?: number; year?: number; hour: string } | null;
   onClose?: () => void;
 }
 
@@ -96,7 +96,13 @@ export const FormModal = ({
                   <span>Confirme a data e hora:</span>
                 </div>
                 <div className="flex gap-4 items-center">
-                  <NaturalLanguagePicker />
+                  <DatePicker
+                    initialValue={
+                      selectedDateTime && selectedDateTime.day && selectedDateTime.month && selectedDateTime.year
+                        ? `${selectedDateTime.day.toString().padStart(2, "0")}/${selectedDateTime.month.toString().padStart(2, "0")}/${selectedDateTime.year}`
+                        : undefined
+                    }
+                  />
                   <Input
                     type="time"
                     className="bg-white/15 border-white max-w-[100px]"

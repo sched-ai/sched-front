@@ -24,7 +24,7 @@ export type EventType = {
 interface WeeklyCalendarProps {
 	events: EventType[];
 	currentDate: Date;
-	onDateClick?: (day: string, hour: string) => void;
+	onDateClick?: (date: { day: number; month: number; year: number }, hour: string) => void;
 }
 
 function getDayIndex(day: string) {
@@ -53,11 +53,19 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 		return { ...event, dayIdx, startIdx, endIdx };
 	});
 
-  const handleCellClick = (dayName: string, hour: string) => {
-    if (onDateClick) {
-      onDateClick(dayName, hour);
-    }
-  };
+	const handleCellClick = (dayIdx: number, hour: string) => {
+		if (onDateClick) {
+			const dateObj = weekDates[dayIdx];
+			onDateClick(
+				{
+					day: dateObj.getDate(),
+					month: dateObj.getMonth() + 1, // mês começa em 0
+					year: dateObj.getFullYear(),
+				},
+				hour
+			);
+		}
+	};
 
 		return (
 			<div className="overflow-x-auto w-full custom-scrollbar">
@@ -108,7 +116,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 											<div
 												key={hour}
 												className="h-[60px] border-b border-gray-200 cursor-pointer hover:bg-blue-50"
-												onClick={() => handleCellClick(day, hour)}
+												onClick={() => handleCellClick(dayIdx, hour)}
 											></div>
 										))}
 										{eventMap

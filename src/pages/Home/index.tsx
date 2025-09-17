@@ -34,12 +34,12 @@ export const Home = () => {
     setDate(undefined);
     setTimeout(() => setDate(new Date(now)), 0);
   };
-  const [selectedDateTime, setSelectedDateTime] = useState<{ day: string; hour: string } | null>(null);
+  const [selectedDateTime, setSelectedDateTime] = useState<{ day: number; month: number; year: number; hour: string } | null>(null);
 
-  const handleDateClick = (day: string, hour: string) => {
-    setSelectedDateTime({ day, hour });
+  const handleDateClick = (date: { day: number; month: number; year: number }, hour: string) => {
+    setSelectedDateTime({ ...date, hour });
     setIsModalOpen(true);
-    console.log(`Clicou em ${day} às ${hour}`);
+    console.log(`Clicou em ${date.day}/${date.month}/${date.year} às ${hour}`);
   };
 
   const handleCloseModal = () => {
@@ -141,7 +141,7 @@ export const Home = () => {
           </section> */}
         </div>
       </div>
-  <FormModal isOpen={isModalOpen} selectedDateTime={selectedDateTime} onClose={handleCloseModal}/>
+    <FormModal isOpen={isModalOpen} selectedDateTime={selectedDateTime} onClose={handleCloseModal}/>
     </div>
   );
 };
