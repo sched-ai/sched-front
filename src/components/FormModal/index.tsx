@@ -1,4 +1,4 @@
-import { ClockPlus, X, GripHorizontal } from "lucide-react";
+import { ClockPlus, X, GripHorizontal, Notebook } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,14 +9,26 @@ import { Switch } from "../ui/switch";
 import { DndContext, useDraggable } from "@dnd-kit/core";
 import type { DragEndEvent } from "@dnd-kit/core";
 import { restrictToWindowEdges } from "@dnd-kit/modifiers";
+import { Label } from "../ui/label";
 
 interface FormModalProps {
   isOpen?: boolean;
-  selectedDateTime?: { day: number; month?: number; year?: number; hour: string } | null;
+  selectedDateTime?: {
+    day: number;
+    month?: number;
+    year?: number;
+    hour: string;
+  } | null;
   onClose?: () => void;
 }
 
-const DraggableModalContent = ({ children, position }: { children: React.ReactNode, position: { x: number, y: number } }) => {
+const DraggableModalContent = ({
+  children,
+  position,
+}: {
+  children: React.ReactNode;
+  position: { x: number; y: number };
+}) => {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: "draggable-modal",
   });
@@ -25,7 +37,7 @@ const DraggableModalContent = ({ children, position }: { children: React.ReactNo
   const y = (transform?.y ?? 0) + position.y;
   const style = {
     transform: `translate3d(${x}px, ${y}px, 0)`,
-                backgroundImage: `url(${background})`,
+    backgroundImage: `url(${background})`,
   };
 
   return (
@@ -76,7 +88,7 @@ export const FormModal = ({
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { delta } = event;
-    setPosition(prev => ({
+    setPosition((prev) => ({
       x: prev.x + delta.x,
       y: prev.y + delta.y,
     }));
@@ -99,8 +111,12 @@ export const FormModal = ({
         >
           <div className="flex-row justify-between flex items-start mb-4">
             <div>
-              <div className="text-white font-medium text-xl">Novo Agendamento</div>
-              <div className="text-[14px] text-[#A4A4A4]">Preencha o formulário para criar um novo agendamento.</div>
+              <div className="text-white font-medium text-xl">
+                Novo Agendamento
+              </div>
+              <div className="text-[14px] text-[#A4A4A4]">
+                Preencha o formulário para criar um novo agendamento.
+              </div>
             </div>
             <Button
               variant="ghost"
@@ -139,8 +155,15 @@ export const FormModal = ({
                   <div className="flex gap-4 items-center">
                     <DatePicker
                       initialValue={
-                        selectedDateTime && selectedDateTime.day && selectedDateTime.month && selectedDateTime.year
-                          ? `${selectedDateTime.day.toString().padStart(2, "0")}/${selectedDateTime.month.toString().padStart(2, "0")}/${selectedDateTime.year}`
+                        selectedDateTime &&
+                        selectedDateTime.day &&
+                        selectedDateTime.month &&
+                        selectedDateTime.year
+                          ? `${selectedDateTime.day
+                              .toString()
+                              .padStart(2, "0")}/${selectedDateTime.month
+                              .toString()
+                              .padStart(2, "0")}/${selectedDateTime.year}`
                           : undefined
                       }
                     />
@@ -148,26 +171,119 @@ export const FormModal = ({
                       type="time"
                       className="bg-white/15 border-white max-w-[100px]"
                       value={startHour}
-                      onChange={e => setStartHour(e.target.value)}
+                      onChange={(e) => setStartHour(e.target.value)}
                     />
                     -
                     <Input
                       type="time"
                       className="bg-white/15 border-white max-w-[100px]"
                       value={endHour}
-                      onChange={e => setEndHour(e.target.value)}
+                      onChange={(e) => setEndHour(e.target.value)}
                     />
                   </div>
                   <div className="flex gap-2 items-center text-[16px]">
                     <Switch className="data-[state=checked]:bg-[#0177FB] data-[state=unchecked]:bg-[#5E5E5E]" />{" "}
                     Repetir
                   </div>
-                  <textarea className="border p-3 min-h-[100px] border-white bg-white/15 rounded-[10px]" placeholder="Descrição do bloqueio"/>
-                  <Button className="self-end !text-[16px] mt-4" type="submit" variant='seccondary'>Salvar</Button>
+                  <textarea
+                    className="border p-3 min-h-[100px] border-white bg-white/15 rounded-[10px]"
+                    placeholder="Descrição do bloqueio"
+                  />
+                  <Button
+                    className="self-end !text-[16px] mt-4"
+                    type="submit"
+                    variant="seccondary"
+                  >
+                    Salvar
+                  </Button>
                 </div>
               </form>
             </TabsContent>
-            <TabsContent value="consulta">Change your consulta here.</TabsContent>
+            <TabsContent value="consulta" className="text-white">
+              <form>
+                <Input
+                  className="text-white placeholder:text-white/80 border-x-0 border-t-0 rounded-[10px] bg-white/15 outline-0 w-full border-b-[2px] !border-b-[#0177FB] mt-[12px]"
+                  placeholder="Adicionar Paciente"
+                />
+                <div className="flex flex-col gap-4">
+                  <div className="flex gap-2 items-center text-[16px] mt-5">
+                    <ClockPlus />
+                    <span>Confirme a data e hora:</span>
+                  </div>
+                  <div className="flex gap-4 items-center">
+                    <DatePicker
+                      initialValue={
+                        selectedDateTime &&
+                        selectedDateTime.day &&
+                        selectedDateTime.month &&
+                        selectedDateTime.year
+                          ? `${selectedDateTime.day
+                              .toString()
+                              .padStart(2, "0")}/${selectedDateTime.month
+                              .toString()
+                              .padStart(2, "0")}/${selectedDateTime.year}`
+                          : undefined
+                      }
+                    />
+                    <Input
+                      type="time"
+                      className="bg-white/15 border-white max-w-[100px]"
+                      value={startHour}
+                      onChange={(e) => setStartHour(e.target.value)}
+                    />
+                    -
+                    <Input
+                      type="time"
+                      className="bg-white/15 border-white max-w-[100px]"
+                      value={endHour}
+                      onChange={(e) => setEndHour(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex gap-2 items-center text-[16px]">
+                    <Switch className="data-[state=checked]:bg-[#0177FB] data-[state=unchecked]:bg-[#5E5E5E]" />{" "}
+                    Repetir
+                  </div>
+                  <div className="flex flex-col gap-4 w-full">
+                    <div className="flex gap-2 items-center text-[16px] mt-5">
+                      <Notebook />
+                      <span>Informações do serviço:</span>
+                    </div>
+                    <div className="flex gap-4 items-center">
+                      <div className="w-full flex flex-col gap-2">
+                        <Label className="text-white">
+                          Local de atendimento
+                        </Label>
+                        <Input
+                          type="text"
+                          className="bg-white/15 border-white"
+                        />
+                      </div>
+
+                       <div className="w-full flex flex-col gap-2">
+                        <Label className="text-white">
+                          Serviço
+                        </Label>
+                        <Input
+                          type="text"
+                          className="bg-white/15 border-white"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <textarea
+                    className="border p-3 min-h-[100px] border-white bg-white/15 rounded-[10px]"
+                    placeholder="Descrição da consulta"
+                  />
+                  <Button
+                    className="self-end !text-[16px] mt-4"
+                    type="submit"
+                    variant="seccondary"
+                  >
+                    Salvar
+                  </Button>
+                </div>
+              </form>
+            </TabsContent>
           </Tabs>
         </div>
       </DraggableModalContent>
