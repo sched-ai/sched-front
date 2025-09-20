@@ -34,8 +34,8 @@ const DraggableModalContent = ({
   });
 
   const getInitialPosition = useCallback(() => {
-    const modalWidth = 400; // largura mínima do modal
-    const modalHeight = 400; // altura mínima do modal
+    const modalWidth = 400;
+    const modalHeight = 700;
     
     return {
       x: (window.innerWidth - modalWidth) / 2,

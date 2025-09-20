@@ -145,7 +145,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 										{hours.map((hour) => (
 											<div
 												key={hour}
-												className="h-[80px] border-b border-gray-200 cursor-pointer hover:bg-blue-50"
+												className="h-[80px] border-b border-gray-200 hover:bg-blue-50"
 												onClick={() => handleCellClick(dayIdx, hour)}
 											></div>
 										))}
@@ -158,7 +158,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 												return (
 													<div
 														key={ev.id}
-														className="absolute w-full rounded bg-blue-500 text-white px-2 py-1 text-xs shadow-md"
+														className="absolute w-full rounded bg-blue-500 text-white px-2 py-1 text-xs shadow-md hover:scale-105 cursor-pointer hover:animate-pulse transition-all"
 														style={{
 															top: `${top}px`,
 															height: `${height}px`,
