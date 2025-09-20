@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import { format, startOfWeek, addDays, isSameDay } from "date-fns";
 
 const weekDays = [
@@ -47,11 +47,20 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
   currentDate,
   onDateClick 
 }) => {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
   
   const weekDates = Array.from({ length: 7 }, (_, index) => 
     addDays(weekStart, index)
   );
+
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      const cellHeight = 80;
+      const scrollPosition = 6 * cellHeight;
+      scrollContainerRef.current.scrollTop = scrollPosition;
+    }
+  }, [currentDate]);
 
 	const eventMap = events.map((event) => {
 		const dayIdx = getDayIndex(event.day);
@@ -104,7 +113,10 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 							})}
 						</div>
 					</div>
-					  <div className="overflow-y-auto h-[calc(100vh-150px)] custom-scrollbar">
+					  <div 
+						ref={scrollContainerRef}
+						className="overflow-y-auto h-[calc(100vh-150px)] custom-scrollbar"
+					  >
 						<div className="flex">
 							<div className="flex flex-col max-w-[90px] pl-6 w-full">
 								{hours.map((hour) => (
