@@ -31,8 +31,7 @@ export const Home = () => {
   const handleToday = () => {
     const now = new Date();
     setCurrentDate(new Date(now));
-    setDate(undefined);
-    setTimeout(() => setDate(new Date(now)), 0);
+    setDate(new Date(now));
   };
   const [selectedDateTime, setSelectedDateTime] = useState<{
     day: number;
@@ -47,7 +46,6 @@ export const Home = () => {
   ) => {
     setSelectedDateTime({ ...date, hour });
     setIsModalOpen(true);
-    console.log(`Clicou em ${date.day}/${date.month}/${date.year} às ${hour}`);
   };
 
   const handleCloseModal = () => {
@@ -55,6 +53,17 @@ export const Home = () => {
   };
 
   const [date, setDate] = useState<Date | undefined>(new Date());
+
+  const handleDateSelect = (selectedDate: Date | undefined) => {
+    setDate(selectedDate);
+    if (selectedDate) {
+      setCurrentDate(selectedDate);
+    }
+  };
+
+  const handleMonthChange = (month: Date) => {
+    setCurrentDate(month);
+  };
 
   return (
     <div className="w-full flex flex-col">
@@ -182,7 +191,8 @@ export const Home = () => {
               mode="single"
               locale={ptBR}
               selected={date}
-              onSelect={setDate}
+              onSelect={handleDateSelect}
+              onMonthChange={handleMonthChange}
               className="rounded-lg"
             />
           </div>
