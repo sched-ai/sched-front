@@ -99,7 +99,43 @@ export const Home = () => {
       <div className="flex">
         {calendarView === "semana" && (
           <WeeklyCalendar
-            events={[]}
+            events={[
+              {
+                id: 1,
+                title: 'Reunião de Equipe',
+                start: '09:00',
+                end: '10:30',
+                day: 'Segunda'
+              },
+              {
+                id: 2,
+                title: 'Consulta Médica',
+                start: '14:00',
+                end: '15:00',
+                day: 'Terça'
+              },
+              {
+                id: 3,
+                title: 'Apresentação',
+                start: '10:00',
+                end: '11:30',
+                day: 'Quarta'
+              },
+              {
+                id: 4,
+                title: 'Reunião Curta',
+                start: '11:30',
+                end: '12:00',
+                day: 'Quinta'
+              },
+              {
+                id: 5,
+                title: 'Evento Longo',
+                start: '11:30',
+                end: '12:30',
+                day: 'Sexta'
+              }
+            ]}
             currentDate={currentDate}
             onDateClick={handleDateClick}
           />

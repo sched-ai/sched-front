@@ -31,8 +31,15 @@ function getDayIndex(day: string) {
 	return weekDays.indexOf(day);
 }
 
-function getHourIndex(time: string) {
-	return parseInt(time.split(":")[0], 10);
+function getHourPosition(time: string) {
+	const [hours, minutes] = time.split(":").map(Number);
+	const hourIndex = hours;
+	const minuteOffset = minutes / 60;
+	return {
+		hourIndex,
+		minuteOffset,
+		totalPosition: hourIndex + minuteOffset
+	};
 }
 
 export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ 
@@ -48,9 +55,14 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 
 	const eventMap = events.map((event) => {
 		const dayIdx = getDayIndex(event.day);
-		const startIdx = getHourIndex(event.start);
-		const endIdx = getHourIndex(event.end);
-		return { ...event, dayIdx, startIdx, endIdx };
+		const startPos = getHourPosition(event.start);
+		const endPos = getHourPosition(event.end);
+		return { 
+			...event, 
+			dayIdx, 
+			startPos, 
+			endPos 
+		};
 	});
 
 	const handleCellClick = (dayIdx: number, hour: string) => {
@@ -59,7 +71,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 			onDateClick(
 				{
 					day: dateObj.getDate(),
-					month: dateObj.getMonth() + 1, // mês começa em 0
+					month: dateObj.getMonth() + 1,
 					year: dateObj.getFullYear(),
 				},
 				hour
@@ -98,7 +110,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 								{hours.map((hour) => (
 									<div
 										key={hour}
-										className="h-[60px] text-md text-right pr-2 flex items-center max-w-[50px]"
+										className="h-[80px] text-md text-right pr-2 flex items-center max-w-[50px]"
 									>
 										{hour}
 									</div>
@@ -115,23 +127,24 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 										{hours.map((hour) => (
 											<div
 												key={hour}
-												className="h-[60px] border-b border-gray-200 cursor-pointer hover:bg-blue-50"
+												className="h-[80px] border-b border-gray-200 cursor-pointer hover:bg-blue-50"
 												onClick={() => handleCellClick(dayIdx, hour)}
 											></div>
 										))}
 										{eventMap
 											.filter((ev) => ev.dayIdx === dayIdx)
 											.map((ev) => {
-												const top = ev.startIdx * 80;
-												const height = (ev.endIdx - ev.startIdx + 1) * 80;
+												const cellHeight = 80;
+												const top = ev.startPos.totalPosition * cellHeight;
+												const height = (ev.endPos.totalPosition - ev.startPos.totalPosition) * cellHeight;
 												return (
 													<div
 														key={ev.id}
-														className="absolute left-2 right-2 rounded bg-blue-500 text-white px-2 py-1 text-xs shadow-md"
+														className="absolute w-full rounded bg-blue-500 text-white px-2 py-1 text-xs shadow-md"
 														style={{
-															top: top,
-															height: height,
-															minHeight: 80,
+															top: `${top}px`,
+															height: `${height}px`,
+															minHeight: `${Math.max(height, 20)}px`,
 															zIndex: 20,
 															backgroundColor: dayIdx >= 5 ? "#60a5fa" : "#2563eb",
 														}}
