@@ -106,12 +106,12 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 								return (
 									<div
 										key={day}
-										className={`py-2 px-2 text-center font-semibold border-l flex justify-center flex-col ${
+										className={`py-2 px-2 text-center font-semibold flex justify-center items-center flex-col ${
 											idx >= 5 ? "bg-gray-50" : "bg-white"
 										} ${isToday ? "bg-blue-100 text-blue-600" : ""}`}
 									>
 										<p className="text-sm">{day}</p>
-										<p className={`text-lg ${isToday ? "font-bold" : ""}`}>
+										<p className={`text-lg ${isToday ? "font-bold bg-blue-600 text-white w-fit rounded-full px-1 text-center" : ""}`}>
 											{format(currentDayDate, "d")}
 										</p>
 									</div>
@@ -121,10 +121,10 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 					</div>
 					  <div 
 						ref={scrollContainerRef}
-						className="overflow-y-auto h-[calc(100vh-150px)] custom-scrollbar"
+						className="overflow-auto h-[calc(100vh-150px)] custom-scrollbar"
 					  >
 						<div className="flex">
-							<div className="flex flex-col max-w-[90px] pl-6 w-full">
+							<div className="flex flex-col max-w-[90px] pl-5 w-full">
 								{hours.map((hour) => (
 									<div
 										key={hour}
@@ -164,7 +164,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 															height: `${height}px`,
 															minHeight: `${Math.max(height, 20)}px`,
 															zIndex: 20,
-															backgroundColor: dayIdx >= 5 ? "#60a5fa" : "#2563eb",
+															backgroundColor: dayIdx >= 5 ? "#60a5fa" : "#050a35",
 														}}
 													>
 														{ev.title}

@@ -35,7 +35,7 @@ const DraggableModalContent = ({
 
   const getInitialPosition = useCallback(() => {
     const modalWidth = 400;
-    const modalHeight = 700;
+    const modalHeight = 720;
     
     return {
       x: (window.innerWidth - modalWidth) / 2,
@@ -63,7 +63,7 @@ const DraggableModalContent = ({
       <div
         {...attributes}
         {...listeners}
-        className="absolute top-0 right-0 left-0 h-12 cursor-move flex items-center justify-center bg-[#2C2D43] rounded-t-lg z-10 transition-colors"
+        className="absolute top-0 right-0 left-0 h-8 pl-2 cursor-move flex items-center justify-start bg-[#2C2D43] rounded-t-lg z-10 transition-colors"
         style={{ userSelect: "none" }}
       >
         <GripHorizontal size={20} className="text-white/70" />
@@ -121,7 +121,7 @@ export const FormModal = ({
     <DndContext onDragEnd={handleDragEnd} modifiers={[restrictToWindowEdges]}>
       <DraggableModalContent position={position}>
         <div
-          className="relative flex flex-col w-full px-6 pb-6"
+          className="relative flex flex-col w-full px-6"
           style={{
             minHeight: 400,
             paddingTop: 32,

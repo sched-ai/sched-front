@@ -1,22 +1,12 @@
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { WeeklyCalendar } from "@/components/WeeklyCalendar";
 import { useState } from "react";
 import { format, addWeeks, subWeeks } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar } from "@/components/ui/calendar";
-import { Plus } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
 import { FormModal } from "@/components/FormModal";
+import { Plus } from "lucide-react";
 
 export const Home = () => {
-  const [calendarView, setCalendarView] = useState("semana");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -31,7 +21,6 @@ export const Home = () => {
   const handleToday = () => {
     const now = new Date();
     setCurrentDate(new Date(now));
-    setDate(new Date(now));
   };
   const [selectedDateTime, setSelectedDateTime] = useState<{
     day: number;
@@ -52,19 +41,6 @@ export const Home = () => {
     setIsModalOpen(false);
   };
 
-  const [date, setDate] = useState<Date | undefined>(new Date());
-
-  const handleDateSelect = (selectedDate: Date | undefined) => {
-    setDate(selectedDate);
-    if (selectedDate) {
-      setCurrentDate(selectedDate);
-    }
-  };
-
-  const handleMonthChange = (month: Date) => {
-    setCurrentDate(month);
-  };
-
   return (
     <div className="w-full flex flex-col">
       <header className="border-b border-b-[#DADCE0]">
@@ -77,7 +53,7 @@ export const Home = () => {
             >
               HOJE
             </Button>
-            <p className="w-[300px]">
+            <p className="w-[300px] capitalize">
               {format(currentDate, "MMMM 'de' yyyy", { locale: ptBR })}
             </p>
             <div className="flex">
@@ -97,24 +73,12 @@ export const Home = () => {
               </Button>
             </div>
           </div>
-          <Select
-            defaultValue="semana"
-            onValueChange={setCalendarView}
-            disabled
-          >
-            <SelectTrigger className="w-[180px] text-[#141736] border-[#141736] [&_svg]:text-[#141736] cursor-pointer !h-[48px]">
-              <SelectValue placeholder="Theme" />
-            </SelectTrigger>
-            <SelectContent className="cursor-pointer">
-              <SelectItem value="semana">Semana</SelectItem>
-              <SelectItem value="dia">Dia</SelectItem>
-              <SelectItem value="mes">Mês</SelectItem>
-            </SelectContent>
-          </Select>
+         <Button className="!text-[16px] font-normal bg-[#050a35] hover:bg-blue-950">
+            <Plus /> Novo Agendamento
+          </Button>
         </div>
       </header>
       <div className="flex">
-        {calendarView === "semana" && (
           <WeeklyCalendar
             events={[
               {
@@ -184,8 +148,8 @@ export const Home = () => {
             currentDate={currentDate}
             onDateClick={handleDateClick}
           />
-        )}
-        <div className="w-fit flex flex-col gap-4 border-l border-l-[#DADCE0] p-2 h-[calc(100vh-85px)]">
+        
+        {/* <div className="w-fit flex flex-col gap-4 border-l border-l-[#DADCE0] p-2 h-[calc(100vh-85px)]">
           <div className="h-[340px]">
             <Calendar
               mode="single"
@@ -218,10 +182,11 @@ export const Home = () => {
             </div>
           </div>
 
-          {/* <section className="px-2 font-medium">
+          <section className="px-2 font-medium">
             <p>Próximos Agendamentos</p>
-          </section> */}
-        </div>
+          </section> 
+        </div> 
+        */}
       </div>
       <FormModal
         isOpen={isModalOpen}
