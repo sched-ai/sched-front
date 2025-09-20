@@ -58,17 +58,19 @@ const DraggableModalContent = ({
     <div
       ref={setNodeRef}
       style={style}
-      className="fixed z-50 min-w-[400px] max-w-[95vw] max-h-[90vh] shadow-2xl rounded-2xl border-none overflow-hidden bg-cover py-8"
+      className="fixed z-50 min-w-[400px] max-w-[95vw] max-h-[90vh] shadow-2xl rounded-2xl border-none bg-cover flex flex-col"
     >
       <div
         {...attributes}
         {...listeners}
-        className="absolute top-0 right-0 left-0 h-12 cursor-move flex items-center justify-center bg-white/10 rounded-t-lg z-10 hover:bg-white/20 transition-colors"
+        className="absolute top-0 right-0 left-0 h-12 cursor-move flex items-center justify-center bg-[#2C2D43] rounded-t-lg z-10 transition-colors"
         style={{ userSelect: "none" }}
       >
         <GripHorizontal size={20} className="text-white/70" />
+      </div> 
+      <div className="flex-1 overflow-y-auto py-8 custom-scrollbar">
+        {children}
       </div>
-      {children}
     </div>
   );
 };
@@ -119,13 +121,10 @@ export const FormModal = ({
     <DndContext onDragEnd={handleDragEnd} modifiers={[restrictToWindowEdges]}>
       <DraggableModalContent position={position}>
         <div
-          className="relative flex flex-col w-full"
+          className="relative flex flex-col w-full px-6 pb-6"
           style={{
             minHeight: 400,
             paddingTop: 32,
-            paddingBottom: 24,
-            paddingLeft: 24,
-            paddingRight: 24,
           }}
         >
           <div className="flex-row justify-between flex items-start mb-4">
