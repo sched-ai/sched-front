@@ -1,5 +1,5 @@
 import { ClockPlus, X, GripHorizontal, Notebook } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Button } from "../ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "../ui/input";
@@ -33,10 +33,24 @@ const DraggableModalContent = ({
     id: "draggable-modal",
   });
 
-  const x = (transform?.x ?? 0) + position.x;
-  const y = (transform?.y ?? 0) + position.y;
+  const getInitialPosition = useCallback(() => {
+    const modalWidth = 400; // largura mínima do modal
+    const modalHeight = 400; // altura mínima do modal
+    
+    return {
+      x: (window.innerWidth - modalWidth) / 2,
+      y: (window.innerHeight - modalHeight) / 2,
+    };
+  }, []);
+
+  const initialPosition = getInitialPosition();
+  
+  const x = initialPosition.x + (transform?.x ?? 0) + position.x;
+  const y = initialPosition.y + (transform?.y ?? 0) + position.y;
+  
   const style = {
-    transform: `translate3d(${x}px, ${y}px, 0)`,
+    left: `${x}px`,
+    top: `${y}px`,
     backgroundImage: `url(${background})`,
   };
 
@@ -44,15 +58,15 @@ const DraggableModalContent = ({
     <div
       ref={setNodeRef}
       style={style}
-      className="fixed z-50 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 min-w-[400px] max-w-[95vw] max-h-[90vh] shadow-2xl rounded-2xl border-none overflow-hidden bg-cover py-8"
+      className="fixed z-50 min-w-[400px] max-w-[95vw] max-h-[90vh] shadow-2xl rounded-2xl border-none overflow-hidden bg-cover py-8"
     >
       <div
         {...attributes}
         {...listeners}
-        className="absolute top-0 right-0 left-0 h-8 cursor-move flex items-center justify-center bg-white/10 rounded-t-lg z-10"
+        className="absolute top-0 right-0 left-0 h-12 cursor-move flex items-center justify-center bg-white/10 rounded-t-lg z-10 hover:bg-white/20 transition-colors"
         style={{ userSelect: "none" }}
       >
-        <GripHorizontal size={20} className="text-white/50" />
+        <GripHorizontal size={20} className="text-white/70" />
       </div>
       {children}
     </div>
@@ -83,6 +97,11 @@ export const FormModal = ({
     } else if (isOpen && !selectedDateTime) {
       setStartHour("");
       setEndHour("");
+    }
+    
+    // Resetar posição quando o modal for fechado
+    if (!isOpen) {
+      setPosition({ x: 0, y: 0 });
     }
   }, [isOpen, selectedDateTime]);
 
