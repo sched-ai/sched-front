@@ -34,9 +34,17 @@ export const Home = () => {
     setDate(undefined);
     setTimeout(() => setDate(new Date(now)), 0);
   };
-  const [selectedDateTime, setSelectedDateTime] = useState<{ day: number; month: number; year: number; hour: string } | null>(null);
+  const [selectedDateTime, setSelectedDateTime] = useState<{
+    day: number;
+    month: number;
+    year: number;
+    hour: string;
+  } | null>(null);
 
-  const handleDateClick = (date: { day: number; month: number; year: number }, hour: string) => {
+  const handleDateClick = (
+    date: { day: number; month: number; year: number },
+    hour: string
+  ) => {
     setSelectedDateTime({ ...date, hour });
     setIsModalOpen(true);
     console.log(`Clicou em ${date.day}/${date.month}/${date.year} às ${hour}`);
@@ -102,39 +110,67 @@ export const Home = () => {
             events={[
               {
                 id: 1,
-                title: 'Reunião de Equipe',
-                start: '09:00',
-                end: '10:30',
-                day: 'Segunda'
+                title: "Reunião de Equipe",
+                start: "09:00",
+                end: "10:30",
+                day: "Segunda",
+                month: "09",
+                year: 2025
               },
               {
                 id: 2,
-                title: 'Consulta Médica',
-                start: '14:00',
-                end: '15:00',
-                day: 'Terça'
+                title: "Consulta Médica",
+                start: "14:00",
+                end: "15:00",
+                day: "Terça",
+                month: "09",
+                year: 2025
               },
               {
                 id: 3,
-                title: 'Apresentação',
-                start: '10:00',
-                end: '11:30',
-                day: 'Quarta'
+                title: "Apresentação",
+                start: "10:00",
+                end: "11:30",
+                day: "Quarta",
+                month: "09",
+                year: 2025
               },
               {
                 id: 4,
-                title: 'Reunião Curta',
-                start: '11:30',
-                end: '12:00',
-                day: 'Quinta'
+                title: "Reunião Curta",
+                start: "11:30",
+                end: "12:00",
+                day: "Quinta",
+                month: "09",
+                year: 2025
               },
               {
                 id: 5,
-                title: 'Evento Longo',
-                start: '11:30',
-                end: '12:30',
-                day: 'Sexta'
-              }
+                title: "Evento Longo",
+                start: "11:30",
+                end: "12:30",
+                day: "Sexta",
+                month: "12",
+                year: 2025
+              },
+              {
+                id: 6,
+                title: "Evento de Janeiro",
+                start: "08:00",
+                end: "09:00",
+                day: "Segunda",
+                month: "01",
+                year: 2025
+              },
+              {
+                id: 7,
+                title: "Evento de Novembro",
+                start: "16:00",
+                end: "17:00",
+                day: "Terça",
+                month: "11",
+                year: 2025
+              },
             ]}
             currentDate={currentDate}
             onDateClick={handleDateClick}
@@ -177,7 +213,11 @@ export const Home = () => {
           </section> */}
         </div>
       </div>
-    <FormModal isOpen={isModalOpen} selectedDateTime={selectedDateTime} onClose={handleCloseModal}/>
+      <FormModal
+        isOpen={isModalOpen}
+        selectedDateTime={selectedDateTime}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 };

@@ -19,6 +19,8 @@ export type EventType = {
 	day: string;
 	start: string;
 	end: string;
+	month: string;
+	year: number;
 };
 
 interface WeeklyCalendarProps {
@@ -62,7 +64,11 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
     }
   }, [currentDate]);
 
-	const eventMap = events.map((event) => {
+	const currentMonth = format(currentDate, 'MM');
+	const currentYear = Number(format(currentDate, "yyyy"))
+	const filteredEvents = events.filter(event => event.month === currentMonth && event.year === currentYear);
+
+	const eventMap = filteredEvents.map((event) => {
 		const dayIdx = getDayIndex(event.day);
 		const startPos = getHourPosition(event.start);
 		const endPos = getHourPosition(event.end);
