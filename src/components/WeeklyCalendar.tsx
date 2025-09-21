@@ -28,6 +28,7 @@ interface WeeklyCalendarProps {
 	events: EventType[];
 	currentDate: Date;
 	onDateClick?: (date: { day: number; month: number; year: number }, hour: string) => void;
+	onEventClick?: (event: EventType) => void;
 	filterType?: 'all' | 'consulta' | 'bloqueio';
 }
 
@@ -50,6 +51,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
   events, 
   currentDate,
   onDateClick,
+  onEventClick,
   filterType = 'all'
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -101,6 +103,13 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 				},
 				hour
 			);
+		}
+	};
+
+	const handleEventClick = (event: EventType, e: React.MouseEvent) => {
+		e.stopPropagation(); // Previne que o clique na célula seja acionado
+		if (onEventClick) {
+			onEventClick(event);
 		}
 	};
 
@@ -176,6 +185,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 															zIndex: 20,
 															backgroundColor: dayIdx >= 5 ? "#60a5fa" : "#050a35",
 														}}
+														onClick={(e) => handleEventClick(ev, e)}
 													>
 														{ev.title}
 														<span className="block text-[10px] mt-1">

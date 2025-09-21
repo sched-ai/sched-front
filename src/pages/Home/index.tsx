@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { WeeklyCalendar } from "@/components/WeeklyCalendar";
+import { WeeklyCalendar, type EventType } from "@/components/WeeklyCalendar";
 import { useState } from "react";
 import { format, addWeeks, subWeeks } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -30,6 +30,7 @@ export const Home = () => {
     year: number;
     hour: string;
   } | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<EventType | null>(null);
 
   const handleDateClick = (
     date: { day: number; month: number; year: number },
@@ -41,6 +42,29 @@ export const Home = () => {
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
+    setSelectedEvent(null);
+    setSelectedDateTime(null);
+  };
+
+  const handleEventClick = (event: EventType) => {
+    setSelectedEvent(event);
+    
+    const weekStart = new Date(currentDate);
+    weekStart.setDate(currentDate.getDate() - currentDate.getDay());
+    
+    const dayNames = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+    const dayIndex = dayNames.indexOf(event.day);
+    
+    const eventDate = new Date(weekStart);
+    eventDate.setDate(weekStart.getDate() + dayIndex);
+    
+    setSelectedDateTime({
+      day: eventDate.getDate(),
+      month: eventDate.getMonth() + 1,
+      year: eventDate.getFullYear(),
+      hour: event.start
+    });
+    setIsModalOpen(true);
   };
 
   return (
@@ -91,7 +115,9 @@ export const Home = () => {
             </Select>
 
             <Button className="h-[48px] !text-[16px] font-normal bg-[#141736] hover:bg-blue-950" onClick={() => {
-              setIsModalOpen(true)
+              setSelectedEvent(null);
+              setSelectedDateTime(null);
+              setIsModalOpen(true);
             }}>
               <Plus /> Novo Agendamento
             </Button>
@@ -174,51 +200,14 @@ export const Home = () => {
           ]}
           currentDate={currentDate}
           onDateClick={handleDateClick}
+          onEventClick={handleEventClick}
           filterType={filterType}
         />
-
-        {/* <div className="w-fit flex flex-col gap-4 border-l border-l-[#DADCE0] p-2 h-[calc(100vh-85px)]">
-          <div className="h-[340px]">
-            <Calendar
-              mode="single"
-              locale={ptBR}
-              selected={date}
-              onSelect={handleDateSelect}
-              onMonthChange={handleMonthChange}
-              className="rounded-lg"
-            />
-          </div>
-
-          <Button className="!text-[16px] font-normal">
-            <Plus /> Novo Agendamento
-          </Button>
-          <div className="px-2">
-            <p className="text-[16px] mb-2">Filtrar por</p>
-            <div className="flex items-center gap-2 mb-1">
-              <Checkbox
-                className="border-foreground text-foreground cursor-pointer"
-                title="bloqueios"
-              />
-              <label>Bloqueios</label>
-            </div>
-            <div className="flex items-center gap-2 mb-1">
-              <Checkbox
-                className="border-foreground cursor-pointer text-foreground"
-                title="agendamentos"
-              />
-              <label>Agendamentos</label>
-            </div>
-          </div>
-
-          <section className="px-2 font-medium">
-            <p>Próximos Agendamentos</p>
-          </section> 
-        </div> 
-        */}
       </div>
       <FormModal
         isOpen={isModalOpen}
         selectedDateTime={selectedDateTime}
+        selectedEvent={selectedEvent}
         onClose={handleCloseModal}
       />
     </div>

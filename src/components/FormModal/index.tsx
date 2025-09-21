@@ -11,6 +11,17 @@ import type { DragEndEvent } from "@dnd-kit/core";
 import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 import { Label } from "../ui/label";
 
+export type EventType = {
+	id: number;
+	title: string;
+	day: string;
+	start: string;
+	end: string;
+	month: string;
+	year: number;
+	type?: 'consulta' | 'bloqueio';
+};
+
 interface FormModalProps {
   isOpen?: boolean;
   selectedDateTime?: {
@@ -19,6 +30,7 @@ interface FormModalProps {
     year?: number;
     hour: string;
   } | null;
+  selectedEvent?: EventType | null;
   onClose?: () => void;
 }
 
@@ -78,6 +90,7 @@ const DraggableModalContent = ({
 export const FormModal = ({
   isOpen = false,
   selectedDateTime = null,
+  selectedEvent = null,
   onClose = () => {},
 }: FormModalProps) => {
   function getEndHour(startHour: string | undefined) {
@@ -91,21 +104,49 @@ export const FormModal = ({
   const [startHour, setStartHour] = useState("");
   const [endHour, setEndHour] = useState("");
   const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [location, setLocation] = useState("");
+  const [service, setService] = useState("");
+  const [activeTab, setActiveTab] = useState("bloqueio");
 
   useEffect(() => {
-    if (isOpen && selectedDateTime) {
+    if (isOpen && selectedEvent) {
+      // Preencher com dados do evento selecionado
+      setTitle(selectedEvent.title);
+      setStartHour(selectedEvent.start);
+      setEndHour(selectedEvent.end);
+      setActiveTab(selectedEvent.type || "bloqueio");
+      
+      // Resetar outros campos
+      setDescription("");
+      setLocation("");
+      setService("");
+    } else if (isOpen && selectedDateTime) {
+      // Novo agendamento com data/hora selecionada
       setStartHour(selectedDateTime.hour);
       setEndHour(getEndHour(selectedDateTime.hour));
-    } else if (isOpen && !selectedDateTime) {
+      setTitle("");
+      setDescription("");
+      setLocation("");
+      setService("");
+      setActiveTab("bloqueio");
+    } else if (isOpen && !selectedDateTime && !selectedEvent) {
+      // Novo agendamento sem data específica
       setStartHour("");
       setEndHour("");
+      setTitle("");
+      setDescription("");
+      setLocation("");
+      setService("");
+      setActiveTab("bloqueio");
     }
     
     // Resetar posição quando o modal for fechado
     if (!isOpen) {
       setPosition({ x: 0, y: 0 });
     }
-  }, [isOpen, selectedDateTime]);
+  }, [isOpen, selectedDateTime, selectedEvent]);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { delta } = event;
@@ -130,10 +171,13 @@ export const FormModal = ({
           <div className="flex-row justify-between flex items-start mb-4">
             <div>
               <div className="text-white font-medium text-xl">
-                Novo Agendamento
+                {selectedEvent ? "Editar Agendamento" : "Novo Agendamento"}
               </div>
               <div className="text-[14px] text-[#A4A4A4]">
-                Preencha o formulário para criar um novo agendamento.
+                {selectedEvent 
+                  ? "Edite as informações do agendamento selecionado." 
+                  : "Preencha o formulário para criar um novo agendamento."
+                }
               </div>
             </div>
             <Button
@@ -144,7 +188,7 @@ export const FormModal = ({
               <X className="text-white cursor-pointer" size={20} />
             </Button>
           </div>
-          <Tabs defaultValue="bloqueio" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="bg-white/5 border border-white h-[48px]">
               <TabsTrigger
                 value="bloqueio"
@@ -164,6 +208,8 @@ export const FormModal = ({
                 <Input
                   className="text-white placeholder:text-white/80 border-x-0 border-t-0 rounded-[10px] bg-white/15 outline-0 w-full border-b-[2px] !border-b-[#0177FB] mt-[12px]"
                   placeholder="Adicionar Título"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
                 />
                 <div className="flex flex-col gap-4">
                   <div className="flex gap-2 items-center text-[16px] mt-5">
@@ -204,8 +250,10 @@ export const FormModal = ({
                     Repetir
                   </div>
                   <textarea
-                    className="border p-3 min-h-[100px] border-white bg-white/15 rounded-[10px]"
+                    className="border p-3 min-h-[100px] border-white bg-white/15 rounded-[10px] text-white placeholder:text-white/80"
                     placeholder="Descrição do bloqueio"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
                   />
                   <Button
                     className="self-end !text-[16px] mt-4"
@@ -222,6 +270,8 @@ export const FormModal = ({
                 <Input
                   className="text-white placeholder:text-white/80 border-x-0 border-t-0 rounded-[10px] bg-white/15 outline-0 w-full border-b-[2px] !border-b-[#0177FB] mt-[12px]"
                   placeholder="Adicionar Paciente"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
                 />
                 <div className="flex flex-col gap-4">
                   <div className="flex gap-2 items-center text-[16px] mt-5">
@@ -273,7 +323,9 @@ export const FormModal = ({
                         </Label>
                         <Input
                           type="text"
-                          className="bg-white/15 border-white"
+                          className="bg-white/15 border-white text-white placeholder:text-white/80"
+                          value={location}
+                          onChange={(e) => setLocation(e.target.value)}
                         />
                       </div>
 
@@ -283,14 +335,18 @@ export const FormModal = ({
                         </Label>
                         <Input
                           type="text"
-                          className="bg-white/15 border-white"
+                          className="bg-white/15 border-white text-white placeholder:text-white/80"
+                          value={service}
+                          onChange={(e) => setService(e.target.value)}
                         />
                       </div>
                     </div>
                   </div>
                   <textarea
-                    className="border p-3 min-h-[100px] border-white bg-white/15 rounded-[10px]"
+                    className="border p-3 min-h-[100px] border-white bg-white/15 rounded-[10px] text-white placeholder:text-white/80"
                     placeholder="Descrição da consulta"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
                   />
                   <Button
                     className="self-end !text-[16px] mt-4"
