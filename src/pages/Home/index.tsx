@@ -4,11 +4,13 @@ import { useState } from "react";
 import { format, addWeeks, subWeeks } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { FormModal } from "@/components/FormModal";
-import { Plus } from "lucide-react";
+import { ListFilter, Plus } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Home = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [filterType, setFilterType] = useState<'all' | 'consulta' | 'bloqueio'>('all');
 
   const handlePreviousWeek = () => {
     setCurrentDate((prev) => subWeeks(prev, 1));
@@ -73,82 +75,106 @@ export const Home = () => {
               </Button>
             </div>
           </div>
-         <Button className="!text-[16px] font-normal bg-[#050a35] hover:bg-blue-950">
-            <Plus /> Novo Agendamento
-          </Button>
+          <div className="flex items-center gap-2">
+            <Select value={filterType} onValueChange={(value: 'all' | 'consulta' | 'bloqueio') => setFilterType(value)}>
+              <SelectTrigger className="w-[230px] !h-[48px] cursor-pointer !text-[16px] font-normal bg-[#141736] hover:bg-blue-950 text-white border-[#141736] [&>svg]:text-white">
+                <div className="flex items-center gap-2">
+                  <ListFilter className="w-4 h-4 text-white" />
+                  <SelectValue placeholder="Filtrar por" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all" className="text-[16px]">Ver todos</SelectItem>
+                <SelectItem value="consulta" className="text-[16px]">Apenas Consultas</SelectItem>
+                <SelectItem value="bloqueio" className="text-[16px]">Apenas Bloqueios</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Button className="h-[48px] !text-[16px] font-normal bg-[#141736] hover:bg-blue-950">
+              <Plus /> Novo Agendamento
+            </Button>
+          </div>
         </div>
       </header>
       <div className="flex">
-          <WeeklyCalendar
-            events={[
-              {
-                id: 1,
-                title: "Reunião de Equipe",
-                start: "09:00",
-                end: "10:30",
-                day: "Segunda",
-                month: "09",
-                year: 2025
-              },
-              {
-                id: 2,
-                title: "Consulta Médica",
-                start: "14:00",
-                end: "15:00",
-                day: "Terça",
-                month: "09",
-                year: 2025
-              },
-              {
-                id: 3,
-                title: "Apresentação",
-                start: "10:00",
-                end: "11:30",
-                day: "Quarta",
-                month: "09",
-                year: 2025
-              },
-              {
-                id: 4,
-                title: "Reunião Curta",
-                start: "11:30",
-                end: "12:00",
-                day: "Quinta",
-                month: "09",
-                year: 2025
-              },
-              {
-                id: 5,
-                title: "Evento Longo",
-                start: "11:30",
-                end: "12:30",
-                day: "Sexta",
-                month: "12",
-                year: 2025
-              },
-              {
-                id: 6,
-                title: "Evento de Janeiro",
-                start: "08:00",
-                end: "09:00",
-                day: "Segunda",
-                month: "01",
-                year: 2025
-              },
-              {
-                id: 7,
-                title: "Evento de Novembro",
-                start: "16:00",
-                end: "17:00",
-                day: "Terça",
-                month: "11",
-                year: 2025
-              },
-            ]}
-            currentDate={currentDate}
-            onDateClick={handleDateClick}
-          />
-        
+        <WeeklyCalendar
+          events={[
+            {
+              id: 1,
+              title: "Reunião de Equipe",
+              start: "09:00",
+              end: "10:30",
+              day: "Segunda",
+              month: "09",
+              year: 2025,
+              type: "bloqueio",
+            },
+            {
+              id: 2,
+              title: "Consulta Médica",
+              start: "14:00",
+              end: "15:00",
+              day: "Terça",
+              month: "09",
+              year: 2025,
+              type: "consulta",
+            },
+            {
+              id: 3,
+              title: "Apresentação",
+              start: "10:00",
+              end: "11:30",
+              day: "Quarta",
+              month: "09",
+              year: 2025,
+              type: "bloqueio",
+            },
+            {
+              id: 4,
+              title: "Reunião Curta",
+              start: "11:30",
+              end: "12:00",
+              day: "Quinta",
+              month: "09",
+              year: 2025,
+              type: "bloqueio",
+            },
+            {
+              id: 5,
+              title: "Evento Longo",
+              start: "11:30",
+              end: "12:30",
+              day: "Sexta",
+              month: "12",
+              year: 2025,
+              type: "consulta",
+            },
+            {
+              id: 6,
+              title: "Evento de Janeiro",
+              start: "08:00",
+              end: "09:00",
+              day: "Segunda",
+              month: "01",
+              year: 2025,
+              type: "consulta",
+            },
+            {
+              id: 7,
+              title: "Evento de Novembro",
+              start: "16:00",
+              end: "17:00",
+              day: "Terça",
+              month: "11",
+              year: 2025,
+              type: "bloqueio",
+            },
+          ]}
+          currentDate={currentDate}
+          onDateClick={handleDateClick}
+          filterType={filterType}
+        />
+
         {/* <div className="w-fit flex flex-col gap-4 border-l border-l-[#DADCE0] p-2 h-[calc(100vh-85px)]">
           <div className="h-[340px]">
             <Calendar

@@ -21,12 +21,14 @@ export type EventType = {
 	end: string;
 	month: string;
 	year: number;
+	type?: 'consulta' | 'bloqueio';
 };
 
 interface WeeklyCalendarProps {
 	events: EventType[];
 	currentDate: Date;
 	onDateClick?: (date: { day: number; month: number; year: number }, hour: string) => void;
+	filterType?: 'all' | 'consulta' | 'bloqueio';
 }
 
 function getDayIndex(day: string) {
@@ -47,7 +49,8 @@ function getHourPosition(time: string) {
 export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ 
   events, 
   currentDate,
-  onDateClick 
+  onDateClick,
+  filterType = 'all'
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
@@ -66,7 +69,14 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 
 	const currentMonth = format(currentDate, 'MM');
 	const currentYear = Number(format(currentDate, "yyyy"))
-	const filteredEvents = events.filter(event => event.month === currentMonth && event.year === currentYear);
+	
+	// Primeiro filtra por mês e ano, depois por tipo
+	let filteredEvents = events.filter(event => event.month === currentMonth && event.year === currentYear);
+	
+	// Aplica filtro por tipo se não for 'all'
+	if (filterType !== 'all') {
+		filteredEvents = filteredEvents.filter(event => event.type === filterType);
+	}
 
 	const eventMap = filteredEvents.map((event) => {
 		const dayIdx = getDayIndex(event.day);
