@@ -90,7 +90,9 @@ export const Home = () => {
               </SelectContent>
             </Select>
 
-            <Button className="h-[48px] !text-[16px] font-normal bg-[#141736] hover:bg-blue-950">
+            <Button className="h-[48px] !text-[16px] font-normal bg-[#141736] hover:bg-blue-950" onClick={() => {
+              setIsModalOpen(true)
+            }}>
               <Plus /> Novo Agendamento
             </Button>
           </div>
