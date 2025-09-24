@@ -9,10 +9,13 @@ import {
 } from "../../components/ui/sidebar";
 import { NavItem } from "../NavItem";
 import { CalendarFold, NotepadText } from "lucide-react";
+import logoFull from "@/assets/logoFull.png"
+import logo from "@/assets/logo.png"
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const isSidebarOpen = state === "expanded";
-  const sidebarTitle = isSidebarOpen ? "SCHED.AI" : "SCHED";
+  const sidebarLogo = isSidebarOpen ? logoFull : logo;
   return (
     <Sidebar
       collapsible="icon"
@@ -23,13 +26,13 @@ export function AppSidebar() {
         <SidebarHeader
           className={
             "font-semibold text-white italic flex truncate " +
-            (isSidebarOpen ? "p-4 text-4xl" : "text-start px-2")
+            (isSidebarOpen ? "p-4 px-8 text-4xl" : "text-start px-2")
           }
         >
-          {sidebarTitle}
+          <img src={sidebarLogo}/>
         </SidebarHeader>
         <SidebarContent>
-          <SidebarGroup title="Agenda" className="pt-20 gap-2">
+          <SidebarGroup title="Agenda" className="p-0 pt-20 gap-2">
             <NavItem
               title="Agenda"
               icon={CalendarFold}
