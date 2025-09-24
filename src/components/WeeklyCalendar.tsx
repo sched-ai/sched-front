@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import { format, startOfWeek, addDays, isSameDay } from "date-fns";
 
 const weekDays = [
@@ -19,38 +19,77 @@ export type EventType = {
 	day: string;
 	start: string;
 	end: string;
+	month: string;
+	year: number;
+	type?: 'consulta' | 'bloqueio';
 };
 
 interface WeeklyCalendarProps {
 	events: EventType[];
 	currentDate: Date;
 	onDateClick?: (date: { day: number; month: number; year: number }, hour: string) => void;
+	onEventClick?: (event: EventType) => void;
+	filterType?: 'all' | 'consulta' | 'bloqueio';
 }
 
 function getDayIndex(day: string) {
 	return weekDays.indexOf(day);
 }
 
-function getHourIndex(time: string) {
-	return parseInt(time.split(":")[0], 10);
+function getHourPosition(time: string) {
+	const [hours, minutes] = time.split(":").map(Number);
+	const hourIndex = hours;
+	const minuteOffset = minutes / 60;
+	return {
+		hourIndex,
+		minuteOffset,
+		totalPosition: hourIndex + minuteOffset
+	};
 }
 
 export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ 
   events, 
   currentDate,
-  onDateClick 
+  onDateClick,
+  onEventClick,
+  filterType = 'all'
 }) => {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
   
   const weekDates = Array.from({ length: 7 }, (_, index) => 
     addDays(weekStart, index)
   );
 
-	const eventMap = events.map((event) => {
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      const cellHeight = 80;
+      const scrollPosition = 6 * cellHeight;
+      scrollContainerRef.current.scrollTop = scrollPosition;
+    }
+  }, [currentDate]);
+
+	const currentMonth = format(currentDate, 'MM');
+	const currentYear = Number(format(currentDate, "yyyy"))
+	
+	// Primeiro filtra por mês e ano, depois por tipo
+	let filteredEvents = events.filter(event => event.month === currentMonth && event.year === currentYear);
+	
+	// Aplica filtro por tipo se não for 'all'
+	if (filterType !== 'all') {
+		filteredEvents = filteredEvents.filter(event => event.type === filterType);
+	}
+
+	const eventMap = filteredEvents.map((event) => {
 		const dayIdx = getDayIndex(event.day);
-		const startIdx = getHourIndex(event.start);
-		const endIdx = getHourIndex(event.end);
-		return { ...event, dayIdx, startIdx, endIdx };
+		const startPos = getHourPosition(event.start);
+		const endPos = getHourPosition(event.end);
+		return { 
+			...event, 
+			dayIdx, 
+			startPos, 
+			endPos 
+		};
 	});
 
 	const handleCellClick = (dayIdx: number, hour: string) => {
@@ -59,11 +98,18 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 			onDateClick(
 				{
 					day: dateObj.getDate(),
-					month: dateObj.getMonth() + 1, // mês começa em 0
+					month: dateObj.getMonth() + 1,
 					year: dateObj.getFullYear(),
 				},
 				hour
 			);
+		}
+	};
+
+	const handleEventClick = (event: EventType, e: React.MouseEvent) => {
+		e.stopPropagation(); // Previne que o clique na célula seja acionado
+		if (onEventClick) {
+			onEventClick(event);
 		}
 	};
 
@@ -79,12 +125,12 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 								return (
 									<div
 										key={day}
-										className={`py-2 px-2 text-center font-semibold border-l flex justify-center flex-col ${
+										className={`py-2 px-2 text-center font-semibold flex justify-center items-center flex-col ${
 											idx >= 5 ? "bg-gray-50" : "bg-white"
 										} ${isToday ? "bg-blue-100 text-blue-600" : ""}`}
 									>
 										<p className="text-sm">{day}</p>
-										<p className={`text-lg ${isToday ? "font-bold" : ""}`}>
+										<p className={`text-lg ${isToday ? "font-bold bg-blue-600 text-white w-fit rounded-full px-1 text-center" : ""}`}>
 											{format(currentDayDate, "d")}
 										</p>
 									</div>
@@ -92,13 +138,16 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 							})}
 						</div>
 					</div>
-					  <div className="overflow-y-auto h-[calc(100vh-150px)] custom-scrollbar">
+					  <div 
+						ref={scrollContainerRef}
+						className="overflow-auto h-[calc(100vh-150px)] custom-scrollbar"
+					  >
 						<div className="flex">
-							<div className="flex flex-col max-w-[90px] pl-6 w-full">
+							<div className="flex flex-col max-w-[90px] pl-5 w-full">
 								{hours.map((hour) => (
 									<div
 										key={hour}
-										className="h-[60px] text-md text-right pr-2 flex items-center max-w-[50px]"
+										className="h-[80px] text-md text-right pr-2 flex items-center max-w-[50px]"
 									>
 										{hour}
 									</div>
@@ -115,26 +164,28 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 										{hours.map((hour) => (
 											<div
 												key={hour}
-												className="h-[60px] border-b border-gray-200 cursor-pointer hover:bg-blue-50"
+												className="h-[80px] border-b border-gray-200 hover:bg-blue-50"
 												onClick={() => handleCellClick(dayIdx, hour)}
 											></div>
 										))}
 										{eventMap
 											.filter((ev) => ev.dayIdx === dayIdx)
 											.map((ev) => {
-												const top = ev.startIdx * 80;
-												const height = (ev.endIdx - ev.startIdx + 1) * 80;
+												const cellHeight = 80;
+												const top = ev.startPos.totalPosition * cellHeight;
+												const height = (ev.endPos.totalPosition - ev.startPos.totalPosition) * cellHeight;
 												return (
 													<div
 														key={ev.id}
-														className="absolute left-2 right-2 rounded bg-blue-500 text-white px-2 py-1 text-xs shadow-md"
+														className="absolute w-full rounded bg-blue-500 text-white px-2 py-1 text-xs shadow-md hover:scale-105 cursor-pointer hover:animate-pulse transition-all"
 														style={{
-															top: top,
-															height: height,
-															minHeight: 80,
+															top: `${top}px`,
+															height: `${height}px`,
+															minHeight: `${Math.max(height, 20)}px`,
 															zIndex: 20,
-															backgroundColor: dayIdx >= 5 ? "#60a5fa" : "#2563eb",
+															backgroundColor: dayIdx >= 5 ? "#60a5fa" : "#050a35",
 														}}
+														onClick={(e) => handleEventClick(ev, e)}
 													>
 														{ev.title}
 														<span className="block text-[10px] mt-1">

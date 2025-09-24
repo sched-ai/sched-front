@@ -29,15 +29,9 @@ export function AppSidebar() {
           {sidebarTitle}
         </SidebarHeader>
         <SidebarContent>
-          <SidebarGroup className="pt-20">
-            <p className={
-            "font-semibold text-white truncate mb-2  " +
-            (isSidebarOpen ? "text-2xl px-6" : "text-[16px]")
-          }>Menu</p>
-          </SidebarGroup>
-          <SidebarGroup title="Agenda" className="p-0 gap-2">
+          <SidebarGroup title="Agenda" className="pt-20 gap-2">
             <NavItem
-              title="Página Inicial"
+              title="Agenda"
               icon={CalendarFold}
               iconSize={isSidebarOpen ? 24 : 28}
               href="/home"
