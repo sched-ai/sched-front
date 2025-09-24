@@ -67,6 +67,10 @@ export const Home = () => {
     setIsModalOpen(true);
   };
 
+  function capitalizeFirst(str: string) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
   return (
     <div className="w-full flex flex-col">
       <header className="border-b border-b-[#DADCE0]">
@@ -79,8 +83,8 @@ export const Home = () => {
             >
               HOJE
             </Button>
-            <p className="w-[300px] capitalize">
-              {format(currentDate, "MMMM 'de' yyyy", { locale: ptBR })}
+            <p className="w-[300px]">
+              {`${capitalizeFirst(format(currentDate, "MMMM", { locale: ptBR }))} de ${format(currentDate, "yyyy", { locale: ptBR })}`}
             </p>
             <div className="flex">
               <Button
