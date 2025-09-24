@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import useAPI from "../useAPI";
 
 export interface IUser {
@@ -25,24 +26,30 @@ interface UseGetUserProps {
 export const useGetUser = ({ onSuccessFn, enabled = true }: UseGetUserProps = {}) => {
   const { get } = useAPI<IUserResponse>();
 
-  return useQuery<IUserResponse, unknown, IUser>({
-    queryKey: ['user'],
+  const query = useQuery<IUserResponse, unknown, IUser>({
+    queryKey: ["user"],
     queryFn: () =>
       get({
-        label: 'User',
+        label: "User",
         autoClose: false,
         showSuccessFeedback: false,
-        endpoint: 'auth/me/',
-      }).then(response => {
+        endpoint: "auth/me/",
+      }).then((response) => {
         if (!response) {
-          throw new Error('Empty response');
+          throw new Error("Empty response");
         }
         return response;
       }),
     select: (data) => data.user,
-    onSuccess: (user) => {
-      if (onSuccessFn) onSuccessFn(user);
-    },
     enabled,
   });
+
+  // substitui o antigo `onSuccess`
+  useEffect(() => {
+    if (query.isSuccess && query.data) {
+      onSuccessFn?.(query.data);
+    }
+  }, [query.isSuccess, query.data, onSuccessFn]);
+
+  return query;
 };

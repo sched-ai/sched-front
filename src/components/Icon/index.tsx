@@ -663,7 +663,7 @@ const Icon = (props: IIconProps) => {
 		hoverable: 'transition duration-200 hover:fill-secondary-m'
 	};
 
-	const SvgPath = svg_object[name];
+	const SvgPath = svg_object[name as keyof typeof svg_object];
 
 	return (
 		<svg
