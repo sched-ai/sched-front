@@ -100,19 +100,6 @@ export const Home = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Select value={filterType} onValueChange={(value: 'all' | 'consulta' | 'bloqueio') => setFilterType(value)}>
-              <SelectTrigger className="w-[230px] !h-[48px] cursor-pointer !text-[16px] font-normal bg-[#141736] hover:bg-blue-950 text-white border-[#141736] [&>svg]:text-white">
-                <div className="flex items-center gap-2">
-                  <ListFilter className="w-4 h-4 text-white" />
-                  <SelectValue placeholder="Filtrar por" />
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all" className="text-[16px]">Ver todos</SelectItem>
-                <SelectItem value="consulta" className="text-[16px]">Apenas Consultas</SelectItem>
-                <SelectItem value="bloqueio" className="text-[16px]">Apenas Bloqueios</SelectItem>
-              </SelectContent>
-            </Select>
 
             <Button className="h-[48px] !text-[16px] font-normal bg-[#141736] hover:bg-blue-950" onClick={() => {
               setSelectedEvent(null);
@@ -121,6 +108,19 @@ export const Home = () => {
             }}>
               <Plus /> Novo Agendamento
             </Button>
+            <Select value={filterType} onValueChange={(value: 'all' | 'consulta' | 'bloqueio') => setFilterType(value)}>
+              <SelectTrigger className="w-[155px] !h-[48px] cursor-pointer !text-[16px] font-normal text-[#141736] hover:bg-blue-50 border-[#141736] [&>svg]:text-white">
+                <div className="flex items-center gap-2">
+                  <ListFilter className="w-4 h-4 text-[#141736]" />
+                  <SelectValue placeholder="Filtrar por" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all" className="text-[16px]">Ver todos</SelectItem>
+                <SelectItem value="consulta" className="text-[16px]">Consultas</SelectItem>
+                <SelectItem value="bloqueio" className="text-[16px]">Bloqueios</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </header>
