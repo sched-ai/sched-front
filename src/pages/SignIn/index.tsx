@@ -1,13 +1,27 @@
 import { Button } from "../../components/ui/button";
 import abstract from "../../assets/abstract_waves.jpg";
 import { Input } from "../../components/ui/input";
+import { useNavigate } from "react-router-dom";
+import React from "react";
+import { useSignIn } from "@/hooks/api/auth/useSignIn";
 
 export const SignIn = () => {
 
-  const onSubmit = (event: React.FormEvent) => {
+  const navigate = useNavigate();
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+
+  const signIn = useSignIn({
+    onSuccessFn: () => {
+      navigate('/dashboard');
+    }
+  });
+
+  const handleLogin = (event: React.FormEvent) => {
     event.preventDefault();
-    window.location.href = "/firstLogin";
+    signIn.mutate({ email, password });
   }
+
 
   return (
     <div
@@ -47,7 +61,7 @@ export const SignIn = () => {
             </div>
             <div className="w-full max-w-[510px] m-auto">
             <form
-                onSubmit={onSubmit}
+                onSubmit={handleLogin}
                 className="space-y-6 px-6 py-8 lg:px-10 lg:py-14
                             [background-clip:padding-box,border-box] 
                             backdrop-blur-md bg-black/45"
@@ -71,6 +85,7 @@ export const SignIn = () => {
                     required
                     placeholder="scheapp@gmail.com"
                     className="text-white border-white"
+                    onChange={(e) => setEmail(e.target.value)}
                 />
                 </div>
 
@@ -88,6 +103,7 @@ export const SignIn = () => {
                     required
                     placeholder="Insira sua senha"
                     className="text-white border-white"
+                    onChange={(e) => setPassword(e.target.value)}
                     />
                     <Button variant="link">Esqueci minha senha</Button>
                 </div>

@@ -1,27 +1,58 @@
 import { Route, Routes } from 'react-router-dom'
 import { Layout } from './components/Layout'
 import { routesConfig } from './router/routesConfig'
+import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
+import React from 'react';
+import useToast from './hooks/useToast';
+import { UserProvider } from './context/user';
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const queryClient = new QueryClient({
+	defaultOptions: {
+		queries: {
+			refetchOnWindowFocus: false,
+		},
+	},
+});
 
 function App() {
-  return (
-    <>
-      <Routes>
-        {routesConfig.map((route) => (
-          <Route
-            key={route.path}
-            path={route.path}
-            element={
-              route.template ? (
-                <Layout>{route.element}</Layout>
-              ) : (
-                route.element
-              )
-            }
-          />
-        ))}
-      </Routes>
-    </>
-  )
+	const { showToast } = useToast();
+
+	React.useEffect(() => {
+		const expired = sessionStorage.getItem("expired");
+		if (expired) {
+			sessionStorage.removeItem("expired");
+			showToast({
+				label: "Sua sessão expirou!",
+				message: "Faça login novamente para continuar.",
+				type: "error",
+				toastId: "toast-expired",
+				autoClose: false,
+			});
+		}
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+	return (
+		<QueryClientProvider client={queryClient}>
+			<UserProvider>
+        <Routes>
+          {routesConfig.map((route) => (
+            <Route
+              key={route.path}
+              path={route.path}
+              element={
+                route.template ? (
+                  <Layout>{route.element}</Layout>
+                ) : (
+                  route.element
+                )
+              }
+            />
+          ))}
+        </Routes>
+				</UserProvider>
+		</QueryClientProvider>
+	)
 }
 
 export default App
