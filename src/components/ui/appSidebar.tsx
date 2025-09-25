@@ -26,7 +26,7 @@ export function AppSidebar() {
         <SidebarHeader
           className={
             "font-semibold text-white italic flex truncate " +
-            (isSidebarOpen ? "p-4 px-8 text-4xl" : "text-start px-2")
+            (isSidebarOpen ? "p-4 px-8 text-4xl" : "text-start p-5")
           }
         >
           <img src={sidebarLogo}/>
