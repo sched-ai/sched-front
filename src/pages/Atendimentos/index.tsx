@@ -15,6 +15,8 @@ import {
   Filter,
   Check,
   ArrowRight,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 interface Atendimento {
@@ -32,6 +34,8 @@ export const Atendimentos = () => {
   const [filtro, setFiltro] = useState("todos");
   const [pesquisa, setPesquisa] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("todos");
+  const [paginaAtual, setPaginaAtual] = useState(1);
+  const [itensPorPagina, setItensPorPagina] = useState(5);
 
   const atendimentos: Atendimento[] = [
     {
@@ -144,6 +148,49 @@ export const Atendimentos = () => {
     return matchFiltro && matchPesquisa && matchStatus;
   });
 
+  // Lógica de paginação
+  const totalPaginas = Math.ceil(atendimentosFiltrados.length / itensPorPagina);
+  const indiceInicial = (paginaAtual - 1) * itensPorPagina;
+  const indiceFinal = indiceInicial + itensPorPagina;
+  const atendimentosPaginados = atendimentosFiltrados.slice(indiceInicial, indiceFinal);
+
+  // Resetar página quando filtros mudarem
+  const handleFiltroChange = (novoFiltro: string) => {
+    setFiltro(novoFiltro);
+    setPaginaAtual(1);
+  };
+
+  const handleFiltroStatusChange = (novoFiltroStatus: string) => {
+    setFiltroStatus(novoFiltroStatus);
+    setPaginaAtual(1);
+  };
+
+  const handlePesquisaChange = (novaPesquisa: string) => {
+    setPesquisa(novaPesquisa);
+    setPaginaAtual(1);
+  };
+
+  const handleItensPorPaginaChange = (novosItens: string) => {
+    setItensPorPagina(Number(novosItens));
+    setPaginaAtual(1);
+  };
+
+  const irParaPagina = (pagina: number) => {
+    setPaginaAtual(pagina);
+  };
+
+  const irParaProximaPagina = () => {
+    if (paginaAtual < totalPaginas) {
+      setPaginaAtual(paginaAtual + 1);
+    }
+  };
+
+  const irParaPaginaAnterior = () => {
+    if (paginaAtual > 1) {
+      setPaginaAtual(paginaAtual - 1);
+    }
+  };
+
   return (
     <div className="w-full flex flex-col h-full">
       <header className="border-b border-b-[#DADCE0] h-full max-h-[80px] p-4">
@@ -198,38 +245,38 @@ export const Atendimentos = () => {
             <h2 className="text-lg font-semibold text-gray-800">Filtros</h2>
           </div>
           <div className="flex flex-col lg:flex-row gap-4 mb-4">
-            <div className="flex-1">
-              <Input
-                placeholder="Pesquisar por cliente, serviço ou profissional..."
-                value={pesquisa}
-                onChange={(e) => setPesquisa(e.target.value)}
-                className="w-full"
-              />
-            </div>
-            <Select value={filtro} onValueChange={setFiltro}>
-              <SelectTrigger className="w-[250px] !h-[48px] cursor-pointer !text-[16px] font-normal text-[#141736] hover:bg-blue-50 border-[#141736] [&>svg]:text-white">
-                <SelectValue placeholder="Filtrar por serviço" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos os serviços</SelectItem>
-                <SelectItem value="corte">Corte</SelectItem>
-                <SelectItem value="barba">Barba</SelectItem>
-                <SelectItem value="coloração">Coloração</SelectItem>
-                <SelectItem value="escova">Escova</SelectItem>
-                <SelectItem value="manicure">Manicure</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={filtroStatus} onValueChange={setFiltroStatus}>
-              <SelectTrigger className="w-[250px] !h-[48px] cursor-pointer !text-[16px] font-normal text-[#141736] hover:bg-blue-50 border-[#141736] [&>svg]:text-white">
-                <SelectValue placeholder="Filtrar por status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos os status</SelectItem>
-                <SelectItem value="concluido">Concluído</SelectItem>
-                <SelectItem value="agendado">Agendado</SelectItem>
-                <SelectItem value="cancelado">Cancelado</SelectItem>
-              </SelectContent>
-            </Select>
+             <div className="flex-1">
+               <Input
+                 placeholder="Pesquisar por cliente, serviço ou profissional..."
+                 value={pesquisa}
+                 onChange={(e) => handlePesquisaChange(e.target.value)}
+                 className="w-full"
+               />
+             </div>
+             <Select value={filtro} onValueChange={handleFiltroChange}>
+               <SelectTrigger className="w-[250px] !h-[48px] cursor-pointer !text-[16px] font-normal text-[#141736] hover:bg-blue-50 border-[#141736] [&>svg]:text-white">
+                 <SelectValue placeholder="Filtrar por serviço" />
+               </SelectTrigger>
+               <SelectContent>
+                 <SelectItem value="todos">Todos os serviços</SelectItem>
+                 <SelectItem value="corte">Corte</SelectItem>
+                 <SelectItem value="barba">Barba</SelectItem>
+                 <SelectItem value="coloração">Coloração</SelectItem>
+                 <SelectItem value="escova">Escova</SelectItem>
+                 <SelectItem value="manicure">Manicure</SelectItem>
+               </SelectContent>
+             </Select>
+             <Select value={filtroStatus} onValueChange={handleFiltroStatusChange}>
+               <SelectTrigger className="w-[250px] !h-[48px] cursor-pointer !text-[16px] font-normal text-[#141736] hover:bg-blue-50 border-[#141736] [&>svg]:text-white">
+                 <SelectValue placeholder="Filtrar por status" />
+               </SelectTrigger>
+               <SelectContent>
+                 <SelectItem value="todos">Todos os status</SelectItem>
+                 <SelectItem value="concluido">Concluído</SelectItem>
+                 <SelectItem value="agendado">Agendado</SelectItem>
+                 <SelectItem value="cancelado">Cancelado</SelectItem>
+               </SelectContent>
+             </Select>
           </div>
           <div className="bg-[#141736] rounded-lg p-4 mb-1 shadow-sm">
             <div className="grid grid-cols-2 lg:grid-cols-7 gap-4 items-center">
@@ -259,8 +306,8 @@ export const Atendimentos = () => {
             </div>
           </div>
 
-          <div className="space-y-1 flex-1">
-            {atendimentosFiltrados.map((atendimento) => (
+           <div className="space-y-1 flex-1">
+             {atendimentosPaginados.map((atendimento) => (
               <div
                 key={atendimento.id}
                 className="bg-gradient-to-r from-blue-900 to-[#141736] text-white rounded-lg p-6 shadow-lg hover:shadow-xl transition-all duration-200 w-full border border-blue-700"
@@ -329,16 +376,81 @@ export const Atendimentos = () => {
               </div>
             ))}
 
-            {atendimentosFiltrados.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-gray-500 text-lg">
-                  Nenhum atendimento encontrado com os filtros aplicados.
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+             {atendimentosFiltrados.length === 0 && (
+               <div className="text-center py-12">
+                 <p className="text-gray-500 text-lg">
+                   Nenhum atendimento encontrado com os filtros aplicados.
+                 </p>
+               </div>
+             )}
+           </div>
+
+           {/* Controles de Paginação */}
+           {atendimentosFiltrados.length > 0 && (
+             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 p-4 bg-gray-50 rounded-lg">
+               <div className="flex items-center gap-4">
+                 <span className="text-sm text-gray-600">
+                   Mostrando {indiceInicial + 1} a {Math.min(indiceFinal, atendimentosFiltrados.length)} de {atendimentosFiltrados.length} atendimentos
+                 </span>
+                 <Select value={itensPorPagina.toString()} onValueChange={handleItensPorPaginaChange}>
+                   <SelectTrigger className="w-[100px] !h-[36px] cursor-pointer">
+                     <SelectValue />
+                   </SelectTrigger>
+                   <SelectContent>
+                     <SelectItem value="5">5</SelectItem>
+                     <SelectItem value="10">10</SelectItem>
+                     <SelectItem value="20">20</SelectItem>
+                     <SelectItem value="50">50</SelectItem>
+                   </SelectContent>
+                 </Select>
+                 <span className="text-sm text-gray-600">por página</span>
+               </div>
+
+               <div className="flex items-center gap-2">
+                 <Button
+                   variant="outline"
+                   size="sm"
+                   onClick={irParaPaginaAnterior}
+                   disabled={paginaAtual === 1}
+                   className="flex items-center gap-1"
+                 >
+                   <ChevronLeft className="w-4 h-4" />
+                   Anterior
+                 </Button>
+
+                 <div className="flex items-center gap-1">
+                   {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((pagina) => (
+                     <Button
+                       key={pagina}
+                       variant={pagina === paginaAtual ? "default" : "outline"}
+                       size="sm"
+                       onClick={() => irParaPagina(pagina)}
+                       className={`w-8 h-8 p-0 ${
+                         pagina === paginaAtual 
+                           ? "bg-blue-600 text-white" 
+                           : "hover:bg-gray-100"
+                       }`}
+                     >
+                       {pagina}
+                     </Button>
+                   ))}
+                 </div>
+
+                 <Button
+                   variant="outline"
+                   size="sm"
+                   onClick={irParaProximaPagina}
+                   disabled={paginaAtual === totalPaginas}
+                   className="flex items-center gap-1"
+                 >
+                   Próxima
+                   <ChevronRight className="w-4 h-4" />
+                 </Button>
+               </div>
+             </div>
+           )}
+         </div>
+       </div>
+     </div>
+   );
+ };
