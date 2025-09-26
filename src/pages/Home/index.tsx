@@ -73,7 +73,7 @@ export const Home = () => {
 
   return (
     <div className="w-full flex flex-col">
-      <header className="border-b border-b-[#DADCE0]">
+      <header className="border-b border-b-[#DADCE0] max-h-[80px]">
         <div className="p-4 text-[30px] flex items-center gap-4 justify-between">
           <div className="font-medium text-[#141736] flex items-center gap-4">
             <Button
@@ -83,9 +83,9 @@ export const Home = () => {
             >
               HOJE
             </Button>
-            <p className="w-[300px]">
+            <h1 className="w-[300px]">
               {`${capitalizeFirst(format(currentDate, "MMMM", { locale: ptBR }))} de ${format(currentDate, "yyyy", { locale: ptBR })}`}
-            </p>
+            </h1>
             <div className="flex">
               <Button
                 variant="ghost"
