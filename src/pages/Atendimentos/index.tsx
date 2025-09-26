@@ -21,13 +21,14 @@ import {
 
 interface Atendimento {
   id: string;
-  cliente: string;
-  servico: string;
+  paciente: string;
+  especialidade: string;
   data: string;
   hora: string;
   status: "concluido" | "agendado" | "cancelado";
   duracao: string;
-  profissional: string;
+  medico: string;
+  tipoConsulta: string;
 }
 
 export const Atendimentos = () => {
@@ -40,63 +41,91 @@ export const Atendimentos = () => {
   const atendimentos: Atendimento[] = [
     {
       id: "1",
-      cliente: "Maria Silva",
-      servico: "Corte e Escova",
+      paciente: "Maria Silva Santos",
+      especialidade: "Cardiologia",
       data: "15/01/2024",
       hora: "09:00",
       status: "concluido",
-      duracao: "1h 30min",
-      profissional: "Ana Santos",
+      duracao: "30min",
+      medico: "Dr. Carlos Mendes",
+      tipoConsulta: "Consulta de Retorno",
     },
     {
       id: "2",
-      cliente: "João Santos",
-      servico: "Barba",
+      paciente: "João Pedro Oliveira",
+      especialidade: "Ortopedia",
       data: "16/01/2024",
       hora: "14:30",
       status: "concluido",
       duracao: "45min",
-      profissional: "Carlos Lima",
+      medico: "Dra. Ana Costa",
+      tipoConsulta: "Primeira Consulta",
     },
     {
       id: "3",
-      cliente: "Ana Costa",
-      servico: "Coloração",
+      paciente: "Ana Beatriz Costa",
+      especialidade: "Dermatologia",
       data: "17/01/2024",
       hora: "10:15",
       status: "agendado",
-      duracao: "2h 30min",
-      profissional: "Ana Santos",
+      duracao: "40min",
+      medico: "Dr. Roberto Silva",
+      tipoConsulta: "Consulta de Rotina",
     },
     {
       id: "4",
-      cliente: "Pedro Oliveira",
-      servico: "Corte",
+      paciente: "Pedro Henrique Lima",
+      especialidade: "Neurologia",
       data: "18/01/2024",
       hora: "16:00",
       status: "cancelado",
-      duracao: "1h",
-      profissional: "Carlos Lima",
+      duracao: "50min",
+      medico: "Dra. Fernanda Alves",
+      tipoConsulta: "Consulta Urgente",
     },
     {
       id: "5",
-      cliente: "Fernanda Alves",
-      servico: "Manicure",
+      paciente: "Fernanda Rodrigues",
+      especialidade: "Ginecologia",
       data: "19/01/2024",
       hora: "11:45",
       status: "concluido",
-      duracao: "1h 15min",
-      profissional: "Juliana Costa",
+      duracao: "35min",
+      medico: "Dra. Juliana Santos",
+      tipoConsulta: "Consulta Preventiva",
     },
     {
       id: "6",
-      cliente: "Roberto Silva",
-      servico: "Corte e Barba",
+      paciente: "Roberto Carlos Silva",
+      especialidade: "Urologia",
       data: "20/01/2024",
       hora: "15:30",
       status: "agendado",
-      duracao: "1h 45min",
-      profissional: "Carlos Lima",
+      duracao: "40min",
+      medico: "Dr. Marcos Pereira",
+      tipoConsulta: "Consulta de Retorno",
+    },
+    {
+      id: "7",
+      paciente: "Lucia Maria Ferreira",
+      especialidade: "Endocrinologia",
+      data: "21/01/2024",
+      hora: "08:30",
+      status: "agendado",
+      duracao: "45min",
+      medico: "Dra. Patricia Lima",
+      tipoConsulta: "Primeira Consulta",
+    },
+    {
+      id: "8",
+      paciente: "Antonio José Santos",
+      especialidade: "Cardiologia",
+      data: "22/01/2024",
+      hora: "13:15",
+      status: "concluido",
+      duracao: "30min",
+      medico: "Dr. Carlos Mendes",
+      tipoConsulta: "Consulta de Rotina",
     },
   ];
 
@@ -138,11 +167,12 @@ export const Atendimentos = () => {
   const atendimentosFiltrados = atendimentos.filter((atendimento) => {
     const matchFiltro =
       filtro === "todos" ||
-      atendimento.servico.toLowerCase().includes(filtro.toLowerCase());
+      atendimento.especialidade.toLowerCase().includes(filtro.toLowerCase());
     const matchPesquisa =
-      atendimento.cliente.toLowerCase().includes(pesquisa.toLowerCase()) ||
-      atendimento.servico.toLowerCase().includes(pesquisa.toLowerCase()) ||
-      atendimento.profissional.toLowerCase().includes(pesquisa.toLowerCase());
+      atendimento.paciente.toLowerCase().includes(pesquisa.toLowerCase()) ||
+      atendimento.especialidade.toLowerCase().includes(pesquisa.toLowerCase()) ||
+      atendimento.medico.toLowerCase().includes(pesquisa.toLowerCase()) ||
+      atendimento.tipoConsulta.toLowerCase().includes(pesquisa.toLowerCase());
     const matchStatus =
       filtroStatus === "todos" || atendimento.status === filtroStatus;
     return matchFiltro && matchPesquisa && matchStatus;
@@ -194,14 +224,14 @@ export const Atendimentos = () => {
   return (
     <div className="w-full flex flex-col h-full">
       <header className="border-b border-b-[#DADCE0] h-full max-h-[80px] p-4">
-        <h1 className="text-[30px] font-medium">Atendimentos</h1>
+        <h1 className="text-[30px] font-medium">Consultas Médicas</h1>
       </header>
       <div className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="shadow-lg bg-[#141736] rounded-lg p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-white text-sm">Total de Atendimentos</p>
+                <p className="text-white text-sm">Total de Consultas</p>
                 <p className="text-3xl font-bold">{estatisticas.total}</p>
               </div>
               <Users className="w-8 h-8 text-blue-500" />
@@ -247,7 +277,7 @@ export const Atendimentos = () => {
           <div className="flex flex-col lg:flex-row gap-4 mb-4">
              <div className="flex-1">
                <Input
-                 placeholder="Pesquisar por cliente, serviço ou profissional..."
+                 placeholder="Pesquisar por paciente, especialidade ou médico..."
                  value={pesquisa}
                  onChange={(e) => handlePesquisaChange(e.target.value)}
                  className="w-full"
@@ -255,15 +285,17 @@ export const Atendimentos = () => {
              </div>
              <Select value={filtro} onValueChange={handleFiltroChange}>
                <SelectTrigger className="w-[250px] !h-[48px] cursor-pointer !text-[16px] font-normal text-[#141736] hover:bg-blue-50 border-[#141736] [&>svg]:text-white">
-                 <SelectValue placeholder="Filtrar por serviço" />
+                 <SelectValue placeholder="Filtrar por especialidade" />
                </SelectTrigger>
                <SelectContent>
-                 <SelectItem value="todos">Todos os serviços</SelectItem>
-                 <SelectItem value="corte">Corte</SelectItem>
-                 <SelectItem value="barba">Barba</SelectItem>
-                 <SelectItem value="coloração">Coloração</SelectItem>
-                 <SelectItem value="escova">Escova</SelectItem>
-                 <SelectItem value="manicure">Manicure</SelectItem>
+                 <SelectItem value="todos">Todas as especialidades</SelectItem>
+                 <SelectItem value="cardiologia">Cardiologia</SelectItem>
+                 <SelectItem value="ortopedia">Ortopedia</SelectItem>
+                 <SelectItem value="dermatologia">Dermatologia</SelectItem>
+                 <SelectItem value="neurologia">Neurologia</SelectItem>
+                 <SelectItem value="ginecologia">Ginecologia</SelectItem>
+                 <SelectItem value="urologia">Urologia</SelectItem>
+                 <SelectItem value="endocrinologia">Endocrinologia</SelectItem>
                </SelectContent>
              </Select>
              <Select value={filtroStatus} onValueChange={handleFiltroStatusChange}>
@@ -281,14 +313,14 @@ export const Atendimentos = () => {
           <div className="bg-[#141736] rounded-lg p-4 mb-1 shadow-sm">
             <div className="grid grid-cols-2 lg:grid-cols-7 gap-4 items-center">
               <div className="lg:col-span-1">
-                <h3 className="font-semibold text-lg text-white">Cliente</h3>
+                <h3 className="font-semibold text-lg text-white">Paciente</h3>
               </div>
               <div className="lg:col-span-1">
-                <h3 className="font-semibold text-lg text-white">Serviço</h3>
+                <h3 className="font-semibold text-lg text-white">Especialidade</h3>
               </div>
               <div className="lg:col-span-1">
                 <h3 className="font-semibold text-lg text-white">
-                  Profissional
+                  Médico
                 </h3>
               </div>
               <div className="lg:col-span-1">
@@ -315,19 +347,19 @@ export const Atendimentos = () => {
                 <div className="grid grid-cols-2 lg:grid-cols-7 gap-4 items-center">
                   <div className="lg:col-span-1">
                     <p className="text-blue-100 text-lg font-medium">
-                      {atendimento.cliente}
+                      {atendimento.paciente}
                     </p>
                   </div>
 
                   <div className="lg:col-span-1">
                     <p className="text-blue-100 text-lg">
-                      {atendimento.servico}
+                      {atendimento.especialidade}
                     </p>
                   </div>
 
                   <div className="lg:col-span-1">
                     <p className="text-blue-100 text-lg">
-                      {atendimento.profissional}
+                      {atendimento.medico}
                     </p>
                   </div>
 
@@ -379,7 +411,7 @@ export const Atendimentos = () => {
              {atendimentosFiltrados.length === 0 && (
                <div className="text-center py-12">
                  <p className="text-gray-500 text-lg">
-                   Nenhum atendimento encontrado com os filtros aplicados.
+                   Nenhuma consulta encontrada com os filtros aplicados.
                  </p>
                </div>
              )}
@@ -390,7 +422,7 @@ export const Atendimentos = () => {
              <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 p-4 bg-gray-50 rounded-lg">
                <div className="flex items-center gap-4">
                  <span className="text-sm text-gray-600">
-                   Mostrando {indiceInicial + 1} a {Math.min(indiceFinal, atendimentosFiltrados.length)} de {atendimentosFiltrados.length} atendimentos
+                   Mostrando {indiceInicial + 1} a {Math.min(indiceFinal, atendimentosFiltrados.length)} de {atendimentosFiltrados.length} consultas
                  </span>
                  <Select value={itensPorPagina.toString()} onValueChange={handleItensPorPaginaChange}>
                    <SelectTrigger className="w-[100px] !h-[36px] cursor-pointer">
