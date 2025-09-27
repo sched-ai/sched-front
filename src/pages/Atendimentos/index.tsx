@@ -269,10 +269,10 @@ export const Atendimentos = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg p-6 mb-2 border border-[#141736] shadow-lg">
+        <div className="rounded-lg p-6 mb-2 border bg-[#141736] shadow-lg">
           <div className="flex items-center gap-2 mb-4">
-            <Filter className="w-5 h-5 text-gray-600" />
-            <h2 className="text-lg font-semibold text-gray-800">Filtros</h2>
+            <Filter className="w-5 h-5 text-white" />
+            <h2 className="text-lg font-semibold text-white">Filtros</h2>
           </div>
           <div className="flex flex-col lg:flex-row gap-4 mb-4">
              <div className="flex-1">
@@ -280,11 +280,11 @@ export const Atendimentos = () => {
                  placeholder="Pesquisar por paciente, especialidade ou médico..."
                  value={pesquisa}
                  onChange={(e) => handlePesquisaChange(e.target.value)}
-                 className="w-full"
+                 className="w-full bg-white"
                />
              </div>
              <Select value={filtro} onValueChange={handleFiltroChange}>
-               <SelectTrigger className="w-[250px] !h-[48px] cursor-pointer !text-[16px] font-normal text-[#141736] hover:bg-blue-50 border-[#141736] [&>svg]:text-white">
+               <SelectTrigger className="w-[250px] !h-[48px] cursor-pointer !text-[16px] font-normal text-[#141736] bg-white hover:bg-blue-50 border-[#141736] [&>svg]:text-white">
                  <SelectValue placeholder="Filtrar por especialidade" />
                </SelectTrigger>
                <SelectContent>
@@ -299,7 +299,7 @@ export const Atendimentos = () => {
                </SelectContent>
              </Select>
              <Select value={filtroStatus} onValueChange={handleFiltroStatusChange}>
-               <SelectTrigger className="w-[250px] !h-[48px] cursor-pointer !text-[16px] font-normal text-[#141736] hover:bg-blue-50 border-[#141736] [&>svg]:text-white">
+               <SelectTrigger className="w-[250px] !h-[48px] cursor-pointer !text-[16px] font-normal text-[#141736] bg-white hover:bg-blue-50 border-[#141736] [&>svg]:text-white">
                  <SelectValue placeholder="Filtrar por status" />
                </SelectTrigger>
                <SelectContent>
@@ -310,7 +310,7 @@ export const Atendimentos = () => {
                </SelectContent>
              </Select>
           </div>
-          <div className="bg-[#141736] rounded-lg p-4 mb-1 shadow-sm">
+          <div className="bg-blue-950 rounded-lg p-4 mb-1 shadow-sm">
             <div className="grid grid-cols-2 lg:grid-cols-7 gap-4 items-center">
               <div className="lg:col-span-1">
                 <h3 className="font-semibold text-lg text-white">Paciente</h3>
@@ -342,31 +342,31 @@ export const Atendimentos = () => {
              {atendimentosPaginados.map((atendimento) => (
               <div
                 key={atendimento.id}
-                className="bg-gradient-to-r from-blue-900 to-[#141736] text-white rounded-lg p-6 shadow-lg hover:shadow-xl transition-all duration-200 w-full border border-blue-700"
+                className="bg-white rounded-lg p-6 shadow-lg hover:shadow-xl transition-all duration-200 w-full border border-[#141736]"
               >
                 <div className="grid grid-cols-2 lg:grid-cols-7 gap-4 items-center">
                   <div className="lg:col-span-1">
-                    <p className="text-blue-100 text-lg font-medium">
+                    <p className="text-[#141736] text-[16px] font-medium">
                       {atendimento.paciente}
                     </p>
                   </div>
 
                   <div className="lg:col-span-1">
-                    <p className="text-blue-100 text-lg">
+                    <p className="text-[#141736] text-[16px]">
                       {atendimento.especialidade}
                     </p>
                   </div>
 
                   <div className="lg:col-span-1">
-                    <p className="text-blue-100 text-lg">
+                    <p className="text-[#141736] text-[16px]">
                       {atendimento.medico}
                     </p>
                   </div>
 
                   <div className="lg:col-span-1">
                     <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-blue-200" />
-                      <p className="text-blue-100 text-lg">
+                      <Calendar className="w-4 h-4 text-[#141736]" />
+                      <p className="text-[#141736] text-[16px]">
                         {atendimento.data}
                       </p>
                     </div>
@@ -374,8 +374,8 @@ export const Atendimentos = () => {
 
                   <div className="lg:col-span-1">
                     <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-blue-200" />
-                      <p className="text-blue-100 text-lg font-medium">
+                      <Clock className="w-4 h-4 text-[#141736]" />
+                      <p className="text-[#141736] text-[16px] font-medium">
                         {atendimento.hora}
                       </p>
                     </div>
@@ -388,7 +388,7 @@ export const Atendimentos = () => {
                           atendimento.status
                         )}`}
                       ></div>
-                      <span className="text-blue-100 text-lg capitalize">
+                      <span className="text-[#141736] text-[16px] capitalize">
                         {atendimento.status}
                       </span>
                     </div>
@@ -398,7 +398,7 @@ export const Atendimentos = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="text-blue-900 hover:bg-blue-50 border-white font-medium justify-end"
+                      className="text-white hover:bg-[#282c5e] bg-[#141736] hover:text-white border-white font-medium justify-end"
                     >
                       Ver
                       <ArrowRight className="w-4 h-4 mr-2" />
@@ -419,13 +419,13 @@ export const Atendimentos = () => {
 
            {/* Controles de Paginação */}
            {atendimentosFiltrados.length > 0 && (
-             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 p-4 bg-gray-50 rounded-lg">
+             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 p-4 rounded-lg">
                <div className="flex items-center gap-4">
-                 <span className="text-sm text-gray-600">
+                 <span className="text-sm text-white">
                    Mostrando {indiceInicial + 1} a {Math.min(indiceFinal, atendimentosFiltrados.length)} de {atendimentosFiltrados.length} consultas
                  </span>
                  <Select value={itensPorPagina.toString()} onValueChange={handleItensPorPaginaChange}>
-                   <SelectTrigger className="w-[100px] !h-[36px] cursor-pointer">
+                   <SelectTrigger className="w-[100px] !h-[36px] cursor-pointer bg-white">
                      <SelectValue />
                    </SelectTrigger>
                    <SelectContent>
@@ -435,7 +435,7 @@ export const Atendimentos = () => {
                      <SelectItem value="50">50</SelectItem>
                    </SelectContent>
                  </Select>
-                 <span className="text-sm text-gray-600">por página</span>
+                 <span className="text-sm text-white">por página</span>
                </div>
 
                <div className="flex items-center gap-2">
