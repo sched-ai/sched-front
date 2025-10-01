@@ -105,7 +105,7 @@ export const SignIn = () => {
                     className="text-white border-white"
                     onChange={(e) => setPassword(e.target.value)}
                     />
-                    <Button variant="link">Esqueci minha senha</Button>
+                    <Button variant="link" className="text-[#6cacff]">Esqueci minha senha</Button>
                 </div>
                 </div>
 
@@ -119,6 +119,7 @@ export const SignIn = () => {
                 </span>
                 <Button
                     variant="link"
+                    className="text-[#6cacff]"
                     onClick={() => {
                     window.location.href = "/signup";
                     }}
