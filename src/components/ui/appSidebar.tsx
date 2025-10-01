@@ -25,7 +25,7 @@ export function AppSidebar() {
 			collapsible="icon"
 			className="!max-w-[260px] md:w-[260px] w-auto fixed z-50"
 		>
-			<div className="relative z-10">
+			<div className="relative z-10 h-full max-h-[85vh]">
 				<SidebarTrigger className="absolute top-16 right-0 translate-x-1/2 z-30 shadow-lg bg-[#141736] text-white border border-white" />
 				<SidebarHeader
 					className={
