@@ -10,9 +10,9 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "shadow-xs cursor-pointer bg-black text-white rounded-lg font-semibold lg:text-lg hover:bg-gray-800 transition-colors",
+          "shadow-xs cursor-pointer bg-[#141736] text-white rounded-lg font-semibold lg:text-lg hover:bg-gray-800 transition-colors",
         seccondary: 
-         "shadow-xs cursor-pointer bg-white text-black lg:text-lg hover:bg-slate-200 hover:text-black p-4 font-semibold",
+         "shadow-xs cursor-pointer bg-white text-[#141736] lg:text-lg hover:bg-slate-200 hover:text-[#141736] p-4 font-semibold",
         destructive:
           "bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60 cursor-pointer",
         outline:

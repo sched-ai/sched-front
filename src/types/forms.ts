@@ -4,11 +4,7 @@ export interface ISignInForm {
 }
 
 export interface ISignUpForm {
-	name: string;
-	email: string;
-	password: string;
-	type?: 'person' | 'organization';
-	role?: 'user' | 'admin';
-	active?: boolean;
-	is_admin?: boolean;
+	email: string,
+	password: string,
+	name: string
 }

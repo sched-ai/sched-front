@@ -1,8 +1,38 @@
 import { Button } from "../../components/ui/button";
 import abstract from "../../assets/abstract_signup.png";
 import { Input } from "../../components/ui/input";
+import React from "react";
+import { useSignUp } from "@/hooks/api/auth/useSignUp";
+import { useNavigate } from "react-router-dom";
+import useToast from "@/hooks/useToast";
 
 export const SignUp = () => {
+
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('')
+  const [name, setName] = React.useState('');
+
+  const navigate = useNavigate();
+	const { showToast } = useToast();
+
+  const signUp = useSignUp({
+    onSuccessFn: () => {
+      showToast({
+					label: "Usuário registrado!",
+					message: "Cadastro realizado com sucesso!",
+					type: "success",
+					toastId: "register"
+				});
+        navigate('/')
+    }
+  });
+  
+    const handleLogin = (event: React.FormEvent) => {
+      event.preventDefault();
+      signUp.mutate({ email, password, name });
+    }
+  
+  
   return (
     <>
       <div className="min-h-screen md:flex bg-[#fafafa] hidden">
@@ -36,7 +66,7 @@ export const SignUp = () => {
           </div>
         </div>
         <div className="w-full max-w-[510px] m-auto">
-          <form className="space-y-6 px-8 py-12 bg-[#F5F5F5]">
+          <form className="space-y-6 px-8 py-12 bg-[#F5F5F5]" onSubmit={handleLogin}>
             <div className="text-start">
               <h3 className="lg:text-[40px] font-semibold leading-[1.6] text-2xl">
                 Crie sua conta
@@ -46,27 +76,27 @@ export const SignUp = () => {
                 <div>
                 <label
                   htmlFor="name"
-                  className="block text-sm font-medium text-gray-700 mb-2"
+                  className="block text-sm font-medium text-[#141736] mb-2"
                   >
                   Nome Completo
                 </label>
-                <Input title="Nome" type="text" id="name" required placeholder="Ex: John Doe"  />
+                <Input title="Nome" type="text" id="name" required placeholder="Ex: John Doe" onChange={(e) => setName(e.target.value)}  />
                 </div>
             <div>
 
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-sm font-medium text-[#141736] mb-2"
               >
                 Email
               </label>
-              <Input title="Email" type="email" id="email" required placeholder="Ex: scheapp@gmail.com"  />
+              <Input title="Email" type="email" id="email" required placeholder="Ex: scheapp@gmail.com" onChange={(e) => setEmail(e.target.value)} />
             </div>
 
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-sm font-medium text-[#141736] mb-2"
               >
                 Senha
               </label>
@@ -76,6 +106,7 @@ export const SignUp = () => {
                   id="password"
                   required
                   placeholder="Insira sua senha"
+                  onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
             </div>
