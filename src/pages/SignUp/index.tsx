@@ -5,6 +5,7 @@ import React from "react";
 import { useSignUp } from "@/hooks/api/auth/useSignUp";
 import { useNavigate } from "react-router-dom";
 import useToast from "@/hooks/useToast";
+import { toast } from "sonner";
 
 export const SignUp = () => {
   const [email, setEmail] = React.useState('');
@@ -16,12 +17,7 @@ export const SignUp = () => {
 
   const signUp = useSignUp({
     onSuccessFn: () => {
-      showToast({
-        label: "Usuário registrado!",
-        message: "Cadastro realizado com sucesso!",
-        type: "success",
-        toastId: "register"
-      });
+      toast( "Cadastro realizado com sucesso!");
       navigate('/');
     }
   });
