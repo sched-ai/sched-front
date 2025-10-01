@@ -7,32 +7,41 @@ import { useNavigate } from "react-router-dom";
 import useToast from "@/hooks/useToast";
 
 export const SignUp = () => {
-
   const [email, setEmail] = React.useState('');
-  const [password, setPassword] = React.useState('')
+  const [password, setPassword] = React.useState('');
   const [name, setName] = React.useState('');
 
   const navigate = useNavigate();
-	const { showToast } = useToast();
+  const { showToast } = useToast();
 
   const signUp = useSignUp({
     onSuccessFn: () => {
       showToast({
-					label: "Usuário registrado!",
-					message: "Cadastro realizado com sucesso!",
-					type: "success",
-					toastId: "register"
-				});
-        navigate('/')
+        label: "Usuário registrado!",
+        message: "Cadastro realizado com sucesso!",
+        type: "success",
+        toastId: "register"
+      });
+      navigate('/');
     }
   });
-  
-    const handleLogin = (event: React.FormEvent) => {
-      event.preventDefault();
-      signUp.mutate({ email, password, name });
+
+  const handleRegister = (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (password.length < 8) {
+      showToast({
+        label: "Senha Inválida",
+        message: "A senha deve conter no mínimo 8 caracteres.",
+        type: "error",
+        toastId: "password-error"
+      });
+      return;
     }
-  
-  
+
+    signUp.mutate({ email, password, name });
+  };
+
   return (
     <>
       <div className="min-h-screen md:flex bg-[#fafafa] hidden">
@@ -66,24 +75,24 @@ export const SignUp = () => {
           </div>
         </div>
         <div className="w-full max-w-[510px] m-auto">
-          <form className="space-y-6 px-8 py-12 bg-[#F5F5F5]" onSubmit={handleLogin}>
+          {/* O onSubmit agora chama a função com validação */}
+          <form className="space-y-6 px-8 py-12 bg-[#F5F5F5]" onSubmit={handleRegister}>
             <div className="text-start">
               <h3 className="lg:text-[40px] font-semibold leading-[1.6] text-2xl">
                 Crie sua conta
               </h3>
               <p className="leading-[1.01]">Ou cadastre um novo usuário</p>
             </div>
-                <div>
-                <label
-                  htmlFor="name"
-                  className="block text-sm font-medium text-[#141736] mb-2"
-                  >
-                  Nome Completo
-                </label>
-                <Input title="Nome" type="text" id="name" required placeholder="Ex: John Doe" onChange={(e) => setName(e.target.value)}  />
-                </div>
             <div>
-
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-[#141736] mb-2"
+              >
+                Nome Completo
+              </label>
+              <Input title="Nome" type="text" id="name" required placeholder="Ex: John Doe" onChange={(e) => setName(e.target.value)} />
+            </div>
+            <div>
               <label
                 htmlFor="email"
                 className="block text-sm font-medium text-[#141736] mb-2"
@@ -92,7 +101,6 @@ export const SignUp = () => {
               </label>
               <Input title="Email" type="email" id="email" required placeholder="Ex: scheapp@gmail.com" onChange={(e) => setEmail(e.target.value)} />
             </div>
-
             <div>
               <label
                 htmlFor="password"
@@ -106,15 +114,14 @@ export const SignUp = () => {
                   id="password"
                   required
                   placeholder="Insira sua senha"
+                  minLength={8}
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
             </div>
-
             <Button type="submit" className="w-full">
               CADASTRAR
             </Button>
-
             <div className="text-center">
               <span className="text-gray-600">Já Possui Uma Conta? </span>
               <Button
@@ -129,6 +136,7 @@ export const SignUp = () => {
           </form>
         </div>
       </div>
+      
       <div
         className="flex md:hidden p-6 w-full min-h-screen bg-cover bg-center"
         style={{ backgroundImage: `url(${abstract})` }}
@@ -150,6 +158,7 @@ export const SignUp = () => {
               className="space-y-6 px-6 py-8
                         [background-clip:padding-box,border-box] 
                         backdrop-blur-md bg-black/45"
+              onSubmit={handleRegister}
             >
               <div className="text-start text-white">
                 <h3 className="lg:text-[40px] font-semibold leading-[1.2] text-2xl">
@@ -159,24 +168,41 @@ export const SignUp = () => {
               </div>
 
               <div>
+                  <label
+                    htmlFor="name_mobile"
+                    className="block text-sm font-normal text-white mb-2"
+                    >
+                    Nome Completo
+                  </label>
+                  <Input 
+                    type="text" 
+                    id="name_mobile" 
+                    required 
+                    placeholder="Ex: John Doe" 
+                    className="text-white border-white"
+                    onChange={(e) => setName(e.target.value)}
+                  />
+              </div>
+
+              <div>
                 <label
-                  htmlFor="email"
+                  htmlFor="email_mobile"
                   className="block text-sm font-normal text-white mb-2"
                 >
                   Email
                 </label>
                 <Input
                   type="email"
-                  id="email"
+                  id="email_mobile"
                   required
                   placeholder="scheapp@gmail.com"
                   className="text-white border-white"
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
-
               <div>
                 <label
-                  htmlFor="password"
+                  htmlFor="password_mobile"
                   className="block text-sm font-normal text-white mb-2"
                 >
                   Senha
@@ -184,18 +210,18 @@ export const SignUp = () => {
                 <div className="relative">
                   <Input
                     type="password"
-                    id="password"
+                    id="password_mobile"
                     required
                     placeholder="Insira sua senha"
+                    minLength={8}
                     className="text-white border-white"
+                    onChange={(e) => setPassword(e.target.value)}
                   />
                 </div>
               </div>
-
               <Button type="submit" variant="secondary" className="w-full">
                 CADASTRAR
               </Button>
-
               <div className="text-center">
                 <span className="text-white font-light">Já possui uma conta? </span>
                 <Button
