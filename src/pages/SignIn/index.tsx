@@ -64,7 +64,7 @@ export const SignIn = () => {
                 onSubmit={handleLogin}
                 className="space-y-6 px-6 py-8 lg:px-10 lg:py-14
                             [background-clip:padding-box,border-box] 
-                            backdrop-blur-md bg-black/45"
+                            backdrop-blur-md bg-black/50"
             >
                 <div className="text-start text-white">
                 <h1 className="lg:text-[40px] font-semibold leading-[1.2] text-2xl">
