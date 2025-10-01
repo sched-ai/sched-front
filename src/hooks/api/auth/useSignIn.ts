@@ -26,8 +26,12 @@ export const useSignIn = ({ onSuccessFn }: IUseMutationParams) => {
 			autoClose: false,
 			showSuccessFeedback: false,
 			endpoint: '/auth/login',
-			body
+			body: {
+				email: body.email,
+				senha: body.password
+			}
 		}),
+		
 		onSuccess: (resp) => {
 			if(resp){
 				StorageService.login({

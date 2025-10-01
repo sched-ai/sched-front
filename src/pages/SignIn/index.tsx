@@ -13,7 +13,7 @@ export const SignIn = () => {
 
   const signIn = useSignIn({
     onSuccessFn: () => {
-      navigate('/dashboard');
+      navigate('/home');
     }
   });
 
