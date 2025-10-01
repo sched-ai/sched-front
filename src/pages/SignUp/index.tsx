@@ -4,7 +4,6 @@ import { Input } from "../../components/ui/input";
 import React from "react";
 import { useSignUp } from "@/hooks/api/auth/useSignUp";
 import { useNavigate } from "react-router-dom";
-import useToast from "@/hooks/useToast";
 import { toast } from "sonner";
 
 export const SignUp = () => {
@@ -13,7 +12,6 @@ export const SignUp = () => {
   const [name, setName] = React.useState('');
 
   const navigate = useNavigate();
-  const { showToast } = useToast();
 
   const signUp = useSignUp({
     onSuccessFn: () => {
@@ -26,12 +24,7 @@ export const SignUp = () => {
     event.preventDefault();
 
     if (password.length < 8) {
-      showToast({
-        label: "Senha Inválida",
-        message: "A senha deve conter no mínimo 8 caracteres.",
-        type: "error",
-        toastId: "password-error"
-      });
+     toast.error('A senha deve conter no mínimo 8 caracteres.')
       return;
     }
 
