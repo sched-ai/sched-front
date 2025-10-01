@@ -37,7 +37,7 @@ export function AppSidebar() {
               title="Agenda"
               icon={CalendarFold}
               iconSize={isSidebarOpen ? 24 : 28}
-              href="/home"
+              href="/"
               isSidebarOpen={isSidebarOpen}
             />
           </SidebarGroup>

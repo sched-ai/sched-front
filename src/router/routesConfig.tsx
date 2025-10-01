@@ -14,7 +14,7 @@ export interface RouteConfig {
 
 export const routesConfig: RouteConfig[] = [
   {
-    path: "/",
+    path: "/signin",
     element: <SignIn />,
     template: false,
     authRoute: false
@@ -32,7 +32,7 @@ export const routesConfig: RouteConfig[] = [
     authRoute: true
   },
   {
-    path: "/home",
+    path: "/",
     element: <Home />,
     template: true,
     authRoute: true
