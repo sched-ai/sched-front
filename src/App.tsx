@@ -4,6 +4,7 @@ import { routesConfig } from './router/routesConfig'
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
 import React from 'react';
 import useToast from './hooks/useToast';
+import { ProtectedRoute } from './router/protectedRoute';
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const queryClient = new QueryClient({
@@ -32,23 +33,31 @@ function App() {
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 	return (
-		<QueryClientProvider client={queryClient}>
-			<Routes>
-			{routesConfig.map((route) => (
-				<Route
-				key={route.path}
-				path={route.path}
-				element={
-					route.template ? (
-					<Layout>{route.element}</Layout>
-					) : (
-					route.element
-					)
-				}
-				/>
-			))}
-			</Routes>
-		</QueryClientProvider>
+		 <QueryClientProvider client={queryClient}>
+            <Routes>
+                {routesConfig.map((route) => {
+                    const finalElement = route.template ? (
+                        <Layout>{route.element}</Layout>
+                    ) : (
+                        route.element
+                    );
+
+                    return (
+                        <Route
+                            key={route.path}
+                            path={route.path}
+                            element={
+                                route.authRoute ? (
+                                    <ProtectedRoute>{finalElement}</ProtectedRoute>
+                                ) : (
+                                    finalElement
+                                )
+                            }
+                        />
+                    );
+                })}
+            </Routes>
+        </QueryClientProvider>
 	)
 }
 

@@ -9,32 +9,38 @@ export interface RouteConfig {
   path: string
   element: ReactElement
   template?: boolean
+  authRoute: boolean
 }
 
 export const routesConfig: RouteConfig[] = [
   {
     path: "/",
     element: <SignIn />,
-    template: false
+    template: false,
+    authRoute: false
   },
   {
     path: "/signup",
     element: <SignUp />,
-    template: false
+    template: false,
+    authRoute: false
   },
   {
     path: "/firstLogin",
     element: <FirstLogin />,
-    template: false
+    template: false,
+    authRoute: true
   },
   {
     path: "/home",
     element: <Home />,
-    template: true
+    template: true,
+    authRoute: true
   },
   {
     path: "/atendimentos",
     element: <Atendimentos />,
-    template: true
+    template: true,
+    authRoute: true
   },
 ]
