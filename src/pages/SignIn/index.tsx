@@ -105,7 +105,7 @@ export const SignIn = () => {
                     className="text-white border-white"
                     onChange={(e) => setPassword(e.target.value)}
                     />
-                    <Button variant="link" className="text-[#6cacff]">Esqueci minha senha</Button>
+                    <Button variant="link" type="button" className="text-[#6cacff]">Esqueci minha senha</Button>
                 </div>
                 </div>
 
