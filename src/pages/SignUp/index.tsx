@@ -17,12 +17,12 @@ export const SignUp = () => {
               </h1>
             </div>
             <div>
-              <h2 className="lg:text-4xl text-2xl font-light text-white">
+              <h4 className="lg:text-4xl text-2xl font-light text-white">
                 Já possui uma conta?
-              </h2>
-              <h2 className="lg:text-4xl font-semibold text-white max-w-[290px] mb-10 text-2xl">
+              </h4>
+              <h3 className="lg:text-4xl font-semibold text-white max-w-[290px] mb-10 text-2xl">
                 Bem vindo de volta!
-              </h2>
+              </h3>
               <Button
                 variant="seccondary"
                 className="w-full"
@@ -38,20 +38,29 @@ export const SignUp = () => {
         <div className="w-full max-w-[510px] m-auto">
           <form className="space-y-6 px-8 py-12 bg-[#F5F5F5]">
             <div className="text-start">
-              <h1 className="lg:text-[40px] font-semibold leading-[1.01] text-2xl">
+              <h3 className="lg:text-[40px] font-semibold leading-[1.6] text-2xl">
                 Crie sua conta
-              </h1>
+              </h3>
               <p className="leading-[1.01]">Ou cadastre um novo usuário</p>
             </div>
-
+                <div>
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                  Nome Completo
+                </label>
+                <Input title="Nome" type="text" id="name" required placeholder="Ex: John Doe"  />
+                </div>
             <div>
+
               <label
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
                 Email
               </label>
-              <Input title="Email" type="email" id="email" required placeholder="scheapp@gmail.com"  />
+              <Input title="Email" type="email" id="email" required placeholder="Ex: scheapp@gmail.com"  />
             </div>
 
             <div>
@@ -95,7 +104,7 @@ export const SignUp = () => {
       >
         <div className="flex flex-col justify-between w-full gap-4">
           <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-semibold text-white italic">SCHED</h1>
+            <h2 className="text-2xl font-semibold text-white italic">SCHED</h2>
             <Button
               variant="seccondary"
               onClick={() => {
@@ -112,9 +121,9 @@ export const SignUp = () => {
                         backdrop-blur-md bg-black/45"
             >
               <div className="text-start text-white">
-                <h1 className="lg:text-[40px] font-semibold leading-[1.2] text-2xl">
+                <h3 className="lg:text-[40px] font-semibold leading-[1.2] text-2xl">
                   Crie sua conta
-                </h1>
+                </h3>
                 <p className="leading-[1.2]">Ou cadastre um novo usuário</p>
               </div>
 
