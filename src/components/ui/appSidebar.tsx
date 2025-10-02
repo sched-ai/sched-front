@@ -18,7 +18,7 @@ export function AppSidebar() {
 	const { state } = useSidebar();
 	const isSidebarOpen = state === "expanded";
 	const sidebarLogo = isSidebarOpen ? logoFull : logo;
-  const navigate = useNavigate()
+		const navigate = useNavigate()
 
 	return (
 		<Sidebar
@@ -58,10 +58,14 @@ export function AppSidebar() {
 					</div>
 					<SidebarGroup title="Logout" className="p-0 gap-2">
 						<button className="flex items-center font-medium gap-3 text-red-500 p-3 border-l-4 rounded-none justify-start hover:text-white border-transparent cursor-pointer hover:bg-[#0177FB]/10 pl-6" 
-            onClick={() => {
+							onClick={() => {
 							logout()
-              navigate('/signin')
-              }}><LogOutIcon/>Sair</button>
+								navigate('/signin')
+								}}><LogOutIcon/><span className={`${isSidebarOpen ? '' : 'hidden'}`}>
+
+									Sair
+									</span>
+									</button>
 					</SidebarGroup>
 				</SidebarContent>
 				<SidebarFooter />
