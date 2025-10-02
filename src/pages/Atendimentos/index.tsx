@@ -222,15 +222,15 @@ export const Atendimentos = () => {
   return (
     <div className="w-full flex flex-col h-full">
       <header className="border-b border-b-[#DADCE0] h-full max-h-[80px] p-4">
-        <h1 className="text-[30px] font-medium">Consultas Médicas</h1>
+        <h1 className="text-[30px] font-medium">Agendamentos</h1>
       </header>
       <div className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="shadow-md bg-[#141736] rounded-lg p-6 border border-[#141736]">
+          <div className="shadow-custom bg-white rounded-lg p-6 border-l-4 border-[#141736]">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-white text-sm">Total de Agendamentos</p>
-                <p className="text-3xl font-bold text-white">
+                <p className="text-[#141736] text-sm">Total de Agendamentos</p>
+                <p className="text-3xl font-bold text-[#141736]">
                   {estatisticas.total}
                 </p>
               </div>
@@ -238,11 +238,11 @@ export const Atendimentos = () => {
             </div>
           </div>
 
-          <div className="shadow-md bg-[#141736] rounded-lg p-6 border border-[#141736]">
+          <div className="shadow-custom bg-white rounded-lg p-6 border-l-4 border-[#141736]">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-white text-sm">Concluídos</p>
-                <p className="text-3xl font-bold text-white">
+                <p className="text-[#141736] text-sm">Concluídos</p>
+                <p className="text-3xl font-bold text-[#141736]">
                   {estatisticas.concluidos}
                 </p>
               </div>
@@ -250,11 +250,11 @@ export const Atendimentos = () => {
             </div>
           </div>
 
-          <div className="shadow-md bg-[#141736] rounded-lg p-6 border border-[#141736]">
+          <div className="shadow-custom bg-white rounded-lg p-6 border-l-4 border-[#141736]">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-white text-sm">Agendados</p>
-                <p className="text-3xl font-bold text-white">
+                <p className="text-[#141736] text-sm">Agendados</p>
+                <p className="text-3xl font-bold text-[#141736]">
                   {estatisticas.agendados}
                 </p>
               </div>
@@ -262,11 +262,11 @@ export const Atendimentos = () => {
             </div>
           </div>
 
-          <div className="shadow-md bg-[#141736] rounded-lg p-6 border border-[#141736]">
+          <div className="shadow-custom bg-white rounded-lg p-6 border-l-4 border-[#141736]">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-white text-sm">Cancelados</p>
-                <p className="text-3xl font-bold text-white">
+                <p className="text-[#141736] text-sm">Cancelados</p>
+                <p className="text-3xl font-bold text-[#141736]">
                   {estatisticas.cancelados}
                 </p>
               </div>
@@ -277,7 +277,7 @@ export const Atendimentos = () => {
 
         {/* === TABELA E FILTROS === */}
         {/* */}
-        <div className="rounded-lg p-6 mb-2 border bg-white shadow-md">
+        <div className="rounded-lg p-6 mb-2 border bg-white shadow-custom">
           <div className="flex items-center gap-2 mb-4">
             <Filter className="w-5 h-5 text-[#141736]" />
             <h2 className="text-lg font-semibold text-[#141736]">Filtros</h2>
