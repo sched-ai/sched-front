@@ -50,6 +50,22 @@
   --sidebar-ring: oklch(0.704 0.04 256.788);
 }
 
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #141736 #f1f1f1;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  position: relative;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #141736;
+  border-radius: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
 body {
   min-height: 100vh;
   height: 100%;
@@ -148,9 +164,15 @@ body {
     @apply bg-background text-foreground;
     font-family: 'Poppins', system-ui, Avenir, Helvetica, Arial, sans-serif;
   }
-  
+
   /* Garantir que todos os elementos herdem a fonte Poppins */
   html, body, input, textarea, select, button {
     font-family: 'Poppins', system-ui, Avenir, Helvetica, Arial, sans-serif;
   }
+}
+
+.shadow-custom {
+    --tw-shadow: 0px 6px 20px rgba(0, 0, 0, 0.16);
+    --tw-shadow-colored: 0px 6px 20px var(--tw-shadow-color);
+    box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }

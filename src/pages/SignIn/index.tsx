@@ -1,8 +1,28 @@
 import { Button } from "../../components/ui/button";
 import abstract from "../../assets/abstract_waves.jpg";
 import { Input } from "../../components/ui/input";
+import { useNavigate } from "react-router-dom";
+import React from "react";
+import { useSignIn } from "@/hooks/api/auth/useSignIn";
 
 export const SignIn = () => {
+
+  const navigate = useNavigate();
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+
+  const signIn = useSignIn({
+    onSuccessFn: () => {
+      navigate('/');
+    }
+  });
+
+  const handleLogin = (event: React.FormEvent) => {
+    event.preventDefault();
+    signIn.mutate({ email, password });
+  }
+
+
   return (
     <div
       className="flex p-11 w-full min-h-screen bg-cover bg-center"
@@ -41,9 +61,10 @@ export const SignIn = () => {
             </div>
             <div className="w-full max-w-[510px] m-auto">
             <form
+                onSubmit={handleLogin}
                 className="space-y-6 px-6 py-8 lg:px-10 lg:py-14
                             [background-clip:padding-box,border-box] 
-                            backdrop-blur-md bg-black/45"
+                            backdrop-blur-md bg-black/50"
             >
                 <div className="text-start text-white">
                 <h1 className="lg:text-[40px] font-semibold leading-[1.2] text-2xl">
@@ -64,6 +85,7 @@ export const SignIn = () => {
                     required
                     placeholder="scheapp@gmail.com"
                     className="text-white border-white"
+                    onChange={(e) => setEmail(e.target.value)}
                 />
                 </div>
 
@@ -81,8 +103,9 @@ export const SignIn = () => {
                     required
                     placeholder="Insira sua senha"
                     className="text-white border-white"
+                    onChange={(e) => setPassword(e.target.value)}
                     />
-                    <Button variant="link">Esqueci minha senha</Button>
+                    <Button variant="link" type="button" className="text-[#6cacff]">Esqueci minha senha</Button>
                 </div>
                 </div>
 
@@ -96,6 +119,7 @@ export const SignIn = () => {
                 </span>
                 <Button
                     variant="link"
+                    className="text-[#6cacff]"
                     onClick={() => {
                     window.location.href = "/signup";
                     }}

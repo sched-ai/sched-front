@@ -4,11 +4,13 @@ import { BrowserRouter } from 'react-router-dom';
 import './index.css';
 import App from './App.tsx';
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import { Toaster } from 'sonner';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <App />
+      <Toaster />
       <SpeedInsights />
     </BrowserRouter>
   </StrictMode>

@@ -1,19 +1,64 @@
 import { Route, Routes } from 'react-router-dom'
-import { SignIn } from './pages/SignIn'
-import { SignUp } from './pages/SignUp'
-import { FirstLogin } from './pages/FirstLogin'
+import { Layout } from './components/Layout'
+import { routesConfig } from './router/routesConfig'
+import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
+import React from 'react';
+import useToast from './hooks/useToast';
+import { ProtectedRoute } from './router/protectedRoute';
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const queryClient = new QueryClient({
+	defaultOptions: {
+		queries: {
+			refetchOnWindowFocus: false,
+		},
+	},
+});
 
 function App() {
+	const { showToast } = useToast();
 
-  return (
-    <>
-     <Routes>
-      <Route path="/" element={<SignIn />}  />
-      <Route path="/signup" element={<SignUp />}  />
-      <Route path="/FirstLogin" element={<FirstLogin />}  />
-     </Routes>
-    </>
-  )
+	React.useEffect(() => {
+		const expired = sessionStorage.getItem("expired");
+		if (expired) {
+			sessionStorage.removeItem("expired");
+			showToast({
+				label: "Sua sessão expirou!",
+				message: "Faça login novamente para continuar.",
+				type: "error",
+				toastId: "toast-expired",
+				autoClose: false,
+			});
+		}
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+	return (
+		 <QueryClientProvider client={queryClient}>
+            <Routes>
+                {routesConfig.map((route) => {
+                    const finalElement = route.template ? (
+                        <Layout>{route.element}</Layout>
+                    ) : (
+                        route.element
+                    );
+
+                    return (
+                        <Route
+                            key={route.path}
+                            path={route.path}
+                            element={
+                                route.authRoute ? (
+                                    <ProtectedRoute>{finalElement}</ProtectedRoute>
+                                ) : (
+                                    finalElement
+                                )
+                            }
+                        />
+                    );
+                })}
+            </Routes>
+        </QueryClientProvider>
+	)
 }
 
 export default App
