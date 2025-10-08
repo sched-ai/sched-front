@@ -76,8 +76,8 @@ export const FirstLogin = () => {
                 <form onSubmit={(e) => { e.preventDefault(); if (canProceedStep1) nextStep(); }} className="flex flex-col justify-between h-full lg:w-[490px] w-full">
                     <div>
                         <div className="mb-20">
-                            <h4 className="mb-0 font-semibold text-lg">Falta pouco!</h4>
-                            <p className="text-muted-foreground">Preencha o formulário com suas informações</p>
+                            <h4 className="mb-0 font-semibold text-lg text-[24px]">Falta pouco!</h4>
+                            <p className="text-muted-foreground text-[16px]">Preencha o formulário com suas informações</p>
                         </div>
                         <div className="space-y-6">
                             <p className="text-[24px] font-semibold text-gray-800 tracking-tight">Como você gostaria de usar a SchedApp?</p>
@@ -111,8 +111,8 @@ export const FirstLogin = () => {
                 <form onSubmit={(e) => { e.preventDefault(); nextStep(); }} className="flex flex-col justify-between h-full lg:w-[490px] w-full">
                     <div>
                         <div className="mb-20">
-                            <h4 className="mb-0 font-semibold text-lg">{userType === 'autonomo' ? 'Conte-nos sobre você' : 'Conte-nos sobre sua empresa'}</h4>
-                            <p className="text-muted-foreground">Essas informações ajudarão a configurar sua agenda.</p>
+                            <h4 className="mb-0 font-semibold text-lg text-[24px]">{userType === 'autonomo' ? 'Conte-nos sobre você' : 'Conte-nos sobre sua empresa'}</h4>
+                            <p className="text-muted-foreground text-[16px]">Essas informações ajudarão a configurar sua agenda.</p>
                         </div>
                         <div className="space-y-10">
                             {userType === 'autonomo' && (
@@ -144,8 +144,8 @@ export const FirstLogin = () => {
                 <form onSubmit={handleFinalSubmit} className="flex flex-col justify-between h-full lg:w-[490px] w-full">
                     <div>
                         <div className="mb-20">
-                            <h4 className="mb-0 font-semibold text-lg">Seus horários de trabalho</h4>
-                            <p className="text-muted-foreground mb-4">Defina seus horários padrão. Você poderá alterá-los depois.</p>
+                            <h4 className="mb-0 font-semibold text-lg text-[24px]">Seus horários de trabalho</h4>
+                            <p className="text-muted-foreground mb-4 text-[16px]">Defina seus horários padrão. Você poderá alterá-los depois.</p>
                         </div>
                         <div className="space-y-3">
                             {Object.keys(schedule).map((day) => {
@@ -191,9 +191,9 @@ export const FirstLogin = () => {
                     </div>
                 </div>
                 <div className="flex flex-col justify-center lg:px-8 px-4 py-12 relative w-full">
-                    <div className="flex w-full lg:w-fit mx-auto min-h-[80vh]">
+                    <div className="flex w-full lg:w-fit mx-auto">
                         <div className="hidden lg:flex flex-col justify-center">
-                            <div className="w-[1px] bg-blue-500 mr-20 rounded-full h-[80vh]" />
+                            <div className="w-[1px] bg-blue-500 mr-20 rounded-full h-[60vh]" />
                         </div>
                         {renderStep()}
                     </div>
