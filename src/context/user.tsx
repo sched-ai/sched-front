@@ -12,6 +12,7 @@ interface User {
   created_at: string;    // ISO datetime string
   updated_at: string;    // ISO datetime string
   profileConfigs: Record<string, unknown>;
+  onboarded: boolean;
 }
 
 interface UserContextType {

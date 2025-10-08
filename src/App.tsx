@@ -1,11 +1,8 @@
-import { Route, Routes } from "react-router-dom";
-import { Layout } from "./components/Layout";
-import { routesConfig } from "./router/routesConfig";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import React from "react";
 import useToast from "./hooks/useToast";
-import { ProtectedRoute } from "./router/protectedRoute";
 import { UserProvider } from "./context/user";
+import { AppRoutes } from "./router/routesConfig";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const queryClient = new QueryClient({
@@ -33,32 +30,12 @@ function App() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <UserProvider>
-        <Routes>
-          {routesConfig.map((route) => {
-            const finalElement = route.template ? (
-              <Layout>{route.element}</Layout>
-            ) : (
-              route.element
-            );
-
-            return (
-              <Route
-                key={route.path}
-                path={route.path}
-                element={
-                  route.authRoute ? (
-                    <ProtectedRoute>{finalElement}</ProtectedRoute>
-                  ) : (
-                    finalElement
-                  )
-                }
-              />
-            );
-          })}
-        </Routes>
+        {/* 2. Renderize o componente AppRoutes aqui. Ele já contém o <Routes> */}
+        <AppRoutes />
       </UserProvider>
     </QueryClientProvider>
   );
