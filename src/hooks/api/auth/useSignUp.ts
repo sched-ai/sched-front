@@ -24,9 +24,9 @@ export const useSignUp = ({ onSuccessFn }: IUseMutationParams) => {
 			showSuccessFeedback: false,
 			endpoint: '/auth/register',
 			body: {
-				nome: body.name,
+				name: body.name,
 				email: body.email,
-				senha: body.password
+				password: body.password
 			}
 		}),
 		

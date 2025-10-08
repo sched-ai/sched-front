@@ -10,7 +10,7 @@ import { QueryKeys } from '../index';
 // import { useUser } from '@/context/user';
 
 interface ISignInResponse {
-	access_token: string;
+	token: string;
 	refresh_token: string;
 	token_type: string;
 }
@@ -28,14 +28,14 @@ export const useSignIn = ({ onSuccessFn }: IUseMutationParams) => {
 			endpoint: '/auth/login',
 			body: {
 				email: body.email,
-				senha: body.password
+				password: body.password
 			}
 		}),
 		
 		onSuccess: (resp) => {
 			if(resp){
 				StorageService.login({
-					token: resp.access_token,
+					token: resp.token,
 					refreshToken: resp.refresh_token
 				});
 				// refreshUser();
