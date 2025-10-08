@@ -29,7 +29,7 @@ export function AppRoutes() {
   const routesConfig: RouteConfig[] = [
     { path: "/signin", element: <SignIn />, template: false, authRoute: false },
     { path: "/signup", element: <SignUp />, template: false, authRoute: false },
-    { path: "/", element: onboarded ? <Home /> : <FirstLogin />, template: true, authRoute: true },
+    { path: "/", element: onboarded ? <Home /> : <FirstLogin />, template: onboarded, authRoute: true },
     { path: "/atendimentos", element: <Atendimentos />, template: true, authRoute: true },
   ];
 
