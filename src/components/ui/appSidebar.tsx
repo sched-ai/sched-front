@@ -57,7 +57,7 @@ export function AppSidebar() {
                 title="Atendimentos"
                 icon={NotepadText}
                 iconSize={isSidebarOpen ? 24 : 28}
-                href="/atendimentos"
+                href="/appointment"
                 isSidebarOpen={isSidebarOpen}
               />
             </SidebarGroup>

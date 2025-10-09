@@ -12,11 +12,19 @@ import {
 import abstract from "../../assets/abstract_waves.jpg";
 import CustomRadioInput from "@/components/CustomRadioInput";
 import { Building2, User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useOnboarding, type IOnboardingBody } from "@/hooks/api/useOnboarding";
 
 type UserType = "empresa" | "autonomo" | "";
 
 export const FirstLogin = () => {
     const [step, setStep] = useState(1);
+     const navigate = useNavigate();
+    const { mutate: submitOnboarding } = useOnboarding({
+        onSuccessFn: () => {
+            navigate('/');
+        }
+    });
     const [userType, setUserType] = useState<UserType>("");
     const progressText = `Passo ${step} de 3`;
 
@@ -50,24 +58,39 @@ export const FirstLogin = () => {
         }));
     };
 
+    
+
     const nextStep = () => setStep(prev => prev + 1);
     const prevStep = () => setStep(prev => prev - 1);
 
     const handleFinalSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        const formData = {
-            userType,
-            details: userType === 'autonomo' ? {
-                area,
-                professionalId,
-            } : {
-                companyName,
-                cnpj,
-                companyArea,
-            },
-            schedule,
+
+        const dayMap: { [key: string]: number } = {
+            segunda: 1, terça: 2, quarta: 3, quinta: 4, sexta: 5, sábado: 6, domingo: 0
         };
-        console.log("DADOS FINAIS PARA A API:", formData);
+        
+        const workSchedules = Object.entries(schedule)
+            .filter(([, details]) => details.working)
+            .map(([day, details]) => ({
+                dayOfWeek: dayMap[day],
+                startTime: details.start,
+                endTime: details.end,
+            }));
+
+        
+
+        const apiPayload: IOnboardingBody = {
+            type: userType === 'autonomo' ? 'AUTONOMO' : 'EMPRESA',
+            professionalName: userType === 'autonomo' ? area : undefined,
+            fieldOfWork: userType === 'autonomo' ? area : companyArea,
+            professionalLicense: userType === 'autonomo' ? professionalId : undefined,
+            companyName: userType === 'empresa' ? companyName : undefined,
+            companyDocument: userType === 'empresa' ? cnpj : undefined,
+            workSchedules,
+        };
+
+        submitOnboarding(apiPayload);
     };
 
     const renderStep = () => {
