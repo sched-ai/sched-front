@@ -20,7 +20,7 @@ export function AppSidebar() {
   const isSidebarOpen = state === "expanded";
   const sidebarLogo = isSidebarOpen ? logoFull : logo;
   const navigate = useNavigate();
-  const { userData } = useUser();
+  const { userData, userLoading } = useUser();
 
   return (
     <Sidebar
@@ -40,9 +40,18 @@ export function AppSidebar() {
         <SidebarContent className="flex flex-col justify-between h-full">
           <div>
             <SidebarGroup>
-              <p className="text-white pt-6 px-4">Bem Vindo(a),</p>
-							<p className="text-white px-4 font-semibold">{userData?.name}</p>
-            </SidebarGroup>
+            {userLoading ? (
+              <div className="px-4 pt-6 space-y-2">
+                <div className="h-4 bg-gray-600 rounded w-3/4 animate-pulse"></div>
+                <div className="h-5 bg-gray-500 rounded w-1/2 animate-pulse"></div>
+              </div>
+            ) : (
+              <>
+                <p className="text-white pt-6 px-4">Bem Vindo(a),</p>
+                <p className="text-white px-4 font-semibold">{userData?.name}</p>
+              </>
+            )}
+          </SidebarGroup>
             <SidebarGroup title="Agenda" className="p-0 pt-10 gap-2">
               <NavItem
                 title="Agenda"

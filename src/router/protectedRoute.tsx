@@ -24,5 +24,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     return <Navigate to="/onboarding" replace />;
   }
 
+  if (userData && userData.onboarded === true && location.pathname === '/onboarding') {
+        return <Navigate to="/" replace />;
+  }
+
   return <>{children}</>;
 };

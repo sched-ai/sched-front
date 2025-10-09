@@ -7,6 +7,7 @@ import type { ISignInForm } from '@/types/forms';
 import useAPI from '../useAPI';
 
 import { QueryKeys } from '../index';
+import { useUser } from '@/context/user';
 // import { useUser } from '@/context/user';
 
 interface ISignInResponse {
@@ -18,7 +19,7 @@ interface ISignInResponse {
 export const useSignIn = ({ onSuccessFn }: IUseMutationParams) => {
 	const { post } = useAPI<ISignInResponse>();
 	const queryClient = useQueryClient();
-	// const { refreshUser } = useUser();
+	const { refreshUser } = useUser();
 
 	return useMutation({
 		mutationFn: (body: ISignInForm) => post({
@@ -38,7 +39,7 @@ export const useSignIn = ({ onSuccessFn }: IUseMutationParams) => {
 					token: resp.token,
 					refreshToken: resp.refresh_token
 				});
-				// refreshUser();
+				refreshUser();
 				queryClient.invalidateQueries({
 					queryKey: [ QueryKeys.current_user ]
 				});

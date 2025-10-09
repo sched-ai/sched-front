@@ -103,7 +103,7 @@ export const FirstLogin = () => {
                             <p className="text-muted-foreground text-[16px]">Preencha o formulário com suas informações</p>
                         </div>
                         <div className="space-y-6">
-                            <p className="text-[24px] font-semibold text-gray-800 tracking-tight">Como você gostaria de usar a SchedApp?</p>
+                            <p className="text-[20px] font-semibold text-gray-800 tracking-tight">Como você gostaria de usar a SchedApp?</p>
                             <div className="flex flex-col gap-8 mt-10">
                                 <CustomRadioInput label="Empresa" htmlFor="empresa" name="userType" Icon={Building2} value="empresa" checked={userType === "empresa"} onChange={handleUserTypeChange} />
                                 <CustomRadioInput label="Profissional Autônomo" htmlFor="autonomo" name="userType" Icon={User} value="autonomo" checked={userType === "autonomo"} onChange={handleUserTypeChange} />
@@ -140,15 +140,15 @@ export const FirstLogin = () => {
                         <div className="space-y-10">
                             {userType === 'autonomo' && (
                                 <>
-                                    <div><Label className="text-[24px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="area">Sua área de atuação</Label><Input id="area" value={area} onChange={e => setArea(e.target.value)} placeholder="Ex: Psicologia, Fisioterapia" /></div>
-                                    <div><Label className="text-[24px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="professionalId">Nº de registro profissional (Opcional)</Label><Input id="professionalId" value={professionalId} onChange={e => setProfessionalId(e.target.value)} placeholder="Ex: CRP 01/12345" /></div>
+                                    <div><Label className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="area">Sua área de atuação</Label><Input id="area" value={area} onChange={e => setArea(e.target.value)} placeholder="Ex: Psicologia, Fisioterapia" /></div>
+                                    <div><Label className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="professionalId">Nº de registro profissional (Opcional)</Label><Input id="professionalId" value={professionalId} onChange={e => setProfessionalId(e.target.value)} placeholder="Ex: CRP 01/12345" /></div>
                                 </>
                             )}
                             {userType === 'empresa' && (
                                 <>
-                                    <div><Label className="text-[24px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="companyName">Nome da sua empresa/clínica</Label><Input id="companyName" value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="Ex: Clínica Bem-Estar" /></div>
-                                    <div><Label className="text-[24px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="cnpj">CNPJ</Label><Input id="cnpj" value={cnpj} onChange={e => setCnpj(e.target.value)} placeholder="00.000.000/0001-00" /></div>
-                                    <div><Label className="text-[24px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="companyArea">Principal área de atuação</Label><Input id="companyArea" value={companyArea} onChange={e => setCompanyArea(e.target.value)} placeholder="Ex: Odontologia" /></div>
+                                    <div><Label className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="companyName">Nome da sua empresa/clínica</Label><Input id="companyName" value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="Ex: Clínica Bem-Estar" /></div>
+                                    <div><Label className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="cnpj">CNPJ</Label><Input id="cnpj" value={cnpj} onChange={e => setCnpj(e.target.value)} placeholder="00.000.000/0001-00" /></div>
+                                    <div><Label className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="companyArea">Principal área de atuação</Label><Input id="companyArea" value={companyArea} onChange={e => setCompanyArea(e.target.value)} placeholder="Ex: Odontologia" /></div>
                                 </>
                             )}
                         </div>
