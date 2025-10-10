@@ -14,6 +14,7 @@ import CustomRadioInput from "@/components/CustomRadioInput";
 import { Building2, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useOnboarding, type IOnboardingBody } from "@/hooks/api/useOnboarding";
+import { queryClient } from "@/App";
 
 type UserType = "empresa" | "autonomo" | "";
 
@@ -22,6 +23,7 @@ export const FirstLogin = () => {
     const navigate = useNavigate();
     const { mutate: submitOnboarding } = useOnboarding({
         onSuccessFn: () => {
+            queryClient.invalidateQueries({queryKey: ['user']})
             navigate('/');
         }
     });
@@ -167,8 +169,8 @@ export const FirstLogin = () => {
                                         <Input type="text" id="area" value={area} onChange={e => setArea(e.target.value)} placeholder="Ex: Psicologia, Fisioterapia" required />
                                     </div>
                                     <div>
-                                        <Label className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="professionalId">Nº de registro profissional (Opcional)</Label>
-                                        <Input type="text" id="professionalId" value={professionalId} onChange={e => setProfessionalId(e.target.value)} placeholder="Ex: CRP 01/12345" />
+                                        <Label className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="professionalId">Nº de registro profissional</Label>
+                                        <Input type="text" id="professionalId" value={professionalId} onChange={e => setProfessionalId(e.target.value)} placeholder="Ex: CRP 01/12345" required/>
                                     </div>
                                 </>
                             )}

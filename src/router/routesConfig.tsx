@@ -4,6 +4,8 @@ import { SignUp } from '../pages/SignUp'
 import { FirstLogin } from '../pages/FirstLogin'
 import { Home } from '../pages/Home'
 import { Atendimentos } from '@/pages/Atendimentos'
+import { Error } from '@/pages/Error' // Importa a nova página de erro
+import { Servicos } from '@/pages/Servicos'
 
 export interface RouteConfig {
   path: string
@@ -41,6 +43,18 @@ export const routesConfig: RouteConfig[] = [
     path: "/appointment",
     element: <Atendimentos />,
     template: true,
+    authRoute: true
+  },
+  {
+    path: "/services",
+    element: <Servicos />,
+    template: true,
+    authRoute: true
+  },
+  {
+    path: "*",
+    element: <Error />,
+    template: false,
     authRoute: true
   },
 ]

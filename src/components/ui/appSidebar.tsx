@@ -8,7 +8,7 @@ import {
   useSidebar,
 } from "../../components/ui/sidebar";
 import { NavItem } from "../NavItem";
-import { CalendarFold, LogOutIcon, NotepadText } from "lucide-react";
+import { BriefcaseBusiness, CalendarFold, LogOutIcon, NotepadText } from "lucide-react";
 import logoFull from "@/assets/logoFull.png";
 import logo from "@/assets/logo.png";
 import { logout } from "@/services/storage";
@@ -45,10 +45,10 @@ export function AppSidebar() {
                 <div className="h-4 bg-gray-600 rounded w-3/4 animate-pulse"></div>
                 <div className="h-5 bg-gray-500 rounded w-1/2 animate-pulse"></div>
               </div>
-            ) : (
+            ) : (isSidebarOpen) && (
               <>
-                <p className="text-white pt-6 px-4">Bem Vindo(a),</p>
-                <p className="text-white px-4 font-semibold">{userData?.name}</p>
+                <p className='text-white pt-6 px-4 truncate'>Bem Vindo(a),</p>
+                <p className="text-white px-4 font-semibold truncate">{userData?.name?.trim().split(/\s+/)[0]}</p>
               </>
             )}
           </SidebarGroup>
@@ -61,12 +61,21 @@ export function AppSidebar() {
                 isSidebarOpen={isSidebarOpen}
               />
             </SidebarGroup>
-            <SidebarGroup title="Navegação" className="p-0 gap-2">
+            <SidebarGroup title="Atendimentos" className="p-0 gap-2">
               <NavItem
                 title="Atendimentos"
                 icon={NotepadText}
                 iconSize={isSidebarOpen ? 24 : 28}
                 href="/appointment"
+                isSidebarOpen={isSidebarOpen}
+              />
+            </SidebarGroup>
+            <SidebarGroup title="Serviços" className="p-0 gap-2">
+              <NavItem
+                title="Serviços"
+                icon={BriefcaseBusiness}
+                iconSize={isSidebarOpen ? 24 : 28}
+                href="/services"
                 isSidebarOpen={isSidebarOpen}
               />
             </SidebarGroup>
