@@ -1,63 +1,245 @@
-import * as React from "react"
-import { Eye, EyeOff } from "lucide-react"
+import { type InputHTMLAttributes, type ReactElement, forwardRef } from "react";
+import InputMask from "react-input-mask";
 
-import { cn } from "../../lib/utils"
+import classNames from "classnames";
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {}
+import type { TError } from "@/types";
 
-const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, ...props }, ref) => {
-    const [showPassword, setShowPassword] = React.useState(false)
+export type InputType =
+  | "text"
+  | "number"
+  | "e-mail"
+  | "password"
+  | "textarea"
+  | "date"
+  | "time"
+  | "mask"
+  | "currency";
 
-    if (type !== "password") {
-      return (
-        <input
-          type={type}
-          className={cn(
-            "file:text-foreground placeholder:text-muted-foreground selection:text-primary-foreground border-black flex w-full min-w-0 rounded-md border bg-transparent px-4 py-3 text-base shadow-xs transition-colors outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-            "focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus-visible:ring-2 focus-visible:border-blue-500 focus-visible:ring-blue-600",
-            "aria-invalid:ring-destructive/20 aria-invalid:border-destructive",
-            className
+interface IProps
+  extends InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement> {
+  label?: string;
+  type: InputType;
+  subtitle?: string;
+  mask?: string;
+  rightBtnAction?: () => void;
+  rightIconComponent?: ReactElement;
+  leftIconComponent?: ReactElement;
+  className?: string;
+  supportText?: string;
+  error?: TError<IProps["name"]>;
+  supportTextClassName?: string;
+  multiline?: boolean;
+  tooltipMessage?: string;
+  isRequired?: boolean;
+}
+
+export const Input = forwardRef<unknown, IProps>((props, ref) => {
+  const {
+    mask,
+    rightBtnAction,
+    rightIconComponent,
+    error,
+    className,
+    supportText,
+    label,
+    type,
+    leftIconComponent,
+    disabled,
+    supportTextClassName,
+    // tooltipMessage,
+    isRequired,
+    subtitle,
+    ...fieldProps
+  } = props;
+
+  const styles = {
+    wrapper: "flex flex-col relative h-full",
+    input: {
+      base: "w-full h-10 border border-secondary-l px-4 py-6 font-[600] bg-white/12 text-body-lg text-paragraph-high transition durantion-200 outline-none hover:text-blue-600 focus:text-blue-600 text-secondary-l rounded-[10px] border-[#A2A6BB66] hover:border-blue-600 focus:border-blue-600",
+      placeholder:
+        "placeholder:text-body-lg placeholder:text-gray-300 placeholder:font-normal",
+      filled: "",
+      disabled:
+        "cursor-not-allowed !bg-[#0505051A] !text-secondary-l !border-[#0505051A]",
+      invalid: "!border-danger-d",
+      leftIcon: "!pl-10",
+      multiline:
+        "resize-none !py-4 min-h-[66px] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar]:block overflow-y-auto [&::-webkit-scrollbar-track]:mt-2 [&::-webkit-scrollbar-track]:mb-2",
+    },
+    label: {
+      base: "font-medium mb-2 text-[16px] text-[#384455] min-h-[48px]",
+      invalid: "!text-danger-d !mb-0",
+    },
+    support_text: {
+      base: "text-sm text-[#384455] ml-2 mt-1",
+      invalid: "!text-danger-d ",
+    },
+    left_icon: "absolute left-3 bottom-3",
+    right_icon: {
+      base: "cursor-pointer hover:opacity-70 transition absolute right-3 bottom-5",
+      icon: "cursor-pointer",
+    },
+    currency_prefix:
+      "absolute left-3 bottom-[20px] font-semibold text-gray-500",
+    tooltip: "absolute right-0 top-0",
+    input_wrapper: "relative",
+  };
+
+  const mask_input_props = {
+    ...fieldProps,
+    ref,
+    disabled,
+    type: "text",
+    mask: mask || "",
+    className: classNames(styles.input.base, styles.input.placeholder, {
+      [styles.input.disabled]: disabled,
+      [styles.input.invalid]: error !== undefined,
+      [styles.input.filled]: props.value !== "",
+      [styles.input.leftIcon]: leftIconComponent !== undefined,
+    }),
+  };
+
+  const input_props = {
+    ...fieldProps,
+    ref,
+    type,
+    disabled,
+    className: classNames(styles.input.base, {
+      [styles.input.disabled]: disabled,
+      [styles.input.invalid]: error !== undefined,
+      [styles.input.filled]: props.value !== "",
+      [styles.input.leftIcon]: leftIconComponent !== undefined,
+      [styles.input.multiline]: props.multiline,
+      "min-h-[130px] !py-4": type === "textarea",
+    }),
+  };
+
+  const inputs: any = {
+    mask: {
+      tag: InputMask,
+      input_props: mask_input_props,
+    },
+    textarea: {
+      tag: "textarea",
+      input_props: {
+        ...input_props,
+        rows: 4,
+      },
+    },
+    text: {
+      tag: props.multiline ? "textarea" : "input",
+      input_props: {
+        ...input_props,
+        rows: props.multiline ? 4 : undefined,
+      },
+    },
+    number: {
+      tag: "input",
+      input_props: {
+        ...input_props,
+        step: "any",
+        className: classNames(input_props.className, "no-arrows"),
+        onWheel: (e: React.WheelEvent<HTMLInputElement>) =>
+          e.currentTarget.blur(),
+      },
+    },
+    "e-mail": {
+      tag: "input",
+      input_props,
+    },
+    password: {
+      tag: "input",
+      input_props,
+    },
+    date: {
+      tag: "input",
+      input_props,
+    },
+    time: {
+      tag: "input",
+      input_props,
+    },
+    currency: {
+      tag: "input",
+      input_props: {
+        ...input_props,
+        type: "text",
+        className: classNames(input_props.className, "pl-10"),
+        inputMode: "decimal",
+        pattern: "[0-9]*",
+      },
+    },
+  };
+
+  const InputTag = inputs[type].tag;
+  const input_tag_props = inputs[type].input_props;
+
+  return (
+    <div className={classNames("w-full h-full", className)}>
+      <div className={styles.wrapper}>
+        {label && (
+          <div className="flex justify-between items-center mb-2">
+            <label
+              className={classNames(styles.label.base, {
+                [styles.label.invalid]: error !== undefined,
+                "!mb-0": true,
+              })}
+              htmlFor={fieldProps.name}
+            >
+              {label}
+              {fieldProps.required ||
+                (isRequired && (
+                  <span className="text-danger-d text-[16px] ml-1">*</span>
+                ))}
+
+              <p className="text-gray-400 text-[12px]">{subtitle}</p>
+            </label>
+
+            {/* {tooltipMessage && (
+						<InfoTooltip
+            title={label}
+            message={tooltipMessage}
+						/>
+            )} */}
+          </div>
+        )}
+        <div className={styles.input_wrapper}>
+          {type === "currency" && (
+            <span className={styles.currency_prefix}>R$</span>
           )}
-          ref={ref}
-          {...props}
-        />
-      )
-    }
-
-    const togglePasswordVisibility = () => setShowPassword(!showPassword)
-
-    return (
-      <div className="relative">
-        <input
-          type={showPassword ? "text" : "password"}
-          className={cn(
-            "pr-10 file:text-foreground placeholder:text-muted-foreground selection:text-primary-foreground border-black flex w-full min-w-0 rounded-md border bg-transparent px-4 py-3 text-base shadow-xs transition-colors outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-            "focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus-visible:ring-2 focus-visible:border-blue-500 focus-visible:ring-blue-600",
-            "aria-invalid:ring-destructive/20 aria-invalid:border-destructive",
-            className
+          {leftIconComponent && (
+            <div className={styles.left_icon}>{leftIconComponent}</div>
           )}
-          ref={ref}
-          {...props}
-        />
-        <button
-          type="button"
-          onClick={togglePasswordVisibility}
-          className="absolute inset-y-0 right-0 flex cursor-pointer items-center justify-center p-3 text-muted-foreground"
-          aria-label={showPassword ? "Esconder senha" : "Mostrar senha"}
-        >
-          {showPassword ? (
-            <EyeOff className="h-5 w-5" aria-hidden="true" />
-          ) : (
-            <Eye className="h-5 w-5" aria-hidden="true" />
+          <InputTag id={fieldProps.name} {...input_tag_props} />
+          {rightIconComponent !== undefined && (
+            <button
+              type="button"
+              onClick={() => (rightBtnAction ? rightBtnAction() : null)}
+              className={classNames(styles.right_icon.base, {
+                [styles.right_icon.icon]: rightBtnAction !== undefined,
+              })}
+            >
+              {rightIconComponent}
+            </button>
           )}
-        </button>
+        </div>
+        {supportText && (
+          <p
+            className={classNames(
+              supportTextClassName,
+              styles.support_text.base,
+              {
+                [styles.support_text.invalid]: error !== undefined,
+              }
+            )}
+          >
+            {supportText}
+          </p>
+        )}
       </div>
-    )
-  }
-)
-Input.displayName = "Input"
+    </div>
+  );
+});
 
-export { Input }
+export default Input;

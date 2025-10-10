@@ -285,6 +285,7 @@ export const Atendimentos = () => {
           <div className="flex flex-col lg:flex-row gap-4 mb-6">
             <div className="flex-1">
               <Input
+                type="text"
                 placeholder="Pesquisar por paciente, especialidade ou médico..."
                 value={pesquisa}
                 onChange={(e) => handlePesquisaChange(e.target.value)}

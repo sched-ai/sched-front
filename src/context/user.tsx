@@ -1,22 +1,9 @@
-import { useGetUser } from '@/hooks/api/auth/useGetUser';
+import { useGetUser, type IUser } from '@/hooks/api/auth/useGetUser';
 import { StorageService } from '@/services';
 import React, { createContext, useContext } from 'react';
 
-interface User {
-    id: number;
-  name: string;
-  email: string;
-  type: string;          // e.g. 'person'
-  role: string;          // e.g. 'user'
-  active: boolean;
-  created_at: string;    // ISO datetime string
-  updated_at: string;    // ISO datetime string
-  profileConfigs: Record<string, unknown>;
-  onboarded: boolean;
-}
-
 interface UserContextType {
-  userData?: User;
+  userData?: IUser;
   userLoading: boolean;
   userError: unknown;
   refreshUser: () => void;
@@ -54,6 +41,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useUser = () => {
   const ctx = useContext(UserContext);
   if (!ctx) throw new Error('useUser deve ser usado dentro de <UserProvider>.');

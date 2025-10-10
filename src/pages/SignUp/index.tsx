@@ -88,7 +88,7 @@ export const SignUp = () => {
               >
                 Email
               </label>
-              <Input title="Email" type="email" id="email" required placeholder="Ex: scheapp@gmail.com" onChange={(e) => setEmail(e.target.value)} />
+              <Input title="Email" type="e-mail" id="email" required placeholder="Ex: scheapp@gmail.com" onChange={(e) => setEmail(e.target.value)} />
             </div>
             <div>
               <label
@@ -181,7 +181,7 @@ export const SignUp = () => {
                   Email
                 </label>
                 <Input
-                  type="email"
+                  type="e-mail"
                   id="email_mobile"
                   required
                   placeholder="scheapp@gmail.com"

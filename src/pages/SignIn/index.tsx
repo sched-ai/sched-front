@@ -1,10 +1,10 @@
 import { Button } from "../../components/ui/button";
 import abstract from "../../assets/abstract_waves.jpg";
-import { Input } from "../../components/ui/input";
 import { useNavigate } from "react-router-dom";
 import React from "react";
 import { useSignIn } from "@/hooks/api/auth/useSignIn";
 import { toast } from "sonner";
+import Input from "@/components/ui/input";
 
 export const SignIn = () => {
 
@@ -86,7 +86,7 @@ export const SignIn = () => {
                     Email
                 </label>
                 <Input
-                    type="email"
+                    type="e-mail"
                     id="email"
                     required
                     placeholder="scheapp@gmail.com"
@@ -111,7 +111,8 @@ export const SignIn = () => {
                     className="text-white border-white"
                     onChange={(e) => setPassword(e.target.value)}
                     />
-                    <Button variant="link" type="button" className="text-[#6cacff]">Esqueci minha senha</Button>
+                    {/* TODO - HABILITAR TROCA DE SENHA */}
+                    {/* <Button variant="link" type="button" className="text-[#6cacff]">Esqueci minha senha</Button> */}
                 </div>
                 </div>
 

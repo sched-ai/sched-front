@@ -206,6 +206,7 @@ export const FormModal = ({
             <TabsContent value="bloqueio" className="text-white">
               <form>
                 <Input
+                  type="text"
                   className="text-white placeholder:text-white/80 border-x-0 border-t-0 rounded-[10px] bg-white/15 outline-0 w-full border-b-[2px] !border-b-[#0177FB] mt-[12px]"
                   placeholder="Adicionar Título"
                   value={title}
@@ -268,6 +269,7 @@ export const FormModal = ({
             <TabsContent value="consulta" className="text-white">
               <form>
                 <Input
+                  type="text"
                   className="text-white placeholder:text-white/80 border-x-0 border-t-0 rounded-[10px] bg-white/15 outline-0 w-full border-b-[2px] !border-b-[#0177FB] mt-[12px]"
                   placeholder="Adicionar Paciente"
                   value={title}
