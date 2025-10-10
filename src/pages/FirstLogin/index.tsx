@@ -19,7 +19,7 @@ type UserType = "empresa" | "autonomo" | "";
 
 export const FirstLogin = () => {
     const [step, setStep] = useState(1);
-     const navigate = useNavigate();
+    const navigate = useNavigate();
     const { mutate: submitOnboarding } = useOnboarding({
         onSuccessFn: () => {
             navigate('/');
@@ -46,6 +46,12 @@ export const FirstLogin = () => {
     });
 
     const canProceedStep1 = userType !== "";
+    const canProceedStep2 =
+        (userType === "autonomo" && area.trim() !== "") ||
+        (userType === "empresa" &&
+            companyName.trim() !== "" &&
+            cnpj.replace(/\D/g, '').length === 14 &&
+            companyArea.trim() !== "");
 
     const handleUserTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setUserType(e.target.value as UserType);
@@ -58,7 +64,25 @@ export const FirstLogin = () => {
         }));
     };
 
-    
+    const formatCnpj = (value: string) => {
+        const cleaned = value.replace(/\D/g, '');
+        const match = cleaned.match(/^(\d{0,2})(\d{0,3})(\d{0,3})(\d{0,4})(\d{0,2})$/);
+        
+        if (!match) return value;
+
+        let formatted = '';
+        if (match[1]) formatted += match[1];
+        if (match[2]) formatted += `.${match[2]}`;
+        if (match[3]) formatted += `.${match[3]}`;
+        if (match[4]) formatted += `/${match[4]}`;
+        if (match[5]) formatted += `-${match[5]}`;
+        
+        return formatted;
+    };
+
+    const handleCnpjChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setCnpj(formatCnpj(e.target.value));
+    };
 
     const nextStep = () => setStep(prev => prev + 1);
     const prevStep = () => setStep(prev => prev - 1);
@@ -77,8 +101,6 @@ export const FirstLogin = () => {
                 startTime: details.start,
                 endTime: details.end,
             }));
-
-        
 
         const apiPayload: IOnboardingBody = {
             type: userType === 'autonomo' ? 'AUTONOMO' : 'EMPRESA',
@@ -131,7 +153,7 @@ export const FirstLogin = () => {
 
         if (step === 2) {
             return (
-                <form onSubmit={(e) => { e.preventDefault(); nextStep(); }} className="flex flex-col justify-between h-full lg:w-[490px] w-full">
+                <form onSubmit={(e) => { e.preventDefault(); if(canProceedStep2) nextStep(); }} className="flex flex-col justify-between h-full lg:w-[490px] w-full">
                     <div>
                         <div className="mb-20">
                             <h4 className="mb-0 font-semibold text-lg text-[24px]">{userType === 'autonomo' ? 'Conte-nos sobre você' : 'Conte-nos sobre sua empresa'}</h4>
@@ -140,15 +162,30 @@ export const FirstLogin = () => {
                         <div className="space-y-10">
                             {userType === 'autonomo' && (
                                 <>
-                                    <div><Label className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="area">Sua área de atuação</Label><Input id="area" value={area} onChange={e => setArea(e.target.value)} placeholder="Ex: Psicologia, Fisioterapia" /></div>
-                                    <div><Label className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="professionalId">Nº de registro profissional (Opcional)</Label><Input id="professionalId" value={professionalId} onChange={e => setProfessionalId(e.target.value)} placeholder="Ex: CRP 01/12345" /></div>
+                                    <div>
+                                        <Label className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="area">Sua área de atuação</Label>
+                                        <Input id="area" value={area} onChange={e => setArea(e.target.value)} placeholder="Ex: Psicologia, Fisioterapia" required />
+                                    </div>
+                                    <div>
+                                        <Label className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="professionalId">Nº de registro profissional (Opcional)</Label>
+                                        <Input id="professionalId" value={professionalId} onChange={e => setProfessionalId(e.target.value)} placeholder="Ex: CRP 01/12345" />
+                                    </div>
                                 </>
                             )}
                             {userType === 'empresa' && (
                                 <>
-                                    <div><Label className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="companyName">Nome da sua empresa/clínica</Label><Input id="companyName" value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="Ex: Clínica Bem-Estar" /></div>
-                                    <div><Label className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="cnpj">CNPJ</Label><Input id="cnpj" value={cnpj} onChange={e => setCnpj(e.target.value)} placeholder="00.000.000/0001-00" /></div>
-                                    <div><Label className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="companyArea">Principal área de atuação</Label><Input id="companyArea" value={companyArea} onChange={e => setCompanyArea(e.target.value)} placeholder="Ex: Odontologia" /></div>
+                                    <div>
+                                        <Label className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="companyName">Nome da sua empresa/clínica</Label>
+                                        <Input id="companyName" value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="Ex: Clínica Bem-Estar" required />
+                                    </div>
+                                    <div>
+                                        <Label className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="cnpj">CNPJ</Label>
+                                        <Input id="cnpj" value={cnpj} onChange={handleCnpjChange} placeholder="00.000.000/0001-00" maxLength={18} required />
+                                    </div>
+                                    <div>
+                                        <Label className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="companyArea">Principal área de atuação</Label>
+                                        <Input id="companyArea" value={companyArea} onChange={e => setCompanyArea(e.target.value)} placeholder="Ex: Odontologia" required />
+                                    </div>
                                 </>
                             )}
                         </div>
@@ -156,7 +193,18 @@ export const FirstLogin = () => {
                     <div className="flex justify-between items-center mt-6">
                         <Button type="button" variant="ghost" className="font-semibold text-[#141736] flex items-center gap-2 px-6 py-3 bg-transparent border-none shadow-none" onClick={prevStep}><span aria-hidden>←</span> VOLTAR</Button>
                         <span className="text-[#141736] font-medium text-[14px]">{progressText}</span>
-                        <Button type="submit" variant="outline" className="font-semibold text-[#141736] flex items-center gap-2 px-6 py-3 bg-transparent border-none shadow-none">PRÓXIMO <span aria-hidden>→</span></Button>
+                        {!canProceedStep2 ? (
+                             <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <span tabIndex={0}><Button type="button" variant="outline" disabled className="font-semibold text-[#141736] flex items-center gap-2 px-6 py-3 bg-transparent border-none shadow-none">PRÓXIMO <span aria-hidden>→</span></Button></span>
+                                    </TooltipTrigger>
+                                    <TooltipContent><p>Preencha todos os campos obrigatórios.</p></TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        ) : (
+                            <Button type="submit" variant="outline" className="font-semibold text-[#141736] flex items-center gap-2 px-6 py-3 bg-transparent border-none shadow-none">PRÓXIMO <span aria-hidden>→</span></Button>
+                        )}
                     </div>
                 </form>
             );
@@ -221,7 +269,7 @@ export const FirstLogin = () => {
                         {renderStep()}
                     </div>
                 </div>
-			<span></span>
+            <span></span>
             </div>
         </div>
     );
