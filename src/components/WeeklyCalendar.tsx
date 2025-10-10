@@ -130,7 +130,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 										} ${isToday ? "bg-blue-100 text-blue-600" : ""}`}
 									>
 										<p className="text-sm">{day}</p>
-										<p className={`text-lg ${isToday ? "font-bold bg-blue-600 text-white w-fit rounded-full px-3 text-center" : ""}`}>
+										<p className={`text-lg ${isToday ? "font-bold bg-blue-600 text-white w-fit rounded-full px-2 text-center" : ""}`}>
 											{format(currentDayDate, "d")}
 										</p>
 									</div>

@@ -78,7 +78,6 @@
 					autoClose,
 					showFeedback: showErrorFeedback
 				});
-				return setTimeout(() => window.location.reload(), 2000);
 			}
 
 			if (error?.response?.status > 300) {

@@ -142,6 +142,7 @@ export interface IUseMutationParams<D = any> {
 	 * @param data - Os dados buscados, do tipo D.
 	 */
 	onSuccessFn?: (data?: D)=> void;
+	onErrorFn?: (error: unknown)=> void;
 }
 
 /**

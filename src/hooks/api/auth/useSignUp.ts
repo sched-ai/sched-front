@@ -13,7 +13,7 @@ interface ISignUpResponse {
 	email: string;
 }
 
-export const useSignUp = ({ onSuccessFn }: IUseMutationParams) => {
+export const useSignUp = ({ onSuccessFn, onErrorFn }: IUseMutationParams) => {
 	const { post } = useAPI<ISignUpResponse>();
 	const queryClient = useQueryClient();
 
@@ -39,6 +39,12 @@ export const useSignUp = ({ onSuccessFn }: IUseMutationParams) => {
 					onSuccessFn();
 				}
 			}
-		}
+		},
+
+		onError: (error: unknown) => {
+            if (onErrorFn) {
+                onErrorFn(error);
+            }
+        }
 	});
 };

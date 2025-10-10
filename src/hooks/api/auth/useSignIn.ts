@@ -8,45 +8,51 @@ import useAPI from '../useAPI';
 
 import { QueryKeys } from '../index';
 import { useUser } from '@/context/user';
-// import { useUser } from '@/context/user';
 
 interface ISignInResponse {
-	token: string;
-	refresh_token: string;
-	token_type: string;
+    token: string;
+    refresh_token: string;
+    token_type: string;
 }
 
-export const useSignIn = ({ onSuccessFn }: IUseMutationParams) => {
-	const { post } = useAPI<ISignInResponse>();
-	const queryClient = useQueryClient();
-	const { refreshUser } = useUser();
+export const useSignIn = ({ onSuccessFn, onErrorFn }: IUseMutationParams) => {
+    const { post } = useAPI<ISignInResponse>();
+    const queryClient = useQueryClient();
+    const { refreshUser } = useUser();
 
-	return useMutation({
-		mutationFn: (body: ISignInForm) => post({
-			label: 'Login',
-			autoClose: false,
-			showSuccessFeedback: false,
-			endpoint: '/auth/login',
-			body: {
-				email: body.email,
-				password: body.password
-			}
-		}),
-		
-		onSuccess: (resp) => {
-			if(resp){
-				StorageService.login({
-					token: resp.token,
-					refreshToken: resp.refresh_token
-				});
-				refreshUser();
-				queryClient.invalidateQueries({
-					queryKey: [ QueryKeys.current_user ]
-				});
-				if (onSuccessFn) {
-					onSuccessFn();
-				}
-			}
-		}
-	});
+    return useMutation({
+        mutationFn: (body: ISignInForm) => post({
+            label: 'Login',
+            autoClose: false,
+            showSuccessFeedback: false,
+            endpoint: '/auth/login',
+            body: {
+                email: body.email,
+                password: body.password
+            }
+        }),
+        
+        onSuccess: (resp) => {
+            if(resp){
+                StorageService.login({
+                    token: resp.token,
+                    refreshToken: resp.refresh_token
+                });
+                refreshUser();
+                queryClient.invalidateQueries({
+                    queryKey: [ QueryKeys.current_user ]
+                });
+                if (onSuccessFn) {
+                    onSuccessFn();
+                }
+            }
+        },
+
+       
+        onError: (error: unknown) => {
+            if (onErrorFn) {
+                onErrorFn(error);
+            }
+        }
+    });
 };

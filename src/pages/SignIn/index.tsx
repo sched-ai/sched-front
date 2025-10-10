@@ -4,6 +4,7 @@ import { Input } from "../../components/ui/input";
 import { useNavigate } from "react-router-dom";
 import React from "react";
 import { useSignIn } from "@/hooks/api/auth/useSignIn";
+import { toast } from "sonner";
 
 export const SignIn = () => {
 
@@ -14,6 +15,11 @@ export const SignIn = () => {
   const signIn = useSignIn({
     onSuccessFn: () => {
       navigate('/');
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onErrorFn: (err: any) => {
+      const errorMessage = err?.response?.data?.message || "Email ou senha inválidos.";
+      toast.error(errorMessage)
     }
   });
 
