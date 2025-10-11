@@ -275,8 +275,6 @@ export const Atendimentos = () => {
           </div>
         </div>
 
-        {/* === TABELA E FILTROS === */}
-        {/* */}
         <div className="rounded-lg p-6 mb-2 border bg-white shadow-custom">
           <div className="flex items-center gap-2 mb-4">
             <Filter className="w-5 h-5 text-[#141736]" />
@@ -289,17 +287,15 @@ export const Atendimentos = () => {
                 placeholder="Pesquisar por paciente, especialidade ou médico..."
                 value={pesquisa}
                 onChange={(e) => handlePesquisaChange(e.target.value)}
-                className="w-full" // ShadCN Input já tem um bom estilo padrão
+                className="w-full"
               />
             </div>
-            {/* */}
             <Select value={filtro} onValueChange={handleFiltroChange}>
               <SelectTrigger className="w-full lg:w-[250px] !h-[48px] border-[#141736]">
                 <SelectValue placeholder="Filtrar por especialidade" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="todos">Todas as especialidades</SelectItem>
-                {/* ...outras especialidades */}
               </SelectContent>
             </Select>
             <Select
@@ -318,7 +314,6 @@ export const Atendimentos = () => {
             </Select>
           </div>
 
-          {/* */}
           <div className="border bg-[#141736] text-white rounded-t-lg py-2">
             <div className="grid grid-cols-2 lg:grid-cols-7 gap-4 items-center px-6 py-3">
               <div className="lg:col-span-1">
