@@ -177,7 +177,7 @@ export const FirstLogin = () => {
                             {userType === 'empresa' && (
                                 <>
                                     <div>
-                                        <Label className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="companyName">Nome da sua empresa/clínica</Label>
+                                        <Label className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="companyName">Nome da sua empresa</Label>
                                         <Input type="text" id="companyName" value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="Ex: Clínica Bem-Estar" required />
                                     </div>
                                     <div>
