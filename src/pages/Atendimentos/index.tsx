@@ -291,7 +291,7 @@ export const Atendimentos = () => {
               />
             </div>
             <Select value={filtro} onValueChange={handleFiltroChange}>
-              <SelectTrigger className="w-full lg:w-[250px] !h-[48px] border-[#141736]">
+              <SelectTrigger className="w-full lg:w-[250px] !h-[48px] border-[#A2A6BB66]">
                 <SelectValue placeholder="Filtrar por especialidade" />
               </SelectTrigger>
               <SelectContent>
@@ -302,7 +302,7 @@ export const Atendimentos = () => {
               value={filtroStatus}
               onValueChange={handleFiltroStatusChange}
             >
-              <SelectTrigger className="w-full lg:w-[250px] !h-[48px] border-[#141736]">
+              <SelectTrigger className="w-full lg:w-[250px] !h-[48px] border-[#A2A6BB66]">
                 <SelectValue placeholder="Filtrar por status" />
               </SelectTrigger>
               <SelectContent>
