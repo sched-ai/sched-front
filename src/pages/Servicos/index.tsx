@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import Input from '@/components/ui/input';
 import { Plus } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const ITEMS_PER_PAGE = 6;
 
@@ -34,6 +35,7 @@ export const Servicos = () => {
 	const [activeCategory, setActiveCategory] = useState('Todos');
 	const [currentPage, setCurrentPage] = useState(1);
 	const [hasMore, setHasMore] = useState(true);
+  const navigate = useNavigate()
 
 	useEffect(() => {
 		const filtered = servicosMock.filter(servico => {
@@ -83,9 +85,11 @@ export const Servicos = () => {
 	return (
 		<div className="bg-[#F8F9FA] min-h-screen">
 			<header className="border-b border-b-[#DADCE0] h-full max-h-[80px] p-4 bg-white">
-				<h1 className="text-[30px] font-medium">Serviços</h1>
+				<h1 className="text-[30px] font-medium">Serviços & Pacotes</h1>
 			</header>
 			<main className="p-4 md:p-8">
+        <div className='bg-white shadow-custom p-4 mb-4 rounded-lg'>
+
 				<div className="flex justify-start mb-6">
 					<button onClick={() => handleCategoryChange('Todos')} className={`px-4 py-2 text-lg ${activeCategory === 'Todos' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}>Todos</button>
 					<button onClick={() => handleCategoryChange('Serviço')} className={`px-4 py-2 text-lg ${activeCategory === 'Serviço' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}>Serviço</button>
@@ -99,11 +103,14 @@ export const Servicos = () => {
             onChange={handleSearchChange}
             className="w-full"
             />
-            <Button className='bg-blue-600 transition-colors'><Plus />Adicionar</Button>
+            <Button className='bg-blue-600 transition-colors' onClick={() => {
+              navigate('/newService')
+            }}><Plus />Adicionar</Button>
 				</div>
+            </div>
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 					{displayedServices.map(servico => (
-						<div key={servico.id} className="bg-white border border-gray-200 rounded-lg p-6 flex flex-col justify-between">
+						<div key={servico.id} className="bg-white shadow-custom border border-gray-200 rounded-lg p-6 flex flex-col justify-between">
 							<div>
 								<div className="flex justify-between items-start mb-4">
 									<h2 className="text-2xl font-bold">{servico.nome}</h2>
@@ -119,7 +126,7 @@ export const Servicos = () => {
 								</div>
 							</div>
 							<a href="#" className="mt-6 text-center text-green-600 font-semibold py-2">
-								Acessar
+								Editar
 							</a>
 						</div>
 					))}

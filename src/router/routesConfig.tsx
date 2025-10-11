@@ -6,6 +6,7 @@ import { Home } from '../pages/Home'
 import { Atendimentos } from '@/pages/Atendimentos'
 import { Error } from '@/pages/Error' // Importa a nova página de erro
 import { Servicos } from '@/pages/Servicos'
+import { NovoServico } from '@/pages/novoServico'
 
 export interface RouteConfig {
   path: string
@@ -48,6 +49,12 @@ export const routesConfig: RouteConfig[] = [
   {
     path: "/services",
     element: <Servicos />,
+    template: true,
+    authRoute: true
+  },
+  {
+    path: "/newService",
+    element: <NovoServico />,
     template: true,
     authRoute: true
   },
