@@ -231,9 +231,9 @@ export const FirstLogin = () => {
                                             <Label htmlFor={dayKey} className="cursor-pointer capitalize text-[20px] font-semibold text-gray-800 tracking-tight">{dayLabel}</Label>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <Input type="time" value={schedule[dayKey].start} onChange={e => handleScheduleChange(dayKey, 'start', e.target.value)} disabled={!schedule[dayKey].working} className="w-full max-w-[80px]" />
+                                            <Input type="time" value={schedule[dayKey].start} onChange={e => handleScheduleChange(dayKey, 'start', e.target.value)} disabled={!schedule[dayKey].working} className="w-full max-w-[120px]" />
                                             <span className={!schedule[dayKey].working ? "text-muted-foreground" : ""}>às</span>
-                                            <Input type="time" value={schedule[dayKey].end} onChange={e => handleScheduleChange(dayKey, 'end', e.target.value)} disabled={!schedule[dayKey].working} className="w-full max-w-[80px]" />
+                                            <Input type="time" value={schedule[dayKey].end} onChange={e => handleScheduleChange(dayKey, 'end', e.target.value)} disabled={!schedule[dayKey].working} className="w-full max-w-[120px]" />
                                         </div>
                                     </div>
                                 )

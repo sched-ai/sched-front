@@ -56,9 +56,9 @@ export const Input = forwardRef<unknown, IProps>((props, ref) => {
   const styles = {
     wrapper: "flex flex-col relative h-full",
     input: {
-      base: "w-full h-10 border border-secondary-l px-4 py-6 font-[600] bg-white/12 text-body-lg text-paragraph-high transition durantion-200 outline-none hover:text-blue-600 focus:text-blue-600 text-secondary-l rounded-[10px] border-[#A2A6BB66] hover:border-blue-600 focus:border-blue-600",
+      base: "w-full h-10 border border-secondary-l px-4 py-6 font-[600] bg-white/12 text-body-lg text-paragraph-high transition durantion-200 outline-none hover:text-[#141736] focus:text-[#141736] text-secondary-l rounded-[10px] border-[#A2A6BB66] hover:border-[#141736] focus:border-[#141736]",
       placeholder:
-        "placeholder:text-body-lg placeholder:text-gray-300 placeholder:font-normal",
+        "placeholder:text-body-lg placeholder:text-gray-300 placeholder:font-normal font-thin",
       filled: "",
       disabled:
         "cursor-not-allowed !bg-[#0505051A] !text-secondary-l !border-[#0505051A]",
@@ -115,6 +115,7 @@ export const Input = forwardRef<unknown, IProps>((props, ref) => {
     }),
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const inputs: any = {
     mask: {
       tag: InputMask,

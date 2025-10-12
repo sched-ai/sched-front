@@ -37,22 +37,22 @@ const CustomRadioInput = (props: CustomRadioInputProps) => {
 			htmlFor={htmlFor}
 			className={
 				cn(
-					'p-4 border-2 custom-2md:h-[81px] m-auto sm:m-0 w-full border-[#E1E1E1] rounded-md cursor-pointer flex items-center relative hover:shadow-[3px_4px_35px_#0177FB2B] transition-all group',
+					'p-4 border-2 custom-2md:h-[81px] m-auto sm:m-0 w-full border-[#E1E1E1] rounded-md cursor-pointer flex items-center relative hover:shadow-[3px_4px_35px_#1417362B] transition-all group',
 					{
-						'border-[#0177FB]': checked,
+						'border-[#141736]': checked,
 					}
 				)
 			}
 		>
 			<div className='flex items-center gap-x-4'>
-				{Icon && <Icon className='w-6 h-6' color='#0177FB' />}
+				{Icon && <Icon className='w-6 h-6' color='#141736' />}
 				{image && <img src={image} className='sm:w-9 w-6' />}
 				<p
 					className={
 						cn(
 							'text-[16px]',
 							{
-								'text-[#0177FB]': checked,
+								'text-[#141736]': checked,
 							}
 						)
 					}>
