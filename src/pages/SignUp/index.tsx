@@ -33,7 +33,7 @@ export const SignUp = () => {
 
   return (
     <>
-      <div className="min-h-screen md:flex bg-[#fafafa] hidden">
+      <div className="min-h-screen md:flex bg-[#d9d9d9] hidden">
         <div
           className="flex p-11 max-w-[640px] w-full bg-cover bg-center"
           style={{ backgroundImage: `url(${abstract})` }}
@@ -65,7 +65,7 @@ export const SignUp = () => {
         </div>
         <div className="w-full max-w-[510px] m-auto">
           {/* O onSubmit agora chama a função com validação */}
-          <form className="space-y-6 px-8 py-12 bg-[#F5F5F5]" onSubmit={handleRegister}>
+          <form className="space-y-6 px-8 py-12 bg-white shadow-custom" onSubmit={handleRegister}>
             <div className="text-start">
               <h3 className="lg:text-[40px] font-semibold leading-[1.6] text-2xl">
                 Crie sua conta
@@ -112,7 +112,7 @@ export const SignUp = () => {
               CADASTRAR
             </Button>
             <div className="text-center">
-              <span className="text-gray-600">Já Possui Uma Conta? </span>
+              <span className="text-gray-600">Já possui uma conta? </span>
               <Button
                 variant="link"
                 onClick={() => {
@@ -168,7 +168,7 @@ export const SignUp = () => {
                     id="name_mobile" 
                     required 
                     placeholder="Ex: John Doe" 
-                    className="text-white border-white"
+                    className="text-white"
                     onChange={(e) => setName(e.target.value)}
                   />
               </div>
@@ -185,7 +185,7 @@ export const SignUp = () => {
                   id="email_mobile"
                   required
                   placeholder="scheapp@gmail.com"
-                  className="text-white border-white"
+                  className="text-white"
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
