@@ -4,12 +4,9 @@ import { Plus, ClipboardList } from "lucide-react";
 import { useState } from "react";
 import { useGetAllServices } from "@/hooks/api/useGetAllServices";
 import { ModalCreateService } from "@/components/ModalCreateSevice";
-import { useUser } from "@/context/user";
 
 export const Servicos = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeCategory, setActiveCategory] = useState("Todos");
-  const { userData } = useUser();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { data: services } = useGetAllServices();
@@ -18,12 +15,11 @@ export const Servicos = () => {
     setSearchTerm(event.target.value);
   };
 
-  const handleCategoryChange = (newCategory: string) => {
-    setActiveCategory(newCategory);
-  };
-
   const EmptyState = () => (
-    <main className="flex items-center justify-center text-center p-8" style={{ minHeight: 'calc(100vh - 80px)' }}>
+    <main
+      className="flex items-center justify-center text-center p-8"
+      style={{ minHeight: "calc(100vh - 80px)" }}
+    >
       <div>
         <ClipboardList className="mx-auto h-24 w-24 text-gray-300" />
         <h2 className="mt-6 text-2xl font-semibold text-gray-800">
@@ -53,7 +49,7 @@ export const Servicos = () => {
       {services && services.length > 0 ? (
         <main className="p-4 md:p-8">
           <div className="bg-white shadow-custom p-4 mb-4 rounded-lg">
-            <div className="flex justify-start mb-6">
+            {/* <div className="flex justify-start mb-6">
               <button
                 onClick={() => handleCategoryChange("Todos")}
                 className={`px-4 py-2 text-lg ${
@@ -84,10 +80,11 @@ export const Servicos = () => {
               >
                 Pacote
               </button>
-            </div>
-            <div className="flex mb-6 items-center gap-6">
+            </div> */}
+            <div className="flex items-end gap-6">
               <Input
                 type="text"
+                label="Pesquisar"
                 placeholder="Pesquisar por paciente, especialidade ou médico..."
                 value={searchTerm}
                 onChange={handleSearchChange}
@@ -98,7 +95,7 @@ export const Servicos = () => {
                 onClick={() => setIsModalOpen(true)}
               >
                 <Plus size={18} />
-                Adicionar
+                Adicionar Serviço
               </Button>
             </div>
           </div>
@@ -110,7 +107,7 @@ export const Servicos = () => {
               >
                 <div>
                   <div className="flex justify-between items-start mb-4">
-                    <h2 className="text-2xl font-bold">{service.name}</h2>
+                    <h2 className="text-xl font-bold">{service.name}</h2>
                     <span
                       className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
                         service.type === "SERVICE"
@@ -118,28 +115,24 @@ export const Servicos = () => {
                           : "bg-blue-100 text-blue-600"
                       }`}
                     >
-                      {service.type}
+                      {service.type === "SERVICE" ? "Serviço" : "Pacote"}
                     </span>
                   </div>
-                  <p className="text-gray-600 mb-4">{service.description}</p>
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 bg-gray-200 rounded-full mr-3 flex items-center justify-center font-bold text-gray-500">
-                      {service.name.charAt(0)}
-                    </div>
-                    <div>
-                      <h3 className="font-semibold">{userData?.name}</h3>
-                      <p className="text-sm text-gray-500">
-                        {service?.department}
-                      </p>
-                    </div>
-                  </div>
+                  <p className="text-gray-600 mb-4 text-sm">{service.description}</p>
+            
+                <div className="flex justify-around gap-2">
+                  <Button
+                    className="mt-6 text-center text-green-600 bg-green-100 hover:bg-green-200 font-semibold py-2 max-w-1/2 w-full"
+                  >
+                    Editar
+                  </Button>
+                  <Button
+                    className="mt-6 text-center text-red-600 bg-red-100 hover:bg-red-200 font-semibold py-2 max-w-1/2 w-full"
+                  >
+                    Deletar
+                  </Button>
                 </div>
-                <a
-                  href="#"
-                  className="mt-6 text-center text-green-600 font-semibold py-2"
-                >
-                  Editar
-                </a>
+                </div>
               </div>
             ))}
           </div>

@@ -68,7 +68,7 @@ export const Input = forwardRef<unknown, IProps>((props, ref) => {
         "resize-none !py-4 min-h-[66px] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar]:block overflow-y-auto [&::-webkit-scrollbar-track]:mt-2 [&::-webkit-scrollbar-track]:mb-2",
     },
     label: {
-      base: "font-medium mb-2 text-[16px] text-[#384455] min-h-[48px]",
+      base: "font-medium text-[16px] text-[#384455]",
       invalid: "!text-danger-d !mb-0",
     },
     support_text: {

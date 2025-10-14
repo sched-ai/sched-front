@@ -13,6 +13,7 @@ export interface IMembership {
   company: {
     id: string;
     name: string;
+    companyType: 'EMPRESA' | 'AUTONOMO'; 
   };
   role: {
     name: string;
