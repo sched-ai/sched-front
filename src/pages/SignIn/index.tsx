@@ -1,14 +1,16 @@
 import { Button } from "../../components/ui/button";
 import abstract from "../../assets/abstract_waves.jpg";
 import { useNavigate } from "react-router-dom";
-import React from "react";
+import React, { useState } from "react";
 import { useSignIn } from "@/hooks/api/auth/useSignIn";
 import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
 
 export const SignIn = () => {
   const navigate = useNavigate();
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const signIn = useSignIn({
     onSuccessFn: () => {
@@ -68,7 +70,7 @@ export const SignIn = () => {
           <div className="w-full max-w-[510px] m-auto">
             <form
               onSubmit={handleLogin}
-              className="space-y-6 px-6 py-8 lg:px-10 lg:py-14
+              className="space-y-6 px-6 py-8 lg:px-10 lg:py-14 shadow-custom
                             [background-clip:padding-box,border-box] 
                             backdrop-blur-md bg-black/50"
             >
@@ -76,22 +78,24 @@ export const SignIn = () => {
                 <h1 className="lg:text-[40px] font-semibold leading-[1.2] text-2xl">
                   Acesse sua conta
                 </h1>
-                <p className="text-[#d9d9d9]">Insira seu email e senha para acessar sua conta.</p>
+                <p className="text-[#d9d9d9]">
+                  Insira seu email e senha para acessar sua conta.
+                </p>
               </div>
               <div className="relative mb-8">
                 <input
                   id="email"
                   name="email"
                   type="text"
-                  className="peer h-12 w-full border px-2 bg-white/5 rounded-lg border-gray-300 placeholder-transparent focus:outline-none focus:border-blue-600 focus:border-2 text-white"
+                  className="peer h-12 w-full border-2 px-2 bg-white/5 rounded-lg border-gray-300 placeholder-transparent focus:outline-none focus:border-blue-600 focus:border-2 text-white"
                   placeholder="seu.email@exemplo.com"
                   onChange={(e) => setEmail(e.target.value)}
                 />
                 <label
                   htmlFor="email"
-                  className="absolute left-2 -top-6 text-sm text-white transition-all 
+                  className="absolute left-3 -top-6 text-sm text-white transition-all 
                     peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 
-                    peer-focus:-top-6 peer-focus:text-sm"
+                    peer-focus:-top-6 peer-focus:text-sm peer-focus:left-0"
                 >
                   Email
                 </label>
@@ -101,16 +105,26 @@ export const SignIn = () => {
                 <input
                   id="password"
                   name="password"
-                  type="password"
-                  className="peer h-12 w-full border px-2 bg-white/5 rounded-lg border-gray-300 placeholder-transparent focus:outline-none focus:border-blue-600 focus:border-2 text-white"
+                  type={showPassword ? "text" : "password"}
+                  className="peer h-12 w-full px-2 bg-white/5 rounded-lg border-gray-300 placeholder-transparent focus:outline-none focus:border-blue-600 border-2 text-white"
                   placeholder="seu.email@exemplo.com"
                   onChange={(e) => setPassword(e.target.value)}
                 />
+                <div
+                  className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </div>
                 <label
                   htmlFor="password"
-                  className="absolute left-2 -top-6 text-sm text-white transition-all 
+                  className="absolute left-3 -top-6 text-sm text-white transition-all 
                     peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 
-                    peer-focus:-top-6 peer-focus:text-sm"
+                    peer-focus:-top-6 peer-focus:text-sm peer-focus:left-0"
                 >
                   Senha
                 </label>
