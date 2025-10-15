@@ -4,24 +4,25 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Label } from "../ui/label";
-import CustomRadioInput from "../CustomRadioInput";
-import Input from "../ui/input";
-import { useState, type Dispatch, type SetStateAction } from "react";
+
+import { useState, type Dispatch, type SetStateAction, useEffect } from "react";
 import { useCreateService } from "@/hooks/api/useCreateService";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
-import { Button } from "../ui/button";
+
 import { useUser } from "@/context/user";
+import type { IService } from "@/hooks/api/useGetAllServices";
+import { useUpdateService } from "@/hooks/api/useEditService";
+import { Label } from "@/components/ui/label";
+import Input from "@/components/ui/input";
+import CustomRadioInput from "@/components/CustomRadioInput";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { useQueryClient } from "@tanstack/react-query";
+
 
 interface IProps {
   isModalOpen: boolean;
   setIsModalOpen: Dispatch<SetStateAction<boolean>>;
+  service?: IService | null;
 }
 
 const responsaveisMock = [
@@ -34,17 +35,42 @@ const responsaveisMock = [
 type ItemType = "SERVICE" | "PACKAGE";
 
 export const ModalCreateService = (props: IProps) => {
-  const { isModalOpen, setIsModalOpen } = props;
-  const [hasResponsavel, setHasResponsavel] = useState("nao");
+  const { isModalOpen, setIsModalOpen, service } = props;
+  const isEditMode = !!service;
 
+  const [hasResponsavel, setHasResponsavel] = useState("nao");
   const [nome, setNome] = useState("");
   const [descricao, setDescricao] = useState("");
-
   const [responsavel, setResponsavel] = useState("");
   const [departamento, setDepartamento] = useState("");
+  const queryClient = useQueryClient();
+
+  const { userData } = useUser();
+  const isCompany =
+    userData?.membership?.company?.companyType === "EMPRESA" &&
+    userData?.membership?.role?.name === "Admin";
+
+  useEffect(() => {
+    if (service) {
+      setNome(service.name || "");
+      setDescricao(service.description || "");
+      setResponsavel(service.professional?.id || "");
+      setDepartamento(service.department || "");
+      setHasResponsavel(
+        service.professional?.id || service.department ? "sim" : "nao"
+      );
+    }
+  }, [service]);
 
   const { mutate: createService } = useCreateService({
     onSuccessFn: () => {
+      handleOpenChange(false);
+    },
+  });
+
+  const { mutate: updateService } = useUpdateService({
+    onSuccessFn: () => {
+      queryClient.invalidateQueries({ queryKey: ["services"] });
       handleOpenChange(false);
     },
   });
@@ -59,15 +85,19 @@ export const ModalCreateService = (props: IProps) => {
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    const novoItem = {
+    const servicePayload = {
       name: nome,
       description: descricao,
       type: "SERVICE" as ItemType,
-      responsavel,
-      department: departamento ? departamento : undefined,
+      professionalId: responsavel || null,
+      department: departamento || null,
     };
 
-    createService(novoItem);
+    if (isEditMode) {
+      updateService({ id: service.id, payload: servicePayload });
+    } else {
+      createService(servicePayload);
+    }
   };
 
   const handleOpenChange = (open: boolean) => {
@@ -77,15 +107,12 @@ export const ModalCreateService = (props: IProps) => {
     setIsModalOpen(open);
   };
 
-  const { userData } = useUser();
-  const isCompany = userData?.membership?.company?.companyType === "EMPRESA" && userData?.membership?.role?.name === "Admin"
-
   return (
     <Dialog open={isModalOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="px-0">
         <DialogHeader className="px-8 gap-0">
           <DialogTitle className="text-lg bg-blue-600 w-fit px-2 rounded-2xl text-white">
-            Novo Serviço
+            {isEditMode ? "Editar Serviço" : "Novo Serviço"}
           </DialogTitle>
         </DialogHeader>
         <form
@@ -126,7 +153,7 @@ export const ModalCreateService = (props: IProps) => {
               </div>
 
               <div className="flex flex-col gap-4">
-                {isCompany &&
+                {isCompany && (
                   <div>
                     <Label
                       htmlFor="incluir-info"
@@ -157,7 +184,7 @@ export const ModalCreateService = (props: IProps) => {
                       />
                     </div>
                   </div>
-                }
+                )}
 
                 {hasResponsavel === "sim" && (
                   <>
@@ -169,7 +196,7 @@ export const ModalCreateService = (props: IProps) => {
                         Responsável
                       </Label>
 
-                      <Select 
+                      <Select
                         value={responsavel}
                         onValueChange={(e) => setResponsavel(e)}
                       >
@@ -178,7 +205,10 @@ export const ModalCreateService = (props: IProps) => {
                         </SelectTrigger>
                         <SelectContent>
                           {responsaveisMock.map((resp) => (
-                            <SelectItem key={resp.id} value={resp.nome}>
+                            <SelectItem
+                              key={resp.id}
+                              value={resp.id.toString()}
+                            >
                               {resp.nome}
                             </SelectItem>
                           ))}

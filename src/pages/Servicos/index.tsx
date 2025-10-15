@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import Input from "@/components/ui/input";
 import { Plus, ClipboardList } from "lucide-react";
 import { useState } from "react";
-import { useGetAllServices } from "@/hooks/api/useGetAllServices";
+import { useGetAllServices, type IService } from "@/hooks/api/useGetAllServices";
 import { ModalCreateService } from "@/components/ModalCreateSevice";
 import { useDeleteService } from "@/hooks/api/useDeleteService";
 import { ModalAlert } from "@/components/ModalAlert";
@@ -10,15 +10,26 @@ import { useQueryClient } from "@tanstack/react-query";
 
 export const Servicos = () => {
   const [searchTerm, setSearchTerm] = useState("");
-
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const { data: services } = useGetAllServices();
   const [serviceToDelete, setServiceToDelete] = useState<string | null>(null);
+  const [serviceToEdit, setServiceToEdit] = useState<IService | null>(null);
+
+  const { data: services } = useGetAllServices();
   const queryClient = useQueryClient();
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
+  };
+
+  const handleOpenCreateModal = () => {
+    setServiceToEdit(null);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEditModal = (service: IService) => {
+    setServiceToEdit(service);
+    setIsModalOpen(true);
   };
 
   const { mutate: deleteService } = useDeleteService({
@@ -54,7 +65,7 @@ export const Servicos = () => {
         </p>
         <Button
           className="mt-6 bg-blue-600 transition-colors gap-2"
-          onClick={() => setIsCreateModalOpen(true)}
+          onClick={handleOpenCreateModal}
         >
           <Plus size={18} />
           Adicionar Serviço
@@ -72,38 +83,6 @@ export const Servicos = () => {
       {services && services.length > 0 ? (
         <main className="p-4 md:p-8">
           <div className="bg-white shadow-custom p-4 mb-4 rounded-lg">
-            {/* <div className="flex justify-start mb-6">
-              <button
-                onClick={() => handleCategoryChange("Todos")}
-                className={`px-4 py-2 text-lg ${
-                  activeCategory === "Todos"
-                    ? "text-blue-600 border-b-2 border-blue-600"
-                    : "text-gray-500"
-                }`}
-              >
-                Todos
-              </button>
-              <button
-                onClick={() => handleCategoryChange("Serviço")}
-                className={`px-4 py-2 text-lg ${
-                  activeCategory === "Serviço"
-                    ? "text-blue-600 border-b-2 border-blue-600"
-                    : "text-gray-500"
-                }`}
-              >
-                Serviço
-              </button>
-              <button
-                onClick={() => handleCategoryChange("PACKAGE")}
-                className={`px-4 py-2 text-lg ${
-                  activeCategory === "PACKAGE"
-                    ? "text-blue-600 border-b-2 border-blue-600"
-                    : "text-gray-500"
-                }`}
-              >
-                Pacote
-              </button>
-            </div> */}
             <div className="flex items-end gap-6">
               <Input
                 type="text"
@@ -115,7 +94,7 @@ export const Servicos = () => {
               />
               <Button
                 className="bg-blue-600 transition-colors gap-1"
-                onClick={() => setIsCreateModalOpen(true)}
+                onClick={handleOpenCreateModal}
               >
                 <Plus size={18} />
                 Adicionar Serviço
@@ -146,7 +125,10 @@ export const Servicos = () => {
                   </p>
 
                   <div className="flex justify-around gap-2">
-                    <Button className="mt-6 text-center text-green-600 bg-green-100 hover:bg-green-200 font-semibold py-2 max-w-1/2 w-full">
+                    <Button
+                      className="mt-6 text-center text-green-600 bg-green-100 hover:bg-green-200 font-semibold py-2 max-w-1/2 w-full"
+                      onClick={() => handleOpenEditModal(service)}
+                    >
                       Editar
                     </Button>
                     <Button
@@ -169,8 +151,9 @@ export const Servicos = () => {
       )}
 
       <ModalCreateService
-        isModalOpen={isCreateModalOpen}
-        setIsModalOpen={setIsCreateModalOpen}
+        isModalOpen={isModalOpen}
+        setIsModalOpen={setIsModalOpen}
+        service={serviceToEdit}
       />
       <ModalAlert
         isModalOpen={isDeleteModalOpen}
