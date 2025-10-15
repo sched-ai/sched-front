@@ -4,16 +4,39 @@ import { Plus, ClipboardList } from "lucide-react";
 import { useState } from "react";
 import { useGetAllServices } from "@/hooks/api/useGetAllServices";
 import { ModalCreateService } from "@/components/ModalCreateSevice";
+import { useDeleteService } from "@/hooks/api/useDeleteService";
+import { ModalAlert } from "@/components/ModalAlert";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const Servicos = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const { data: services } = useGetAllServices();
+  const [serviceToDelete, setServiceToDelete] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
   };
+
+  const { mutate: deleteService } = useDeleteService({
+    onSuccessFn: () => {
+      setIsDeleteModalOpen(false);
+      setServiceToDelete(null);
+      queryClient.invalidateQueries({ queryKey: ["services"] });
+    },
+  });
+
+  const handleConfirmDelete = () => {
+    if (serviceToDelete) {
+      deleteService(serviceToDelete);
+    }
+  };
+
+  const serviceNameToDelete =
+    services?.find((s) => s.id === serviceToDelete)?.name || "";
 
   const EmptyState = () => (
     <main
@@ -31,7 +54,7 @@ export const Servicos = () => {
         </p>
         <Button
           className="mt-6 bg-blue-600 transition-colors gap-2"
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => setIsCreateModalOpen(true)}
         >
           <Plus size={18} />
           Adicionar Serviço
@@ -92,7 +115,7 @@ export const Servicos = () => {
               />
               <Button
                 className="bg-blue-600 transition-colors gap-1"
-                onClick={() => setIsModalOpen(true)}
+                onClick={() => setIsCreateModalOpen(true)}
               >
                 <Plus size={18} />
                 Adicionar Serviço
@@ -118,20 +141,24 @@ export const Servicos = () => {
                       {service.type === "SERVICE" ? "Serviço" : "Pacote"}
                     </span>
                   </div>
-                  <p className="text-gray-600 mb-4 text-sm">{service.description}</p>
-            
-                <div className="flex justify-around gap-2">
-                  <Button
-                    className="mt-6 text-center text-green-600 bg-green-100 hover:bg-green-200 font-semibold py-2 max-w-1/2 w-full"
-                  >
-                    Editar
-                  </Button>
-                  <Button
-                    className="mt-6 text-center text-red-600 bg-red-100 hover:bg-red-200 font-semibold py-2 max-w-1/2 w-full"
-                  >
-                    Deletar
-                  </Button>
-                </div>
+                  <p className="text-gray-600 mb-4 text-sm">
+                    {service.description}
+                  </p>
+
+                  <div className="flex justify-around gap-2">
+                    <Button className="mt-6 text-center text-green-600 bg-green-100 hover:bg-green-200 font-semibold py-2 max-w-1/2 w-full">
+                      Editar
+                    </Button>
+                    <Button
+                      className="mt-6 text-center text-red-600 bg-red-100 hover:bg-red-200 font-semibold py-2 max-w-1/2 w-full"
+                      onClick={() => {
+                        setServiceToDelete(service.id);
+                        setIsDeleteModalOpen(true);
+                      }}
+                    >
+                      Excluir
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -142,8 +169,14 @@ export const Servicos = () => {
       )}
 
       <ModalCreateService
-        isModalOpen={isModalOpen}
-        setIsModalOpen={setIsModalOpen}
+        isModalOpen={isCreateModalOpen}
+        setIsModalOpen={setIsCreateModalOpen}
+      />
+      <ModalAlert
+        isModalOpen={isDeleteModalOpen}
+        setIsModalOpen={setIsDeleteModalOpen}
+        onSubmit={handleConfirmDelete}
+        serviceName={serviceNameToDelete}
       />
     </div>
   );

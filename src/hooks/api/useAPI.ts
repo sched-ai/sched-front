@@ -167,6 +167,47 @@
 			}
 		};
 
+		const update = async <TBody>(options: IUseApiOptions<TBody>) => {
+    const {
+      errorMessage,
+      showErrorFeedback = true,
+      successMessage,
+      showSuccessFeedback = true,
+      label='',
+      autoClose,
+      endpoint,
+      body,
+      isFile
+    } = options;
+
+    if(isFile){
+      axiosInstance.interceptors.request.use((config) => {
+        config.headers['Content-Type'] = 'multipart/form-data';
+        return config;
+      });
+    }
+
+    try {
+      const resp = await axiosInstance.put<TAxiosResponse<T>>(`${endpoint}`, body);
+      feedbackHandler({
+        label,
+        message: label!=='' ? successMessage || resp.data.message || `${ label.charAt(0).toUpperCase() + label.slice(1) } atualizado com sucesso!` : '',
+        toastId: 'success-put-toast',
+        type: 'success',
+        showFeedback: showSuccessFeedback,
+        autoClose
+      });
+      return resp.data;
+    } catch (error: any) {
+      errorHandler({
+        label,
+        error,
+        message: errorMessage || `Erro ao atualizar ${ label.toLocaleLowerCase() }!`,
+        showErrorFeedback
+      });
+    }
+  };
+
 		const patch = async <TBody>(options: IUseApiOptions<TBody>) => {
 			const {
 				errorMessage,
@@ -243,6 +284,7 @@
 			get,
 			post,
 			patch,
+			update,
 			destroy,
 		};
 	};
