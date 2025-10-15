@@ -3,7 +3,6 @@ import { useEffect, useState, useCallback } from "react";
 import { Button } from "../ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "../ui/input";
-import background from "../../assets/schedule_modal_background.png";
 import { DatePicker } from "../DatePicker";
 import { Switch } from "../ui/switch";
 import { DndContext, useDraggable } from "@dnd-kit/core";
@@ -12,14 +11,14 @@ import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 import { Label } from "../ui/label";
 
 export type EventType = {
-	id: number;
-	title: string;
-	day: string;
-	start: string;
-	end: string;
-	month: string;
-	year: number;
-	type?: 'consulta' | 'bloqueio';
+  id: number;
+  title: string;
+  day: string;
+  start: string;
+  end: string;
+  month: string;
+  year: number;
+  type?: "consulta" | "bloqueio";
 };
 
 interface FormModalProps {
@@ -48,7 +47,7 @@ const DraggableModalContent = ({
   const getInitialPosition = useCallback(() => {
     const modalWidth = 400;
     const modalHeight = 720;
-    
+
     return {
       x: (window.innerWidth - modalWidth) / 2,
       y: (window.innerHeight - modalHeight) / 2,
@@ -56,14 +55,14 @@ const DraggableModalContent = ({
   }, []);
 
   const initialPosition = getInitialPosition();
-  
+
   const x = initialPosition.x + (transform?.x ?? 0) + position.x;
   const y = initialPosition.y + (transform?.y ?? 0) + position.y;
-  
+
   const style = {
     left: `${x}px`,
     top: `${y}px`,
-    backgroundImage: `url(${background})`,
+    background: "#121535",
   };
 
   return (
@@ -75,11 +74,11 @@ const DraggableModalContent = ({
       <div
         {...attributes}
         {...listeners}
-        className="absolute top-0 right-0 left-0 h-8 pl-2 cursor-move flex items-center justify-start bg-[#2C2D43] rounded-t-lg z-10 transition-colors"
+        className="absolute top-0 right-0 left-0 h-8 pl-2 cursor-move flex items-center justify-start bg-blue-600 rounded-t-lg z-10 transition-colors"
         style={{ userSelect: "none" }}
       >
         <GripHorizontal size={20} className="text-white/70" />
-      </div> 
+      </div>
       <div className="flex-1 overflow-y-auto py-8 custom-scrollbar">
         {children}
       </div>
@@ -117,7 +116,7 @@ export const FormModal = ({
       setStartHour(selectedEvent.start);
       setEndHour(selectedEvent.end);
       setActiveTab(selectedEvent.type || "bloqueio");
-      
+
       // Resetar outros campos
       setDescription("");
       setLocation("");
@@ -141,7 +140,7 @@ export const FormModal = ({
       setService("");
       setActiveTab("bloqueio");
     }
-    
+
     // Resetar posição quando o modal for fechado
     if (!isOpen) {
       setPosition({ x: 0, y: 0 });
@@ -174,10 +173,9 @@ export const FormModal = ({
                 {selectedEvent ? "Editar Agendamento" : "Novo Agendamento"}
               </div>
               <div className="text-[14px] text-[#A4A4A4]">
-                {selectedEvent 
-                  ? "Edite as informações do agendamento selecionado." 
-                  : "Preencha o formulário para criar um novo agendamento."
-                }
+                {selectedEvent
+                  ? "Edite as informações do agendamento selecionado."
+                  : "Preencha o formulário para criar um novo agendamento."}
               </div>
             </div>
             <Button
@@ -188,7 +186,11 @@ export const FormModal = ({
               <X className="text-white cursor-pointer" size={20} />
             </Button>
           </div>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full"
+          >
             <TabsList className="bg-white/5 border border-white h-[48px]">
               <TabsTrigger
                 value="bloqueio"
@@ -205,13 +207,23 @@ export const FormModal = ({
             </TabsList>
             <TabsContent value="bloqueio" className="text-white">
               <form>
-                <Input
-                  type="text"
-                  className="text-white placeholder:text-white/80 border-x-0 border-t-0 rounded-[10px] bg-white/15 outline-0 w-full border-b-[2px] !border-b-[#0177FB] mt-[12px]"
-                  placeholder="Adicionar Título"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                />
+                <div className="relative mt-8">
+                  <input
+                    id="tituloBloqueio"
+                    name="tituloBloqueio"
+                    type="text"
+                    className="peer h-12 w-full border-2 px-2 bg-white/5 rounded-lg border-gray-300 placeholder-transparent focus:outline-none focus:border-blue-600 focus:border-2 text-white border-x-0 border-t-0 outline-0 border-b-[2px] !border-b-[#0177FB]"
+                    onChange={(e) => setTitle(e.target.value)}
+                  />
+                  <label
+                    htmlFor="tituloBloqueio"
+                    className="absolute left-3 -top-6 text-sm text-white transition-all 
+                    peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 
+                    peer-focus:-top-6 peer-focus:text-sm peer-focus:left-0"
+                  >
+                    Adicionar Título
+                  </label>
+                </div>
                 <div className="flex flex-col gap-4">
                   <div className="flex gap-2 items-center text-[16px] mt-5">
                     <ClockPlus />
@@ -234,14 +246,14 @@ export const FormModal = ({
                     />
                     <Input
                       type="time"
-                      className="bg-white/15 border-white max-w-[100px]"
+                      className="border-white max-w-[100px]"
                       value={startHour}
                       onChange={(e) => setStartHour(e.target.value)}
                     />
                     -
                     <Input
                       type="time"
-                      className="bg-white/15 border-white max-w-[100px]"
+                      className="border-white max-w-[100px]"
                       value={endHour}
                       onChange={(e) => setEndHour(e.target.value)}
                     />
@@ -251,7 +263,7 @@ export const FormModal = ({
                     Repetir
                   </div>
                   <textarea
-                    className="border p-3 min-h-[100px] border-white bg-white/15 rounded-[10px] text-white placeholder:text-white/80"
+                    className="border p-3 min-h-[100px] border-white rounded-[10px] text-white placeholder:text-white/80"
                     placeholder="Descrição do bloqueio"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
@@ -331,10 +343,8 @@ export const FormModal = ({
                         />
                       </div>
 
-                       <div className="w-full flex flex-col gap-2">
-                        <Label className="text-white">
-                          Serviço
-                        </Label>
+                      <div className="w-full flex flex-col gap-2">
+                        <Label className="text-white">Serviço</Label>
                         <Input
                           type="text"
                           className="bg-white/15 border-white text-white placeholder:text-white/80"
