@@ -51,16 +51,20 @@ export const ModalCreateService = (props: IProps) => {
     userData?.membership?.role?.name === "Admin";
 
   useEffect(() => {
-    if (service) {
-      setNome(service.name || "");
-      setDescricao(service.description || "");
-      setResponsavel(service.professional?.id || "");
-      setDepartamento(service.department || "");
-      setHasResponsavel(
-        service.professional?.id || service.department ? "sim" : "nao"
-      );
+    if (isModalOpen) {
+      if (service) {
+        setNome(service.name || "");
+        setDescricao(service.description || "");
+        setResponsavel(service.professional?.id || "");
+        setDepartamento(service.department || "");
+        setHasResponsavel(
+          service.professional?.id || service.department ? "sim" : "nao"
+        );
+      } else {
+        resetForm();
+      }
     }
-  }, [service]);
+  }, [service, isModalOpen]);
 
   const { mutate: createService } = useCreateService({
     onSuccessFn: () => {

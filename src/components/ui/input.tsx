@@ -56,7 +56,7 @@ export const Input = forwardRef<unknown, IProps>((props, ref) => {
   const styles = {
     wrapper: "flex flex-col relative h-full",
     input: {
-      base: "w-full transition-all h-10 border border-secondary-l px-4 py-6 font-[600] bg-white/12 text-body-lg text-paragraph-high transition durantion-200 outline-none hover:text-[#141736] focus:text-[#141736] text-secondary-l rounded-[10px] border-[#A2A6BB66] hover:border-[#141736] focus:border-[#141736]",
+      base: "w-full transition-all h-10 border border-secondary-l px-4 py-6 font-normal bg-white/12 text-body-lg text-paragraph-high transition durantion-200 outline-none hover:text-[#141736] focus:text-[#141736] text-secondary-l rounded-[10px] border-[#A2A6BB66] hover:border-[#141736] focus:border-[#141736]",
       placeholder:
         "placeholder:text-body-lg placeholder:text-gray-300 placeholder:font-normal font-thin",
       filled: "",
