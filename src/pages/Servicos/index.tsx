@@ -68,6 +68,17 @@ export const Servicos = () => {
   const serviceNameToDelete =
     services?.find((s) => s.id === serviceToDelete)?.name || "";
 
+  // Formata duration (minutos) para um rótulo legível no card
+  const formatDurationLabel = (totalMinutes?: number | null) => {
+    if (totalMinutes === null || totalMinutes === undefined) return "-";
+    if (!Number.isFinite(totalMinutes)) return "-";
+    if (totalMinutes === 0) return "0m";
+    if (totalMinutes < 60) return `${totalMinutes}m`;
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return minutes === 0 ? `${hours}h` : `${hours}h ${minutes}m`;
+  };
+
   const EmptyState = () => (
     <main
       className="flex items-center justify-center text-center p-8"
@@ -138,7 +149,10 @@ export const Servicos = () => {
                       {service.type === "SERVICE" ? "Serviço" : "Pacote"}
                     </span>
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild className="w-fit border-none">
+                      <DropdownMenuTrigger
+                        asChild
+                        className="w-fit border-none"
+                      >
                         <Button variant="outline">
                           <EllipsisVertical />
                         </Button>
@@ -169,7 +183,6 @@ export const Servicos = () => {
                         <DropdownMenuSeparator />
                       </DropdownMenuContent>
                     </DropdownMenu>
-                    
                   </div>
                   <div className="flex justify-between items-start mb-1">
                     <h2 className="text-md font-semibold truncate max-w-full">
@@ -179,6 +192,12 @@ export const Servicos = () => {
                   <p className="text-gray-600 mb-2 text-[12px] line-clamp-3">
                     {service.description}
                   </p>
+                </div>
+                <div className="w-full flex justify-end">
+                  <div className="flex flex-col">
+                    <p className="text-xs text-gray-500 self-end">{formatDurationLabel(service.duration)}</p>
+                    <p className="text-sm">R$ {service.price}</p>
+                  </div>
                 </div>
               </div>
             ))}

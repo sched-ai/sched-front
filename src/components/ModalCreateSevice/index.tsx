@@ -14,10 +14,15 @@ import { useUpdateService } from "@/hooks/api/useEditService";
 import { Label } from "@/components/ui/label";
 import Input from "@/components/ui/input";
 import CustomRadioInput from "@/components/CustomRadioInput";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
-
 
 interface IProps {
   isModalOpen: boolean;
@@ -34,6 +39,18 @@ const responsaveisMock = [
 
 type ItemType = "SERVICE" | "PACKAGE";
 
+// eslint-disable-next-line react-refresh/only-export-components
+export function minutesToHHMM(totalMinutes: number) {
+  if (!Number.isFinite(totalMinutes)) return "";
+  if (totalMinutes === 0) return "00:00";
+  if (totalMinutes < 0) return "";
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  const hh = String(hours).padStart(2, "0");
+  const mm = String(minutes).padStart(2, "0");
+  return `${hh}:${mm}`;
+}
+
 export const ModalCreateService = (props: IProps) => {
   const { isModalOpen, setIsModalOpen, service } = props;
   const isEditMode = !!service;
@@ -42,6 +59,7 @@ export const ModalCreateService = (props: IProps) => {
   const [nome, setNome] = useState("");
   const [descricao, setDescricao] = useState("");
   const [price, setPrice] = useState("");
+  const [duration, setDuration] = useState("00:00");
   const [responsavel, setResponsavel] = useState("");
   const [departamento, setDepartamento] = useState("");
   const queryClient = useQueryClient();
@@ -58,11 +76,19 @@ export const ModalCreateService = (props: IProps) => {
         setDescricao(service.description || "");
         setPrice(
           service.price !== undefined && service.price !== null
-            ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(service.price))
-            : ''
+            ? new Intl.NumberFormat("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+              }).format(Number(service.price))
+            : ""
         );
         setResponsavel(service.professional?.id || "");
         setDepartamento(service.department || "");
+        setDuration(
+          service.duration !== undefined && service.duration !== null
+            ? minutesToHHMM(Number(service.duration))
+            : ""
+        );
         setHasResponsavel(
           service.professional?.id || service.department ? "sim" : "nao"
         );
@@ -71,6 +97,16 @@ export const ModalCreateService = (props: IProps) => {
       }
     }
   }, [service, isModalOpen]);
+
+  function hhmmToMinutes(value: string): number | null {
+    if (!value) return null;
+    const parts = value.split(":");
+    if (parts.length < 2) return null;
+    const hours = parseInt(parts[0], 10);
+    const minutes = parseInt(parts[1], 10);
+    if (Number.isNaN(hours) || Number.isNaN(minutes)) return null;
+    return hours * 60 + minutes;
+  }
 
   const { mutate: createService } = useCreateService({
     onSuccessFn: () => {
@@ -90,21 +126,25 @@ export const ModalCreateService = (props: IProps) => {
     setNome("");
     setDescricao("");
     setPrice("");
+    setDuration("00:00");
     setResponsavel("");
     setDepartamento("");
   };
 
   const formatBRL = (value: string) => {
-    const onlyNums = value.replace(/[^0-9]/g, '');
-    if (!onlyNums) return '';
+    const onlyNums = value.replace(/[^0-9]/g, "");
+    if (!onlyNums) return "";
     const int = parseInt(onlyNums, 10);
     const number = int / 100;
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(number);
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(number);
   };
 
   const parseBRL = (formatted: string) => {
     if (!formatted) return null;
-    const onlyNums = formatted.replace(/[^0-9]/g, '');
+    const onlyNums = formatted.replace(/[^0-9]/g, "");
     if (!onlyNums) return null;
     const int = parseInt(onlyNums, 10);
     return int / 100;
@@ -112,6 +152,8 @@ export const ModalCreateService = (props: IProps) => {
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
+    const durationInMinutes = hhmmToMinutes(duration);
+
     const servicePayload = {
       name: nome,
       description: descricao,
@@ -119,6 +161,8 @@ export const ModalCreateService = (props: IProps) => {
       professionalId: responsavel || null,
       department: departamento || null,
       price: parseBRL(price),
+      // send duration as minutes number or null
+      duration: durationInMinutes,
     };
 
     if (isEditMode) {
@@ -149,27 +193,26 @@ export const ModalCreateService = (props: IProps) => {
         >
           <>
             <div className="flex flex-col gap-3">
-
-                <Input
-                  id="nome"
-                  type="text"
-                  label="Nome"
-                  placeholder="Ex: Exame de Sangue"
-                  value={nome}
-                  onChange={(e) => setNome(e.target.value)}
-                  className="mt-2"
-                  required
-                />
-                <Input
-                  type="textarea"
-                  id="descricao"
-                  label="Descrição"
-                  placeholder="Descreva brevemente o item..."
-                  value={descricao}
-                  onChange={(e) => setDescricao(e.target.value)}
-                  className="mt-2"
-                />
-              <div>
+              <Input
+                id="nome"
+                type="text"
+                label="Nome"
+                placeholder="Ex: Exame de Sangue"
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+                className="mt-2"
+                required
+              />
+              <Input
+                type="textarea"
+                id="descricao"
+                label="Descrição"
+                placeholder="Descreva brevemente o item..."
+                value={descricao}
+                onChange={(e) => setDescricao(e.target.value)}
+                className="mt-2"
+              />
+              <div className="flex items-center gap-4">
                 <Input
                   id="price"
                   type="text"
@@ -181,6 +224,14 @@ export const ModalCreateService = (props: IProps) => {
                     const formatted = formatBRL(raw);
                     setPrice(formatted);
                   }}
+                  className="mt-2"
+                />
+                <Input
+                  id="duration"
+                  type="time"
+                  label="Duração"
+                  value={duration}
+                  onChange={(e) => setDuration(e.target.value)}
                   className="mt-2"
                 />
               </div>
