@@ -1,12 +1,31 @@
 import { Button } from "@/components/ui/button";
 import Input from "@/components/ui/input";
-import { Plus, ClipboardList } from "lucide-react";
+import {
+  Plus,
+  ClipboardList,
+  EllipsisVertical,
+  Edit2,
+  Trash2,
+} from "lucide-react";
 import { useState } from "react";
-import { useGetAllServices, type IService } from "@/hooks/api/useGetAllServices";
+import {
+  useGetAllServices,
+  type IService,
+} from "@/hooks/api/useGetAllServices";
 import { ModalCreateService } from "@/components/ModalCreateSevice";
 import { useDeleteService } from "@/hooks/api/useDeleteService";
 import { ModalAlert } from "@/components/ModalAlert";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const Servicos = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -105,42 +124,61 @@ export const Servicos = () => {
             {services?.map((service) => (
               <div
                 key={service.id}
-                className="bg-white shadow-custom border border-gray-200 rounded-lg p-6 flex flex-col justify-between"
+                className="bg-white shadow-custom border border-gray-200 rounded-lg p-4 flex flex-col justify-between min-h-[160px]"
               >
-                <div>
-                  <div className="flex justify-between items-start mb-4">
-                    <h2 className="text-xl font-bold">{service.name}</h2>
+                <div className="flex flex-col">
+                  <div className="flex justify-between items-center">
                     <span
-                      className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
+                      className={`text-sm font-semibold px-2.5 py-0.5 rounded-sm ${
                         service.type === "SERVICE"
-                          ? "bg-purple-100 text-purple-600"
+                          ? "bg-blue-600 text-blue-100"
                           : "bg-blue-100 text-blue-600"
                       }`}
                     >
                       {service.type === "SERVICE" ? "Serviço" : "Pacote"}
                     </span>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild className="w-fit border-none">
+                        <Button variant="outline">
+                          <EllipsisVertical />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-56" align="start">
+                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                        <DropdownMenuGroup>
+                          <DropdownMenuItem
+                            onClick={() => handleOpenEditModal(service)}
+                          >
+                            Editar
+                            <DropdownMenuShortcut>
+                              <Edit2 />
+                            </DropdownMenuShortcut>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setServiceToDelete(service.id);
+                              setIsDeleteModalOpen(true);
+                            }}
+                          >
+                            Excluir
+                            <DropdownMenuShortcut>
+                              <Trash2 />
+                            </DropdownMenuShortcut>
+                          </DropdownMenuItem>
+                        </DropdownMenuGroup>
+                        <DropdownMenuSeparator />
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    
                   </div>
-                  <p className="text-gray-600 mb-4 text-sm">
+                  <div className="flex justify-between items-start mb-1">
+                    <h2 className="text-md font-semibold truncate max-w-full">
+                      {service.name}
+                    </h2>
+                  </div>
+                  <p className="text-gray-600 mb-2 text-[12px] line-clamp-3">
                     {service.description}
                   </p>
-
-                  <div className="flex justify-around gap-2">
-                    <Button
-                      className="mt-6 text-center text-green-600 bg-green-100 hover:bg-green-200 font-semibold py-2 max-w-1/2 w-full"
-                      onClick={() => handleOpenEditModal(service)}
-                    >
-                      Editar
-                    </Button>
-                    <Button
-                      className="mt-6 text-center text-red-600 bg-red-100 hover:bg-red-200 font-semibold py-2 max-w-1/2 w-full"
-                      onClick={() => {
-                        setServiceToDelete(service.id);
-                        setIsDeleteModalOpen(true);
-                      }}
-                    >
-                      Excluir
-                    </Button>
-                  </div>
                 </div>
               </div>
             ))}
