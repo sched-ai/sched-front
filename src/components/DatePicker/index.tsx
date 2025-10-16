@@ -29,7 +29,7 @@ export function DatePicker({ initialValue }: { initialValue?: string }) {
           <Button
             variant="outline"
             id="date"
-            className="w-48 justify-between font-normal bg-white/15 border-white hover:bg-white/15 hover:text-white"
+            className="max-w-48 justify-between font-normal bg-transparent border-white hover:bg-white/15 hover:text-white"
           >
             {date ? date.toLocaleDateString() : "Select date"}
             <ChevronDownIcon />

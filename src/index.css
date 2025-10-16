@@ -180,3 +180,8 @@ body {
 input[type="time"]::-webkit-calendar-picker-indicator {
   filter: invert(1) grayscale(0.8) contrast(1.1);
 }
+
+.lightInput input[type="time"]::-webkit-calendar-picker-indicator,
+input.lightInput[type="time"]::-webkit-calendar-picker-indicator {
+  filter: none !important;
+}

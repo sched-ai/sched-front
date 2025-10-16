@@ -103,7 +103,7 @@ export const FormModal = ({
   const [startHour, setStartHour] = useState("");
   const [endHour, setEndHour] = useState("");
   const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState<string | undefined>(undefined);
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
   const [service, setService] = useState("");
@@ -111,18 +111,15 @@ export const FormModal = ({
 
   useEffect(() => {
     if (isOpen && selectedEvent) {
-      // Preencher com dados do evento selecionado
       setTitle(selectedEvent.title);
       setStartHour(selectedEvent.start);
       setEndHour(selectedEvent.end);
       setActiveTab(selectedEvent.type || "bloqueio");
 
-      // Resetar outros campos
       setDescription("");
       setLocation("");
       setService("");
     } else if (isOpen && selectedDateTime) {
-      // Novo agendamento com data/hora selecionada
       setStartHour(selectedDateTime.hour);
       setEndHour(getEndHour(selectedDateTime.hour));
       setTitle("");
@@ -131,7 +128,6 @@ export const FormModal = ({
       setService("");
       setActiveTab("bloqueio");
     } else if (isOpen && !selectedDateTime && !selectedEvent) {
-      // Novo agendamento sem data específica
       setStartHour("");
       setEndHour("");
       setTitle("");
@@ -141,7 +137,6 @@ export const FormModal = ({
       setActiveTab("bloqueio");
     }
 
-    // Resetar posição quando o modal for fechado
     if (!isOpen) {
       setPosition({ x: 0, y: 0 });
     }
@@ -227,9 +222,9 @@ export const FormModal = ({
                 <div className="flex flex-col gap-4">
                   <div className="flex gap-2 items-center text-[16px] mt-5">
                     <ClockPlus />
-                    <span>Confirme a data e hora:</span>
+                    <span className="text-sm">Confirme a data e hora:</span>
                   </div>
-                  <div className="flex gap-4 items-center">
+                  <div className="flex gap-4 items-center justify-between">
                     <DatePicker
                       initialValue={
                         selectedDateTime &&
@@ -244,30 +239,28 @@ export const FormModal = ({
                           : undefined
                       }
                     />
-                    <Input
-                      type="time"
-                      className="border-white max-w-[100px]"
-                      value={startHour}
-                      onChange={(e) => setStartHour(e.target.value)}
-                    />
-                    -
-                    <Input
-                      type="time"
-                      className="border-white max-w-[100px]"
-                      value={endHour}
-                      onChange={(e) => setEndHour(e.target.value)}
-                    />
+                    <div className="flex items-center gap-3">
+                      De
+                      <input
+                        id="inicio"
+                        type="time"
+                        className="border-white border p-2 py-3 h-full rounded-lg max-w-[100px] lightInput"
+                        value={startHour}
+                        onChange={(e) => setStartHour(e.target.value)}
+                      />
+                      Até
+                      <input
+                        type="time"
+                        className="border-white border p-2 py-3 h-full rounded-lg max-w-[100px] lightInput"
+                        value={endHour}
+                        onChange={(e) => setEndHour(e.target.value)}
+                      />
+                    </div>
                   </div>
                   <div className="flex gap-2 items-center text-[16px]">
                     <Switch className="data-[state=checked]:bg-[#0177FB] data-[state=unchecked]:bg-[#5E5E5E]" />{" "}
                     Repetir
                   </div>
-                  <textarea
-                    className="border p-3 min-h-[100px] border-white rounded-[10px] text-white placeholder:text-white/80"
-                    placeholder="Descrição do bloqueio"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                  />
                   <Button
                     className="self-end !text-[16px] mt-4"
                     type="submit"
