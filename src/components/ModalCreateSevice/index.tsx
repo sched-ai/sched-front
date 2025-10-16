@@ -41,6 +41,7 @@ export const ModalCreateService = (props: IProps) => {
   const [hasResponsavel, setHasResponsavel] = useState("nao");
   const [nome, setNome] = useState("");
   const [descricao, setDescricao] = useState("");
+  const [price, setPrice] = useState("");
   const [responsavel, setResponsavel] = useState("");
   const [departamento, setDepartamento] = useState("");
   const queryClient = useQueryClient();
@@ -55,6 +56,11 @@ export const ModalCreateService = (props: IProps) => {
       if (service) {
         setNome(service.name || "");
         setDescricao(service.description || "");
+        setPrice(
+          service.price !== undefined && service.price !== null
+            ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(service.price))
+            : ''
+        );
         setResponsavel(service.professional?.id || "");
         setDepartamento(service.department || "");
         setHasResponsavel(
@@ -83,8 +89,25 @@ export const ModalCreateService = (props: IProps) => {
     setHasResponsavel("nao");
     setNome("");
     setDescricao("");
+    setPrice("");
     setResponsavel("");
     setDepartamento("");
+  };
+
+  const formatBRL = (value: string) => {
+    const onlyNums = value.replace(/[^0-9]/g, '');
+    if (!onlyNums) return '';
+    const int = parseInt(onlyNums, 10);
+    const number = int / 100;
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(number);
+  };
+
+  const parseBRL = (formatted: string) => {
+    if (!formatted) return null;
+    const onlyNums = formatted.replace(/[^0-9]/g, '');
+    if (!onlyNums) return null;
+    const int = parseInt(onlyNums, 10);
+    return int / 100;
   };
 
   const handleSubmit = (event: React.FormEvent) => {
@@ -95,6 +118,7 @@ export const ModalCreateService = (props: IProps) => {
       type: "SERVICE" as ItemType,
       professionalId: responsavel || null,
       department: departamento || null,
+      price: parseBRL(price),
     };
 
     if (isEditMode) {
@@ -125,33 +149,38 @@ export const ModalCreateService = (props: IProps) => {
         >
           <>
             <div className="flex flex-col gap-3">
-              <div>
-                <Label htmlFor="nome" className="font-semibold text-gray-700">
-                  Nome
-                </Label>
+
                 <Input
                   id="nome"
                   type="text"
-                  placeholder="Ex: Cardiologia"
+                  label="Nome"
+                  placeholder="Ex: Exame de Sangue"
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
                   className="mt-2"
                   required
                 />
-              </div>
-              <div>
-                <Label
-                  htmlFor="descricao"
-                  className="font-semibold text-gray-700"
-                >
-                  Descrição
-                </Label>
                 <Input
                   type="textarea"
                   id="descricao"
+                  label="Descrição"
                   placeholder="Descreva brevemente o item..."
                   value={descricao}
                   onChange={(e) => setDescricao(e.target.value)}
+                  className="mt-2"
+                />
+              <div>
+                <Input
+                  id="price"
+                  type="text"
+                  label="Preço"
+                  placeholder="R$ 0,00"
+                  value={price}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    const formatted = formatBRL(raw);
+                    setPrice(formatted);
+                  }}
                   className="mt-2"
                 />
               </div>
