@@ -9,6 +9,7 @@ import { DndContext, useDraggable } from "@dnd-kit/core";
 import type { DragEndEvent } from "@dnd-kit/core";
 import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 import { Label } from "../ui/label";
+import { useCreateTimeBlock, type DayOfWeek } from "@/hooks/api/useCreateTimeBlock";
 
 export type EventType = {
   id: number;
@@ -112,6 +113,47 @@ export const FormModal = ({
   const [endOption, setEndOption] = useState<"never" | "onDate" | "afterOccurrences">("never");
   const [endDate, setEndDate] = useState<string | undefined>(undefined);
   const [occurrences, setOccurrences] = useState<number | undefined>(1);
+
+  const { mutate: createTimeBlock } = useCreateTimeBlock({
+      onSuccessFn: () => {
+      },
+    });
+
+  const handleCreateTimeBlock = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const convertDateFormat = (dateStr: string | undefined): string | null => {
+      if (!dateStr) return null;
+      const [day, month, year] = dateStr.split('/');
+      return `${year}-${month}-${day}`;
+    };
+
+    const indexToDayOfWeek = (index: number): DayOfWeek => {
+      const days: DayOfWeek[] = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"];
+      return days[index];
+    };
+
+    const formattedDate = convertDateFormat(endDate);
+    
+    if (!formattedDate || !startHour || !endHour) {
+      console.error('Data ou hora inválida');
+      return;
+    }
+
+    const selectedDays: DayOfWeek[] = weekDays
+      .map((isSelected, index) => isSelected ? indexToDayOfWeek(index) : null)
+      .filter((day): day is DayOfWeek => day !== null);
+
+    createTimeBlock({
+      startDate: new Date(`${formattedDate}T${startHour}:00`),
+      endDate: new Date(`${formattedDate}T${endHour}:00`),
+      reason: title,
+      isRecurring: repeatEnabled,
+      recurringDays: selectedDays,
+      recurringUntilDate: endOption === "onDate" && endDate ? convertDateFormat(endDate) : null,
+      recurringOccurrences: endOption === "afterOccurrences" ? occurrences : null,
+    });
+  };
 
   useEffect(() => {
     const formatDate = (d: Date) => {
@@ -415,6 +457,7 @@ export const FormModal = ({
                     className="self-end !text-[16px] mt-4"
                     type="submit"
                     variant="seccondary"
+                    onClick={handleCreateTimeBlock}
                   >
                     Salvar
                   </Button>

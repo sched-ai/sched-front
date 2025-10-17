@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Tokens } from '../util';
 import type { ActionMeta } from 'react-select';
 import type { TypeOptions } from 'react-toastify';
+import type { DayOfWeek } from '@/hooks/api/useCreateTimeBlock';
 
 export type TIconName = 'home' | 'user' | 'settings' | 'logout' | string;
 
@@ -21,6 +22,16 @@ export interface IGetSelectOptions<T> {
 	valueField: keyof T;
 	labelField: keyof T;
 	defaultOptions?: ISelectOption[];
+}
+
+export interface ITimeBlock {
+   startDate: string | Date;
+  endDate: string | Date;
+  reason?: string;
+  isRecurring?: boolean;
+  recurringDays?: DayOfWeek[];
+  recurringUntilDate?: string | Date | null;
+  recurringOccurrences?: number | null;
 }
 
 export interface IUseForm<T>{
