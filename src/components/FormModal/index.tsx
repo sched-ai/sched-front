@@ -108,7 +108,6 @@ export const FormModal = ({
   const [location, setLocation] = useState("");
   const [service, setService] = useState("");
   const [activeTab, setActiveTab] = useState("bloqueio");
-  // Repetition state
   const [repeatEnabled, setRepeatEnabled] = useState(false);
   const [weekDays, setWeekDays] = useState<boolean[]>([false, false, false, false, false, false, false]);
   const [endOption, setEndOption] = useState<"never" | "onDate" | "afterOccurrences">("never");
@@ -116,24 +115,14 @@ export const FormModal = ({
   const [occurrences, setOccurrences] = useState<number | undefined>(1);
 
   useEffect(() => {
-    if (isOpen && selectedEvent) {
-      setTitle(selectedEvent.title);
-      setStartHour(selectedEvent.start);
-      setEndHour(selectedEvent.end);
-      setActiveTab(selectedEvent.type || "bloqueio");
+    const formatDate = (d: Date) => {
+      const dd = String(d.getDate()).padStart(2, "0");
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const yyyy = d.getFullYear();
+      return `${dd}/${mm}/${yyyy}`;
+    };
 
-      setDescription("");
-      setLocation("");
-      setService("");
-    } else if (isOpen && selectedDateTime) {
-      setStartHour(selectedDateTime.hour);
-      setEndHour(getEndHour(selectedDateTime.hour));
-      setTitle("");
-      setDescription("");
-      setLocation("");
-      setService("");
-      setActiveTab("bloqueio");
-    } else if (isOpen && !selectedDateTime && !selectedEvent) {
+    const resetAll = (keepEndDate?: boolean) => {
       setStartHour("");
       setEndHour("");
       setTitle("");
@@ -141,16 +130,73 @@ export const FormModal = ({
       setLocation("");
       setService("");
       setActiveTab("bloqueio");
-    }
+      setRepeatEnabled(false);
+      setWeekDays([false, false, false, false, false, false, false]);
+      setEndOption("never");
+      if (!keepEndDate) setEndDate(formatDate(new Date()));
+      setOccurrences(1);
+    };
 
     if (isOpen) {
-      const now = new Date();
-      const dd = String(now.getDate()).padStart(2, "0");
-      const mm = String(now.getMonth() + 1).padStart(2, "0");
-      const yyyy = now.getFullYear();
-      setEndDate(`${dd}/${mm}/${yyyy}`);
+      if (selectedEvent) {
+        setTitle(selectedEvent.title);
+        setStartHour(selectedEvent.start);
+        setEndHour(selectedEvent.end);
+        setActiveTab(selectedEvent.type || "bloqueio");
+        setDescription("");
+        setLocation("");
+        setService("");
+        setRepeatEnabled(false);
+        setWeekDays([false, false, false, false, false, false, false]);
+        setEndOption("never");
+        setOccurrences(1);
+        if (
+          typeof (selectedEvent).day !== "undefined" &&
+          typeof (selectedEvent).month !== "undefined" &&
+          typeof (selectedEvent).year !== "undefined"
+        ) {
+          const d = Number((selectedEvent).day);
+          const m = Number((selectedEvent).month);
+          const y = Number((selectedEvent).year);
+          if (!Number.isNaN(d) && !Number.isNaN(m) && !Number.isNaN(y)) {
+            setEndDate(`${String(d).padStart(2, "0")}/${String(m).padStart(2, "0")}/${y}`);
+          } else {
+            setEndDate(formatDate(new Date()));
+          }
+        } else {
+          setEndDate(formatDate(new Date()));
+        }
+      } else if (selectedDateTime) {
+        setStartHour(selectedDateTime.hour);
+        setEndHour(getEndHour(selectedDateTime.hour));
+        setTitle("");
+        setDescription("");
+        setLocation("");
+        setService("");
+        setActiveTab("bloqueio");
+        setRepeatEnabled(false);
+        setWeekDays([false, false, false, false, false, false, false]);
+        setEndOption("never");
+        setOccurrences(1);
+        if (
+          typeof selectedDateTime.day !== "undefined" &&
+          typeof selectedDateTime.month !== "undefined" &&
+          typeof selectedDateTime.year !== "undefined"
+        ) {
+          setEndDate(`${String(selectedDateTime.day).padStart(2, "0")}/${String(selectedDateTime.month).padStart(2, "0")}/${selectedDateTime.year}`);
+        } else {
+          setEndDate(formatDate(new Date()));
+        }
+      } else {
+        // fresh open without prefilled data
+        resetAll();
+      }
+    } else {
+      // When closing the modal reset everything
+      resetAll();
     }
 
+    // always reset position when modal is closed
     if (!isOpen) {
       setPosition({ x: 0, y: 0 });
     }
