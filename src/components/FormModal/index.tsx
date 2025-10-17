@@ -104,10 +104,9 @@ export const FormModal = ({
   const [endHour, setEndHour] = useState("");
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [title, setTitle] = useState<string | undefined>(undefined);
-  const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
   const [service, setService] = useState("");
-  const [activeTab, setActiveTab] = useState("bloqueio");
+  const [activeTab, setActiveTab] = useState("consulta");
   const [repeatEnabled, setRepeatEnabled] = useState(false);
   const [weekDays, setWeekDays] = useState<boolean[]>([false, false, false, false, false, false, false]);
   const [endOption, setEndOption] = useState<"never" | "onDate" | "afterOccurrences">("never");
@@ -126,10 +125,9 @@ export const FormModal = ({
       setStartHour("");
       setEndHour("");
       setTitle("");
-      setDescription("");
       setLocation("");
       setService("");
-      setActiveTab("bloqueio");
+      setActiveTab("consulta");
       setRepeatEnabled(false);
       setWeekDays([false, false, false, false, false, false, false]);
       setEndOption("never");
@@ -142,8 +140,7 @@ export const FormModal = ({
         setTitle(selectedEvent.title);
         setStartHour(selectedEvent.start);
         setEndHour(selectedEvent.end);
-        setActiveTab(selectedEvent.type || "bloqueio");
-        setDescription("");
+        setActiveTab(selectedEvent.type || "consulta");
         setLocation("");
         setService("");
         setRepeatEnabled(false);
@@ -170,10 +167,9 @@ export const FormModal = ({
         setStartHour(selectedDateTime.hour);
         setEndHour(getEndHour(selectedDateTime.hour));
         setTitle("");
-        setDescription("");
         setLocation("");
         setService("");
-        setActiveTab("bloqueio");
+        setActiveTab("consulta");
         setRepeatEnabled(false);
         setWeekDays([false, false, false, false, false, false, false]);
         setEndOption("never");
@@ -188,15 +184,12 @@ export const FormModal = ({
           setEndDate(formatDate(new Date()));
         }
       } else {
-        // fresh open without prefilled data
         resetAll();
       }
     } else {
-      // When closing the modal reset everything
       resetAll();
     }
 
-    // always reset position when modal is closed
     if (!isOpen) {
       setPosition({ x: 0, y: 0 });
     }
@@ -248,16 +241,16 @@ export const FormModal = ({
           >
             <TabsList className="bg-white/5 border border-white h-[48px]">
               <TabsTrigger
+                value="consulta"
+                className="data-[state=active]:text-[#141736] data-[state=inactive]:text-background cursor-pointer h-[38px]"
+              >
+                Agendamento
+              </TabsTrigger>
+              <TabsTrigger
                 value="bloqueio"
                 className="data-[state=active]:text-[#141736] data-[state=inactive]:text-background cursor-pointer h-[38px]"
               >
                 Bloqueio
-              </TabsTrigger>
-              <TabsTrigger
-                value="consulta"
-                className="data-[state=active]:text-[#141736] data-[state=inactive]:text-background cursor-pointer h-[38px]"
-              >
-                Consulta
               </TabsTrigger>
             </TabsList>
             <TabsContent value="bloqueio" className="text-white">
@@ -471,10 +464,6 @@ export const FormModal = ({
                       onChange={(e) => setEndHour(e.target.value)}
                     />
                   </div>
-                  <div className="flex gap-2 items-center text-[16px]">
-                    <Switch className="data-[state=checked]:bg-[#0177FB] data-[state=unchecked]:bg-[#5E5E5E]" />{" "}
-                    Repetir
-                  </div>
                   <div className="flex flex-col gap-4 w-full">
                     <div className="flex gap-2 items-center text-[16px] mt-5">
                       <Notebook />
@@ -504,12 +493,7 @@ export const FormModal = ({
                       </div>
                     </div>
                   </div>
-                  <textarea
-                    className="border p-3 min-h-[100px] border-white bg-white/15 rounded-[10px] text-white placeholder:text-white/80"
-                    placeholder="Descrição da consulta"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                  />
+               
                   <Button
                     className="self-end !text-[16px] mt-4"
                     type="submit"
