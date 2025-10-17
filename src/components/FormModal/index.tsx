@@ -221,14 +221,15 @@ export const FormModal = ({
                     id="tituloBloqueio"
                     name="tituloBloqueio"
                     type="text"
+                    placeholder=" "
                     className="peer h-12 w-full border-2 px-2 bg-white/5 rounded-lg border-gray-300 placeholder-transparent focus:outline-none focus:border-blue-600 focus:border-2 text-white border-x-0 border-t-0 outline-0 border-b-[2px] !border-b-[#0177FB]"
-                    value={title}
+                    value={title ?? ''}
                     onChange={(e) => setTitle(e.target.value)}
                   />
                   <label
                     htmlFor="tituloBloqueio"
-                    className="absolute left-3 -top-6 text-sm text-white transition-all 
-                    peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 
+                    className="absolute left-0 -top-6 text-sm text-white transition-all 
+                    peer-placeholder-shown:left-3 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 
                     peer-focus:-top-6 peer-focus:text-sm peer-focus:left-0"
                   >
                     Adicionar Título
