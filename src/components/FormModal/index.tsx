@@ -2,7 +2,7 @@ import { ClockPlus, X, GripHorizontal, Notebook } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 import { Button } from "../ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "../ui/input";
+// input component intentionally not used here; using native inputs for consistent bloqueio styles
 import { DatePicker } from "../DatePicker";
 import { Switch } from "../ui/switch";
 import { DndContext, useDraggable } from "@dnd-kit/core";
@@ -255,7 +255,7 @@ export const FormModal = ({
             </TabsList>
             <TabsContent value="bloqueio" className="text-white">
               <form>
-                <div className="relative mt-8">
+                <div className="relative mt-7">
                   <input
                     id="tituloBloqueio"
                     name="tituloBloqueio"
@@ -275,7 +275,7 @@ export const FormModal = ({
                   </label>
                 </div>
                 <div className="flex flex-col gap-4">
-                  <div className="flex gap-2 items-center text-[16px] mt-5">
+                  <div className="flex gap-2 items-center text-[16px] mt-4">
                     <ClockPlus />
                     <span className="text-sm">Confirme a data e hora:</span>
                   </div>
@@ -423,15 +423,27 @@ export const FormModal = ({
             </TabsContent>
             <TabsContent value="consulta" className="text-white">
               <form>
-                <Input
-                  type="text"
-                  className="text-white placeholder:text-white/80 border-x-0 border-t-0 rounded-[10px] bg-white/15 outline-0 w-full border-b-[2px] !border-b-[#0177FB] mt-[12px]"
-                  placeholder="Adicionar Paciente"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                />
+                <div className="relative mt-7">
+                  <input
+                    id="tituloConsulta"
+                    name="tituloConsulta"
+                    type="text"
+                    placeholder=" "
+                    className="peer h-12 w-full border-2 px-2 bg-white/5 rounded-lg border-gray-300 placeholder-transparent focus:outline-none focus:border-blue-600 focus:border-2 text-white border-x-0 border-t-0 outline-0 border-b-[2px] !border-b-[#0177FB]"
+                    value={title ?? ''}
+                    onChange={(e) => setTitle(e.target.value)}
+                  />
+                  <label
+                    htmlFor="tituloConsulta"
+                    className="absolute left-0 -top-6 text-sm text-white transition-all 
+                    peer-placeholder-shown:left-3 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 
+                    peer-focus:-top-6 peer-focus:text-sm peer-focus:left-0"
+                  >
+                    Adicionar Paciente
+                  </label>
+                </div>
                 <div className="flex flex-col gap-4">
-                  <div className="flex gap-2 items-center text-[16px] mt-5">
+                  <div className="flex gap-2 items-center text-[16px] mt-4">
                     <ClockPlus />
                     <span>Confirme a data e hora:</span>
                   </div>
@@ -450,19 +462,24 @@ export const FormModal = ({
                           : undefined
                       }
                     />
-                    <Input
-                      type="time"
-                      className="bg-white/15 border-white max-w-[100px]"
-                      value={startHour}
-                      onChange={(e) => setStartHour(e.target.value)}
-                    />
-                    -
-                    <Input
-                      type="time"
-                      className="bg-white/15 border-white max-w-[100px]"
-                      value={endHour}
-                      onChange={(e) => setEndHour(e.target.value)}
-                    />
+                    <div className="flex items-center gap-3">
+                      De
+                      <input
+                        id="inicioConsulta"
+                        type="time"
+                        className="border-white border p-2 py-3 h-full rounded-lg max-w-[100px] lightInput"
+                        value={startHour}
+                        onChange={(e) => setStartHour(e.target.value)}
+                      />
+                      Até
+                      <input
+                        id="fimConsulta"
+                        type="time"
+                        className="border-white border p-2 py-3 h-full rounded-lg max-w-[100px] lightInput"
+                        value={endHour}
+                        onChange={(e) => setEndHour(e.target.value)}
+                      />
+                    </div>
                   </div>
                   <div className="flex flex-col gap-4 w-full">
                     <div className="flex gap-2 items-center text-[16px] mt-5">
@@ -474,9 +491,10 @@ export const FormModal = ({
                         <Label className="text-white">
                           Local de atendimento
                         </Label>
-                        <Input
+                        <input
+                          id="localAtendimento"
                           type="text"
-                          className="bg-white/15 border-white text-white placeholder:text-white/80"
+                          className="h-12 w-full px-3 rounded-lg bg-white/5 text-white placeholder:text-white/80 border border-transparent focus:border-blue-600"
                           value={location}
                           onChange={(e) => setLocation(e.target.value)}
                         />
@@ -484,9 +502,10 @@ export const FormModal = ({
 
                       <div className="w-full flex flex-col gap-2">
                         <Label className="text-white">Serviço</Label>
-                        <Input
+                        <input
+                          id="servico"
                           type="text"
-                          className="bg-white/15 border-white text-white placeholder:text-white/80"
+                          className="h-12 w-full px-3 rounded-lg bg-white/5 text-white placeholder:text-white/80 border border-transparent focus:border-blue-600"
                           value={service}
                           onChange={(e) => setService(e.target.value)}
                         />
