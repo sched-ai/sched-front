@@ -10,17 +10,7 @@ import type { DragEndEvent } from "@dnd-kit/core";
 import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 import { Label } from "../ui/label";
 import { useCreateTimeBlock, type DayOfWeek } from "@/hooks/api/useCreateTimeBlock";
-
-export type EventType = {
-  id: number;
-  title: string;
-  day: string;
-  start: string;
-  end: string;
-  month: string;
-  year: number;
-  type?: "consulta" | "bloqueio";
-};
+import type { EventType } from "@/components/WeeklyCalendar";
 
 interface FormModalProps {
   isOpen?: boolean;
@@ -115,7 +105,8 @@ export const FormModal = ({
   const [occurrences, setOccurrences] = useState<number | undefined>(1);
 
   const { mutate: createTimeBlock } = useCreateTimeBlock({
-      onSuccessFn: () => {
+      onSuccessFn: () => { 
+        onClose();
       },
     });
 

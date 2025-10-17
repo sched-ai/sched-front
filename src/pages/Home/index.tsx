@@ -6,6 +6,7 @@ import { ptBR } from "date-fns/locale";
 import { FormModal } from "@/components/FormModal";
 import { ListFilter, Plus } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useGetTimeBlocks } from "@/hooks/api/useGetTimeBlocks";
 
 export const Home = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -31,6 +32,8 @@ export const Home = () => {
     hour: string;
   } | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<EventType | null>(null);
+
+  const { data: timeBlocks = [], isFetching } = useGetTimeBlocks({ referenceDate: currentDate });
 
   const handleDateClick = (
     date: { day: number; month: number; year: number },
@@ -129,84 +132,18 @@ export const Home = () => {
         </div>
       </header>
       <div className="flex">
-        <WeeklyCalendar
-          events={[
-            {
-              id: 1,
-              title: "Reunião de Equipe",
-              start: "09:00",
-              end: "10:30",
-              day: "Segunda",
-              month: "09",
-              year: 2025,
-              type: "bloqueio",
-            },
-            {
-              id: 2,
-              title: "Consulta Médica",
-              start: "14:00",
-              end: "15:00",
-              day: "Terça",
-              month: "09",
-              year: 2025,
-              type: "consulta",
-            },
-            {
-              id: 3,
-              title: "Apresentação",
-              start: "10:00",
-              end: "11:30",
-              day: "Quarta",
-              month: "09",
-              year: 2025,
-              type: "bloqueio",
-            },
-            {
-              id: 4,
-              title: "Reunião Curta",
-              start: "11:30",
-              end: "12:00",
-              day: "Quinta",
-              month: "09",
-              year: 2025,
-              type: "bloqueio",
-            },
-            {
-              id: 5,
-              title: "Evento Longo",
-              start: "11:30",
-              end: "12:30",
-              day: "Sexta",
-              month: "12",
-              year: 2025,
-              type: "consulta",
-            },
-            {
-              id: 6,
-              title: "Evento de Janeiro",
-              start: "08:00",
-              end: "09:00",
-              day: "Segunda",
-              month: "01",
-              year: 2025,
-              type: "consulta",
-            },
-            {
-              id: 7,
-              title: "Evento de Novembro",
-              start: "16:00",
-              end: "17:00",
-              day: "Terça",
-              month: "11",
-              year: 2025,
-              type: "bloqueio",
-            },
-          ]}
-          currentDate={currentDate}
-          onDateClick={handleDateClick}
-          onEventClick={handleEventClick}
-          filterType={filterType}
-        />
+        <div className="relative w-full">
+          {isFetching && (
+            <div className="absolute top-2 right-4 text-xs text-gray-500">Carregando bloqueios...</div>
+          )}
+          <WeeklyCalendar
+            events={timeBlocks}
+            currentDate={currentDate}
+            onDateClick={handleDateClick}
+            onEventClick={handleEventClick}
+            filterType={filterType}
+          />
+        </div>
       </div>
       <FormModal
         isOpen={isModalOpen}

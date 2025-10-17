@@ -14,7 +14,7 @@ const weekDays = [
 const hours = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, "0")}:00`);
 
 export type EventType = {
-	id: number;
+	id: number | string;
 	title: string;
 	day: string;
 	start: string;
