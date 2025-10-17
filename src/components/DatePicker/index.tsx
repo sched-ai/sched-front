@@ -12,7 +12,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 
-export function DatePicker({ initialValue }: { initialValue?: string }) {
+export function DatePicker({ initialValue, onChange }: { initialValue?: string; onChange?: (val?: string) => void }) {
   const [open, setOpen] = React.useState(false)
   const [date, setDate] = React.useState<Date | undefined>(() => {
     if (!initialValue) return undefined;
@@ -31,7 +31,7 @@ export function DatePicker({ initialValue }: { initialValue?: string }) {
             id="date"
             className="max-w-48 justify-between font-normal bg-transparent border-white hover:bg-white/15 hover:text-white"
           >
-            {date ? date.toLocaleDateString() : "Select date"}
+            {date ? date.toLocaleDateString() : "Selecione"}
             <ChevronDownIcon />
           </Button>
         </PopoverTrigger>
@@ -43,6 +43,12 @@ export function DatePicker({ initialValue }: { initialValue?: string }) {
             onSelect={(date) => {
               setDate(date)
               setOpen(false)
+              if (onChange && date) {
+                const dd = String(date.getDate()).padStart(2, "0")
+                const mm = String(date.getMonth() + 1).padStart(2, "0")
+                const yyyy = date.getFullYear()
+                onChange(`${dd}/${mm}/${yyyy}`)
+              }
             }}
           />
         </PopoverContent>

@@ -108,6 +108,12 @@ export const FormModal = ({
   const [location, setLocation] = useState("");
   const [service, setService] = useState("");
   const [activeTab, setActiveTab] = useState("bloqueio");
+  // Repetition state
+  const [repeatEnabled, setRepeatEnabled] = useState(false);
+  const [weekDays, setWeekDays] = useState<boolean[]>([false, false, false, false, false, false, false]);
+  const [endOption, setEndOption] = useState<"never" | "onDate" | "afterOccurrences">("never");
+  const [endDate, setEndDate] = useState<string | undefined>(undefined);
+  const [occurrences, setOccurrences] = useState<number | undefined>(1);
 
   useEffect(() => {
     if (isOpen && selectedEvent) {
@@ -135,6 +141,14 @@ export const FormModal = ({
       setLocation("");
       setService("");
       setActiveTab("bloqueio");
+    }
+
+    if (isOpen) {
+      const now = new Date();
+      const dd = String(now.getDate()).padStart(2, "0");
+      const mm = String(now.getMonth() + 1).padStart(2, "0");
+      const yyyy = now.getFullYear();
+      setEndDate(`${dd}/${mm}/${yyyy}`);
     }
 
     if (!isOpen) {
@@ -208,6 +222,7 @@ export const FormModal = ({
                     name="tituloBloqueio"
                     type="text"
                     className="peer h-12 w-full border-2 px-2 bg-white/5 rounded-lg border-gray-300 placeholder-transparent focus:outline-none focus:border-blue-600 focus:border-2 text-white border-x-0 border-t-0 outline-0 border-b-[2px] !border-b-[#0177FB]"
+                    value={title}
                     onChange={(e) => setTitle(e.target.value)}
                   />
                   <label
@@ -258,9 +273,104 @@ export const FormModal = ({
                     </div>
                   </div>
                   <div className="flex gap-2 items-center text-[16px]">
-                    <Switch className="data-[state=checked]:bg-[#0177FB] data-[state=unchecked]:bg-[#5E5E5E]" />{" "}
+                    <Switch
+                      checked={repeatEnabled}
+                      onCheckedChange={(val) => setRepeatEnabled(Boolean(val))}
+                      className="data-[state=checked]:bg-[#0177FB] data-[state=unchecked]:bg-[#5E5E5E]"
+                    />{" "}
                     Repetir
                   </div>
+                  {repeatEnabled && (
+                    <div>
+                      <div className=" w-full">
+                        <label className="text-sm text-white/90">Repetir em</label>
+                        <div className="flex justify-around mt-2">
+                          {['D','S','T','Q','Q','S','S'].map((label, idx) => {
+                            const selected = weekDays[idx];
+                            return (
+                              <button
+                                key={idx}
+                                type="button"
+                                aria-pressed={selected}
+                                onClick={() =>
+                                  setWeekDays((prev) => {
+                                    const copy = [...prev];
+                                    copy[idx] = !copy[idx];
+                                    return copy;
+                                  })
+                                }
+                                className={`w-10 h-10 rounded-full cursor-pointer flex items-center justify-center text-sm font-medium transition-colors ${
+                                  selected ? 'bg-[#0177FB] text-white' : 'bg-white/10 text-white/80'
+                                }`}
+                              >
+                                {label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div className="mt-4">
+                        <label className="text-sm text-white/90">Encerra em</label>
+                        <div className="flex flex-col gap-2 mt-2">
+                          <label className="flex items-center gap-2">
+                            <input
+                              type="radio"
+                              name="endOption"
+                              checked={endOption === 'never'}
+                              onChange={() => setEndOption('never')}
+                            />
+                            <span className="ml-2 text-white">Nunca</span>
+                          </label>
+
+                          <label className="flex items-center gap-2">
+                            <input
+                              type="radio"
+                              name="endOption"
+                              checked={endOption === 'onDate'}
+                              onChange={() => setEndOption('onDate')}
+                            />
+                            <span className="ml-2 text-white">Em:</span>
+                            <DatePicker
+                              initialValue={endDate}
+                              onChange={(val?: string) => setEndDate(val)}
+                            />
+                          </label>
+
+                          <label className="flex items-center gap-2">
+                            <input
+                              type="radio"
+                              name="endOption"
+                              checked={endOption === 'afterOccurrences'}
+                              onChange={() => setEndOption('afterOccurrences')}
+                            />
+                            <span className="ml-2 text-white">Após:</span>
+                            <input
+                              type="number"
+                              value={occurrences ?? ''}
+                              min={1}
+                              onChange={(e) => {
+                                const v = e.target.value;
+                                if (!v) {
+                                  setOccurrences(undefined);
+                                  return;
+                                }
+                                const n = Number(v);
+                                if (Number.isNaN(n) || n <= 0) {
+                                  setOccurrences(1);
+                                } else {
+                                  setOccurrences(n);
+                                }
+                              }}
+                              disabled={endOption !== 'afterOccurrences'}
+                              className="ml-2 border border-white text-white p-2 rounded w-20"
+                            />
+                            <span className="text-white ml-2">ocorrências</span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   <Button
                     className="self-end !text-[16px] mt-4"
                     type="submit"
