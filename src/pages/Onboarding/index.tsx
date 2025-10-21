@@ -49,16 +49,18 @@ export const Onboarding = () => {
             <div className="flex flex-col gap-4 h-full">
               {steps.map((s) => {
                 const connectorClass =
-                  s.step < currentStep - 1
+                  s.step < currentStep
                     ? "bg-green-400"
-                    : s.step === currentStep - 1
+                    : s.step === currentStep
                     ? "bg-blue-500"
                     : "bg-white";
 
                 return (
                   <div className="h-full flex flex-col gap-4" key={s.step}>
                     <div key={s.step} className="flex items-center gap-x-4">
-                      <div className={`w-10 h-10 rounded-full border-2 border-white ${s.step < currentStep ? completedStepStyle : s.step === currentStep ? currentStepStyle : upcomingStepStyle} flex items-center justify-center`}>
+                      <div
+                        className={`w-10 h-10 rounded-full border-2 border-white ${s.step < currentStep ? completedStepStyle : s.step === currentStep ? currentStepStyle : upcomingStepStyle} flex items-center justify-center ${s.step === currentStep ? 'scale-105 shadow-lg' : ''} transition-all duration-300 ease-in-out`}
+                      >
                         <span className="font-semibold leading-0">{s.step}</span>
                       </div>
                       <div>
@@ -69,7 +71,7 @@ export const Onboarding = () => {
                       </div>
                     </div>
                     {s.step < steps.length && (
-                      <div className={`h-full w-[1px] mx-5 ${connectorClass}`} />
+                      <div className={`h-full w-[1px] mx-5 ${connectorClass} transition-colors duration-500 ease-in-out`} />
                     )}
                   </div>
                 );
@@ -79,13 +81,9 @@ export const Onboarding = () => {
         </div>
         <div className="flex flex-col justify-center lg:px-8 px-4 py-12 relative w-full">
           <div className="flex w-full lg:w-fit mx-auto">
-            <div className="hidden lg:flex flex-col justify-center">
-              <div className="w-[1px] bg-blue-500 mr-20 rounded-full h-[60vh]" />
-            </div>
             <RenderStep step={currentStep} setStep={setCurrentStep} />
           </div>
         </div>
-        <span></span>
       </div>
     </div>
   );

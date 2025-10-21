@@ -26,7 +26,6 @@ export const RenderStep = ({ step, setStep }: { step: number; setStep: (step: nu
     },
   });
   const [userType, setUserType] = useState<UserType>("");
-  const progressText = `Passo ${step} de 3`;
 
   const [area, setArea] = useState("");
   const [professionalId, setProfessionalId] = useState("");
@@ -92,9 +91,8 @@ export const RenderStep = ({ step, setStep }: { step: number; setStep: (step: nu
 
   const nextStep = () => setStep((prev: number) => prev + 1);
   const prevStep = () => setStep((prev: number) => prev - 1);
-
-  const handleFinalSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleFinalSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
 
     const dayMap: { [key: string]: number } = {
       segunda: 1,
@@ -126,28 +124,33 @@ export const RenderStep = ({ step, setStep }: { step: number; setStep: (step: nu
 
     submitOnboarding(apiPayload);
   };
-  if (step === 1) {
-    return (
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (canProceedStep1) nextStep();
-        }}
-        className="flex flex-col justify-between h-full lg:w-[490px] w-full"
-      >
-        <div>
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (step === 1) {
+      if (canProceedStep1) nextStep();
+      return;
+    }
+
+    if (step === 2) {
+      if (canProceedStep2) nextStep();
+      return;
+    }
+
+    // step === 3
+    handleFinalSubmit();
+  };
+
+  const renderMainContent = () => {
+    if (step === 1) {
+      return (
+        <>
           <div className="mb-20">
-            <h4 className="mb-0 font-semibold text-lg text-[24px]">
-              Falta pouco!
-            </h4>
-            <p className="text-muted-foreground text-[16px]">
-              Preencha o formulário com suas informações
-            </p>
+            <h4 className="mb-0 font-semibold text-lg text-[24px]">Falta pouco!</h4>
+            <p className="text-muted-foreground text-[16px]">Preencha o formulário com suas informações</p>
           </div>
           <div className="space-y-6">
-            <p className="text-[20px] font-semibold text-gray-800 tracking-tight">
-              Como você gostaria de usar a SchedApp?
-            </p>
+            <p className="text-[20px] font-semibold text-gray-800 tracking-tight">Como você gostaria de usar a SchedApp?</p>
             <div className="flex flex-col gap-8 mt-10">
               <CustomRadioInput
                 label="Empresa"
@@ -171,296 +174,132 @@ export const RenderStep = ({ step, setStep }: { step: number; setStep: (step: nu
               />
             </div>
           </div>
-        </div>
-        <div className="flex justify-between items-center mt-6">
-          <span className="text-[#141736] text-[14px] font-medium">
-            {progressText}
-          </span>
-          {!canProceedStep1 ? (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span tabIndex={0}>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      disabled
-                      className="font-semibold text-[#141736] flex items-center gap-2 px-6 py-3 bg-transparent border-none shadow-none"
-                    >
-                      PRÓXIMO <span aria-hidden>→</span>
-                    </Button>
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Selecione uma opção para continuar.</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          ) : (
-            <Button
-              type="submit"
-              variant="outline"
-              className="font-semibold text-[#141736] flex items-center gap-2 px-6 py-3 bg-transparent border-none shadow-none"
-            >
-              PRÓXIMO <span aria-hidden>→</span>
-            </Button>
-          )}
-        </div>
-      </form>
-    );
-  }
+        </>
+      );
+    }
 
-  if (step === 2) {
-    return (
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (canProceedStep2) nextStep();
-        }}
-        className="flex flex-col justify-between h-full lg:w-[490px] w-full"
-      >
-        <div>
+    if (step === 2) {
+      return (
+        <>
           <div className="mb-20">
             <h4 className="mb-0 font-semibold text-lg text-[24px]">
-              {userType === "autonomo"
-                ? "Conte-nos sobre você"
-                : "Conte-nos sobre sua empresa"}
+              {userType === "autonomo" ? "Conte-nos sobre você" : "Conte-nos sobre sua empresa"}
             </h4>
-            <p className="text-muted-foreground text-[16px]">
-              Essas informações ajudarão a configurar sua agenda.
-            </p>
+            <p className="text-muted-foreground text-[16px]">Essas informações ajudarão a configurar sua agenda.</p>
           </div>
           <div className="space-y-10">
             {userType === "autonomo" && (
               <>
                 <div>
-                  <Label
-                    className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2"
-                    htmlFor="area"
-                  >
+                  <Label className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="area">
                     Sua área de atuação
                   </Label>
-                  <Input
-                    type="text"
-                    id="area"
-                    value={area}
-                    onChange={(e) => setArea(e.target.value)}
-                    placeholder="Ex: Psicologia, Fisioterapia"
-                    required
-                  />
+                  <Input type="text" id="area" value={area} onChange={(e) => setArea(e.target.value)} placeholder="Ex: Psicologia, Fisioterapia" required />
                 </div>
                 <div>
-                  <Label
-                    className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2"
-                    htmlFor="professionalId"
-                  >
+                  <Label className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="professionalId">
                     Nº de registro profissional
                   </Label>
-                  <Input
-                    type="text"
-                    id="professionalId"
-                    value={professionalId}
-                    onChange={(e) => setProfessionalId(e.target.value)}
-                    placeholder="Ex: CRP 01/12345"
-                    required
-                  />
+                  <Input type="text" id="professionalId" value={professionalId} onChange={(e) => setProfessionalId(e.target.value)} placeholder="Ex: CRP 01/12345" required />
                 </div>
               </>
             )}
+
             {userType === "empresa" && (
               <>
                 <div>
-                  <Label
-                    className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2"
-                    htmlFor="companyName"
-                  >
+                  <Label className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="companyName">
                     Nome da sua empresa
                   </Label>
-                  <Input
-                    type="text"
-                    id="companyName"
-                    value={companyName}
-                    onChange={(e) => setCompanyName(e.target.value)}
-                    placeholder="Ex: Clínica Bem-Estar"
-                    required
-                  />
+                  <Input type="text" id="companyName" value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Ex: Clínica Bem-Estar" required />
                 </div>
                 <div>
-                  <Label
-                    className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2"
-                    htmlFor="cnpj"
-                  >
+                  <Label className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="cnpj">
                     CNPJ
                   </Label>
-                  <Input
-                    type="text"
-                    id="cnpj"
-                    value={cnpj}
-                    onChange={handleCnpjChange}
-                    placeholder="00.000.000/0001-00"
-                    maxLength={18}
-                    required
-                  />
+                  <Input type="text" id="cnpj" value={cnpj} onChange={handleCnpjChange} placeholder="00.000.000/0001-00" maxLength={18} required />
                 </div>
                 <div>
-                  <Label
-                    className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2"
-                    htmlFor="companyArea"
-                  >
+                  <Label className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="companyArea">
                     Principal área de atuação
                   </Label>
-                  <Input
-                    type="text"
-                    id="companyArea"
-                    value={companyArea}
-                    onChange={(e) => setCompanyArea(e.target.value)}
-                    placeholder="Ex: Odontologia"
-                    required
-                  />
+                  <Input type="text" id="companyArea" value={companyArea} onChange={(e) => setCompanyArea(e.target.value)} placeholder="Ex: Odontologia" required />
                 </div>
               </>
             )}
           </div>
+        </>
+      );
+    }
+
+    // step === 3
+    return (
+      <>
+        <div className="mb-20">
+          <h4 className="mb-0 font-semibold text-lg text-[24px]">Seus horários de trabalho</h4>
+          <p className="text-muted-foreground mb-4 text-[16px]">Defina seus horários padrão. Você poderá alterá-los depois.</p>
         </div>
-        <div className="flex justify-between items-center mt-6">
-          <Button
-            type="button"
-            variant="ghost"
-            className="font-semibold text-[#141736] flex items-center gap-2 px-6 py-3 bg-transparent border-none shadow-none"
-            onClick={prevStep}
-          >
+        <div className="space-y-3">
+          {Object.keys(schedule).map((day) => {
+            const dayKey = day as keyof typeof schedule;
+            const dayLabel = day.charAt(0).toUpperCase() + day.slice(1);
+            return (
+              <div key={dayKey} className="flex justify-between items-center gap-x-2 md:gap-x-4 w-full">
+                <div className="flex items-center gap-2">
+                  <Checkbox id={dayKey} checked={schedule[dayKey].working} onCheckedChange={(checked) => handleScheduleChange(dayKey, "working", !!checked)} className=" cursor-pointer" />
+                  <Label htmlFor={dayKey} className="cursor-pointer capitalize text-[20px] font-semibold text-gray-800 tracking-tight">{dayLabel}</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Input type="time" value={schedule[dayKey].start} onChange={(e) => handleScheduleChange(dayKey, "start", e.target.value)} disabled={!schedule[dayKey].working} className="w-full max-w-[120px]" />
+                  <span className={!schedule[dayKey].working ? "text-muted-foreground" : ""}>às</span>
+                  <Input type="time" value={schedule[dayKey].end} onChange={(e) => handleScheduleChange(dayKey, "end", e.target.value)} disabled={!schedule[dayKey].working} className="w-full max-w-[120px]" />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </>
+    );
+  };
+
+  const renderFooter = () => {
+    return (
+      <div className="flex justify-between items-center mt-6">
+          <Button type="button" variant="ghost" className={"font-semibold text-[#141736] flex items-center gap-2 px-6 py-3 bg-transparent border-none shadow-none" + (step === 1 ? " hidden" : "")} onClick={prevStep}>
             <span aria-hidden>←</span> VOLTAR
           </Button>
-          <span className="text-[#141736] font-medium text-[14px]">
-            {progressText}
-          </span>
-          {!canProceedStep2 ? (
+
+
+        {step < 3 ? (
+          (!((step === 1 && canProceedStep1) || (step === 2 && canProceedStep2))) ? (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span tabIndex={0}>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      disabled
-                      className="font-semibold text-[#141736] flex items-center gap-2 px-6 py-3 bg-transparent border-none shadow-none"
-                    >
-                      PRÓXIMO <span aria-hidden>→</span>
-                    </Button>
+                    <Button type="button" variant="outline" disabled className="font-semibold text-[#141736] flex items-center gap-2 px-6 py-3 bg-transparent border-none shadow-none">PRÓXIMO <span aria-hidden>→</span></Button>
                   </span>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Preencha todos os campos obrigatórios.</p>
+                  <p>{step === 1 ? "Selecione uma opção para continuar." : "Preencha todos os campos obrigatórios."}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           ) : (
-            <Button
-              type="submit"
-              variant="outline"
-              className="font-semibold text-[#141736] flex items-center gap-2 px-6 py-3 bg-transparent border-none shadow-none"
-            >
-              PRÓXIMO <span aria-hidden>→</span>
-            </Button>
-          )}
-        </div>
-      </form>
+            <Button type="submit" variant="outline" className="font-semibold text-[#141736] flex items-center gap-2 px-6 py-3 bg-transparent border-none shadow-none">PRÓXIMO <span aria-hidden>→</span></Button>
+          )
+        ) : (
+          <Button type="submit" variant="outline" className="font-semibold text-[#141736] flex items-center gap-2 px-6 py-3 bg-transparent border-none shadow-none">FINALIZAR <span aria-hidden>→</span></Button>
+        )}
+      </div>
     );
-  }
+  };
 
-  if (step === 3) {
-    return (
-      <form
-        onSubmit={handleFinalSubmit}
-        className="flex flex-col justify-between h-full lg:w-[490px] w-full"
-      >
-        <div>
-          <div className="mb-20">
-            <h4 className="mb-0 font-semibold text-lg text-[24px]">
-              Seus horários de trabalho
-            </h4>
-            <p className="text-muted-foreground mb-4 text-[16px]">
-              Defina seus horários padrão. Você poderá alterá-los depois.
-            </p>
-          </div>
-          <div className="space-y-3">
-            {Object.keys(schedule).map((day) => {
-              const dayKey = day as keyof typeof schedule;
-              const dayLabel = day.charAt(0).toUpperCase() + day.slice(1);
-              return (
-                <div
-                  key={dayKey}
-                  className="flex justify-between items-center gap-x-2 md:gap-x-4 w-full"
-                >
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id={dayKey}
-                      checked={schedule[dayKey].working}
-                      onCheckedChange={(checked) =>
-                        handleScheduleChange(dayKey, "working", !!checked)
-                      }
-                      className=" cursor-pointer"
-                    />
-                    <Label
-                      htmlFor={dayKey}
-                      className="cursor-pointer capitalize text-[20px] font-semibold text-gray-800 tracking-tight"
-                    >
-                      {dayLabel}
-                    </Label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="time"
-                      value={schedule[dayKey].start}
-                      onChange={(e) =>
-                        handleScheduleChange(dayKey, "start", e.target.value)
-                      }
-                      disabled={!schedule[dayKey].working}
-                      className="w-full max-w-[120px]"
-                    />
-                    <span
-                      className={
-                        !schedule[dayKey].working ? "text-muted-foreground" : ""
-                      }
-                    >
-                      às
-                    </span>
-                    <Input
-                      type="time"
-                      value={schedule[dayKey].end}
-                      onChange={(e) =>
-                        handleScheduleChange(dayKey, "end", e.target.value)
-                      }
-                      disabled={!schedule[dayKey].working}
-                      className="w-full max-w-[120px]"
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-        <div className="flex justify-between items-center mt-6">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={prevStep}
-            className="font-semibold text-[#141736] flex items-center gap-2 px-6 py-3 bg-transparent border-none shadow-none"
-          >
-            <span aria-hidden>←</span> VOLTAR
-          </Button>
-          <span className="text-[#141736] font-medium text-[14px]">
-            {progressText}
-          </span>
-          <Button
-            type="submit"
-            variant="outline"
-            className="font-semibold text-[#141736] flex items-center gap-2 px-6 py-3 bg-transparent border-none shadow-none"
-          >
-            FINALIZAR <span aria-hidden>→</span>
-          </Button>
-        </div>
-      </form>
-    );
-  }
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col justify-between h-[calc(100vh-200px)] lg:w-[490px] w-full">
+      <div>
+        {renderMainContent()}
+      </div>
+      {renderFooter()}
+    </form>
+  );
 };
