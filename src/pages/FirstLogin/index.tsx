@@ -129,8 +129,8 @@ export const FirstLogin = () => {
                         <div className="space-y-6">
                             <p className="text-[20px] font-semibold text-gray-800 tracking-tight">Como você gostaria de usar a SchedApp?</p>
                             <div className="flex flex-col gap-8 mt-10">
-                                <CustomRadioInput label="Empresa" htmlFor="empresa" name="userType" Icon={Building2} value="empresa" checked={userType === "empresa"} onChange={handleUserTypeChange} />
-                                <CustomRadioInput label="Profissional Autônomo" htmlFor="autonomo" name="userType" Icon={User} value="autonomo" checked={userType === "autonomo"} onChange={handleUserTypeChange} />
+                                <CustomRadioInput label="Empresa" htmlFor="empresa" name="userType" Icon={Building2} value="empresa" checked={userType === "empresa"} subtitle="Para gerenciar sua empresa" onChange={handleUserTypeChange} />
+                                <CustomRadioInput label="Profissional Autônomo" htmlFor="autonomo" name="userType" Icon={User} value="autonomo" checked={userType === "autonomo"} subtitle="Para gerenciar sua agenda" onChange={handleUserTypeChange} />
                             </div>
                         </div>
                     </div>
