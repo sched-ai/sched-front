@@ -1,7 +1,7 @@
 import { type ReactElement } from 'react'
 import { SignIn } from '../pages/SignIn'
 import { SignUp } from '../pages/SignUp'
-import { FirstLogin } from '../pages/FirstLogin'
+import { Onboarding } from '../pages/Onboarding'
 import { Home } from '../pages/Home'
 import { Atendimentos } from '@/pages/Atendimentos'
 import { Error } from '@/pages/Error'
@@ -29,7 +29,7 @@ export const routesConfig: RouteConfig[] = [
   },
   {
     path: "/onboarding",
-    element: <FirstLogin />,
+    element: <Onboarding />,
     template: false,
     authRoute: true
   },
