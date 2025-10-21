@@ -17,8 +17,7 @@ import { queryClient } from "@/App";
 
 type UserType = "empresa" | "autonomo" | "";
 
-export const RenderStep = () => {
-  const [step, setStep] = useState(1);
+export const RenderStep = ({ step, setStep }: { step: number; setStep: (step: number | ((prev: number) => number)) => void }) => {
   const navigate = useNavigate();
   const { mutate: submitOnboarding } = useOnboarding({
     onSuccessFn: () => {
@@ -91,8 +90,8 @@ export const RenderStep = () => {
     setCnpj(formatCnpj(e.target.value));
   };
 
-  const nextStep = () => setStep((prev) => prev + 1);
-  const prevStep = () => setStep((prev) => prev - 1);
+  const nextStep = () => setStep((prev: number) => prev + 1);
+  const prevStep = () => setStep((prev: number) => prev - 1);
 
   const handleFinalSubmit = (e: React.FormEvent) => {
     e.preventDefault();
