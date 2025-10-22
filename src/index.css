@@ -185,3 +185,23 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 input.lightInput[type="time"]::-webkit-calendar-picker-indicator {
   filter: none !important;
 }
+
+.animated-bg {
+  background-repeat: repeat-x;
+  background-size: auto 100%;
+  background-position: 0 0;
+  animation: bg-scroll-right var(--bg-scroll-duration, 40s) linear infinite;
+}
+
+@keyframes bg-scroll-right {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 1680px 0;
+  }
+}
+
+.animated-bg--slow { --bg-scroll-duration: 60s; }
+.animated-bg--medium { --bg-scroll-duration: 20s; }
+.animated-bg--fast { --bg-scroll-duration: 10s; }

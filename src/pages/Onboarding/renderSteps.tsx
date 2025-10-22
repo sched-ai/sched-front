@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/tooltip";
 import CustomRadioInput from "@/components/CustomRadioInput";
 import LocationFormsToAdd from "./LocationFormsToAdd";
-import { Building2, Plus, User } from "lucide-react";
+import { Building, Building2, Plus, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useOnboarding, type IOnboardingBody } from "@/hooks/api/useOnboarding";
 import { queryClient } from "@/App";
@@ -352,7 +352,7 @@ export const RenderStep = ({
               Cadastre os locais físicos onde você realiza atendimentos.
             </p>
           </div>
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 h-full">
             <p className="font-semibold">
               Em quantos locais você realiza atendimentos?
             </p>
@@ -361,7 +361,7 @@ export const RenderStep = ({
                 label="Em um único local"
                 htmlFor="single-local"
                 name="locationsMode"
-                Icon={Building2}
+                Icon={Building}
                 value="single"
                 checked={singleLocationMode === true}
                 subtitle="Uso apenas um endereço principal"
@@ -386,9 +386,9 @@ export const RenderStep = ({
                 }}
               />
             </div>
-            <div>
+            <div className="h-full">
               {singleLocationMode && !singleLocation ? (
-                <div className="mt-4">
+                <div className="mt-8">
                   <LocationFormsToAdd
                     multipleLocations={false}
                     locationForm={locationForm}
@@ -437,9 +437,9 @@ export const RenderStep = ({
               ) : null}
 
               {!singleLocationMode && (
-                <div className="flex flex-col justify-between">
+                <div className="flex flex-col justify-between h-full">
                   {locations.length === 0 || showLocationForm ? null : (
-                    <div className="space-y-2 overflow-y-auto h-[336px] custom-scrollbar">
+                    <div className="overflow-y-auto h-[336px] custom-scrollbar">
                       {!showLocationForm &&
                         locations.map((loc) => (
                           <div
@@ -478,7 +478,7 @@ export const RenderStep = ({
                   )}
 
                   {showLocationForm && (
-                    <div className="mt-4">
+                    <div className="mt-8">
                       <LocationFormsToAdd
                         multipleLocations={true}
                         locationForm={locationForm}
@@ -535,8 +535,9 @@ export const RenderStep = ({
             Defina seus horários padrão. Você poderá alterá-los depois.
           </p>
         </div>
-        <div className="space-y-3">
-          {Object.keys(schedule).map((day) => {
+        <div className="">
+          
+          {/* {Object.keys(schedule).map((day) => {
             const dayKey = day as keyof typeof schedule;
             const dayLabel = day.charAt(0).toUpperCase() + day.slice(1);
             return (
@@ -624,7 +625,7 @@ export const RenderStep = ({
                 </div>
               </div>
             );
-          })}
+          })} */}
         </div>
       </>
     );
@@ -698,9 +699,9 @@ export const RenderStep = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col justify-between h-full w-full max-w-[920px] self-center xl:border-x border-x-blue-500 xl:px-10"
+      className="flex flex-col justify-between h-full w-full xl:border-x border-x-blue-500 xl:px-10"
     >
-      <div>{renderMainContent()}</div>
+      <div className="h-[80%]">{renderMainContent()}</div>
       {renderFooter()}
     </form>
   );

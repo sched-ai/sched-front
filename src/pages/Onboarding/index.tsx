@@ -1,5 +1,5 @@
 import { useState } from "react";
-import abstract from "../../assets/abstract_signup.png";
+import abstract from "../../assets/abstract_dark.png";
 import { RenderStep } from "./renderSteps";
 
 export const Onboarding = () => {
@@ -36,7 +36,7 @@ export const Onboarding = () => {
     <div className="min-h-screen w-full">
       <div className="flex w-full min-h-screen bg-white justify-between">
         <div
-          className="hidden lg:flex flex-col justify-between max-w-[640px] w-full xl:p-6 pl-6 pt-6 bg-cover bg-center border-r border-blue-400 h-screen"
+          className="hidden lg:flex flex-col justify-between max-w-[640px] w-full xl:p-6 pl-6 pt-6 bg-cover bg-center border-r border-blue-400 h-screen animated-bg animated-bg--slow"
           style={{ backgroundImage: `url(${abstract})` }}
         >
             <h1 className="text-3xl font-semibold italic text-white mb-8">
