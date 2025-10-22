@@ -14,12 +14,14 @@ export const LocationFormsToAdd = ({
   setLocationForm,
   addOrUpdateLocation,
   emptyLocation,
+  onCancel,
 }: {
   multipleLocations: boolean;
   locationForm: Location;
   setLocationForm: (fn: Location | ((prev: Location) => Location)) => void;
   addOrUpdateLocation: () => void;
   emptyLocation: () => Location;
+  onCancel?: () => void;
 }) => {
   return (
     <div className="border rounded-lg p-4 mt-4 relative">
@@ -114,9 +116,15 @@ export const LocationFormsToAdd = ({
           type="button"
           variant="outline"
           className="px-4 font-medium"
-          onClick={() => setLocationForm(emptyLocation())}
+          onClick={() => {
+            if (multipleLocations && onCancel) {
+              onCancel();
+              return;
+            }
+            setLocationForm(emptyLocation());
+          }}
         >
-          Limpar
+          {multipleLocations ? "Cancelar" : "Limpar"}
         </Button>
         <TooltipProvider>
           <Tooltip>
@@ -136,7 +144,7 @@ export const LocationFormsToAdd = ({
                     (multipleLocations ? !locationForm.name : false)
                   }
                 >
-                  Salvar local
+                  Adicionar local
                 </Button>
               </span>
             </TooltipTrigger>

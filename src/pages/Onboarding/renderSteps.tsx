@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/tooltip";
 import CustomRadioInput from "@/components/CustomRadioInput";
 import LocationFormsToAdd from "./LocationFormsToAdd";
-import { Building2, User } from "lucide-react";
+import { Building2, Plus, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useOnboarding, type IOnboardingBody } from "@/hooks/api/useOnboarding";
 import { queryClient } from "@/App";
@@ -62,6 +62,8 @@ export const RenderStep = ({
   );
   const [locations, setLocations] = useState<Location[]>([]);
   const [editingLocation, setEditingLocation] = useState<Location | null>(null);
+  const [showLocationForm, setShowLocationForm] = useState(false);
+  const [singleLocation, setSingleLocation] = useState<Location | null>(null);
 
   const emptyLocation = (): Location => ({
     id: Date.now().toString(),
@@ -76,6 +78,24 @@ export const RenderStep = ({
   const [locationForm, setLocationForm] = useState<Location>(emptyLocation());
 
   const addOrUpdateLocation = () => {
+    // se estiver no modo de único local, atualiza singleLocation
+    if (singleLocationMode === true) {
+      if (
+        editingLocation &&
+        singleLocation &&
+        editingLocation.id === singleLocation.id
+      ) {
+        setSingleLocation(locationForm);
+        setEditingLocation(null);
+      } else {
+        setSingleLocation(locationForm);
+      }
+      setLocationForm(emptyLocation());
+      setShowLocationForm(false);
+      return;
+    }
+
+    // modo múltiplos locais
     if (editingLocation) {
       setLocations((prev) =>
         prev.map((l) => (l.id === locationForm.id ? locationForm : l))
@@ -85,15 +105,23 @@ export const RenderStep = ({
       setLocations((prev) => [...prev, locationForm]);
     }
     setLocationForm(emptyLocation());
+    // fechar formulário após adicionar/atualizar
+    setShowLocationForm(false);
   };
 
   const removeLocation = (id: string) => {
+    if (singleLocationMode === true && singleLocation?.id === id) {
+      setSingleLocation(null);
+      return;
+    }
     setLocations((prev) => prev.filter((l) => l.id !== id));
   };
 
   const editLocation = (loc: Location) => {
     setEditingLocation(loc);
     setLocationForm(loc);
+    // abrir formulário ao editar
+    setShowLocationForm(true);
   };
 
   const canProceedStep1 = userType !== "";
@@ -102,7 +130,9 @@ export const RenderStep = ({
     if (singleLocationMode === null) return false;
     if (singleLocationMode === true) {
       return (
-        locations.length > 0 || !!(locationForm.address || locationForm.city)
+        !!singleLocation ||
+        locations.length > 0 ||
+        !!(locationForm.address || locationForm.city)
       );
     }
     return locations.length > 0;
@@ -159,7 +189,12 @@ export const RenderStep = ({
         startTime: details.start,
         endTime: details.end,
         locationId:
-          details.locationId || (locations[0] ? locations[0].id : undefined),
+          details.locationId ||
+          (singleLocationMode === true
+            ? singleLocation?.id
+            : locations[0]
+            ? locations[0].id
+            : undefined),
       }));
 
     const apiPayload: IOnboardingBody = {
@@ -170,7 +205,10 @@ export const RenderStep = ({
       companyName: userType === "empresa" ? companyName : undefined,
       companyDocument: userType === "empresa" ? cnpj : undefined,
       workSchedules,
-      locations,
+      locations:
+        singleLocationMode === true && singleLocation
+          ? [singleLocation]
+          : locations,
     };
 
     submitOnboarding(apiPayload);
@@ -329,8 +367,8 @@ export const RenderStep = ({
                 subtitle="Uso apenas um endereço principal"
                 onChange={() => {
                   setSingleLocationMode(true);
-                  setLocations([]);
-                  setLocationForm(emptyLocation());
+                  setShowLocationForm(false);
+                  setEditingLocation(null);
                 }}
               />
               <CustomRadioInput
@@ -343,72 +381,143 @@ export const RenderStep = ({
                 subtitle="Tenho mais de um local de atendimento"
                 onChange={() => {
                   setSingleLocationMode(false);
-                  setLocations([]);
-                  setLocationForm(emptyLocation());
+                  setShowLocationForm(false);
+                  setEditingLocation(null);
                 }}
               />
             </div>
 
             {singleLocationMode && (
               <div className="mt-10">
-                <LocationFormsToAdd
-                  multipleLocations={false}
-                  locationForm={locationForm}
-                  setLocationForm={setLocationForm}
-                  addOrUpdateLocation={addOrUpdateLocation}
-                  emptyLocation={emptyLocation}
-                />
-              </div>
-            )}
-
-            {singleLocationMode === false && (
-              <div className="mt-10">
-                <div className="space-y-2">
-                  {locations.length === 0 ? null : (
-                    <div className="space-y-2">
-                      {locations.map((loc) => (
-                        <div
-                          key={loc.id}
-                          className="flex justify-between items-center border p-2 rounded-lg mb-4"
-                        >
-                          <div>
-                            <p className="font-semibold">
-                              {loc.name || `${loc.address} ${loc.number}`}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {loc.city} / {loc.state}
-                            </p>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => editLocation(loc)}
-                            >
-                              Editar
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeLocation(loc.id)}
-                            >
-                              Remover
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                {!singleLocation ? (
                   <LocationFormsToAdd
-                    multipleLocations={true}
+                    multipleLocations={false}
                     locationForm={locationForm}
                     setLocationForm={setLocationForm}
                     addOrUpdateLocation={addOrUpdateLocation}
                     emptyLocation={emptyLocation}
+                    onCancel={() => {
+                      setShowLocationForm(false);
+                      setEditingLocation(null);
+                      setLocationForm(emptyLocation());
+                    }}
                   />
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center border p-2 rounded-lg mb-4">
+                      <div>
+                        <p className="font-semibold">
+                          {singleLocation.name ||
+                            `${singleLocation.address} ${singleLocation.number}`}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {singleLocation.city} / {singleLocation.state}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => editLocation(singleLocation)}
+                        >
+                          Editar
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeLocation(singleLocation.id)}
+                        >
+                          Remover
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {!singleLocationMode && (
+              <div className="mt-10 flex flex-col justify-between h-full">
+                <div className="">
+                  {locations.length === 0 || showLocationForm ? null : (
+                    <div className="space-y-2 overflow-y-auto h-[336px] custom-scrollbar">
+                      {!showLocationForm &&
+                        locations.map((loc) => (
+                          <div
+                            key={loc.id}
+                            className="flex justify-between items-center border p-2 rounded-lg mb-4"
+                          >
+                            <div>
+                              <p className="font-semibold">
+                                {loc.name || `${loc.address} ${loc.number}`}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {loc.city} / {loc.state}
+                              </p>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => editLocation(loc)}
+                              >
+                                Editar
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeLocation(loc.id)}
+                              >
+                                Remover
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+
+                  {showLocationForm && (
+                    <LocationFormsToAdd
+                      multipleLocations={true}
+                      locationForm={locationForm}
+                      setLocationForm={setLocationForm}
+                      addOrUpdateLocation={addOrUpdateLocation}
+                      emptyLocation={emptyLocation}
+                      onCancel={() => {
+                        setShowLocationForm(false);
+                        setEditingLocation(null);
+                        setLocationForm(emptyLocation());
+                      }}
+                    />
+                  )}
                 </div>
+                {!showLocationForm && (
+                  <div className="flex items-center gap-2 mt-auto">
+                    <Button
+                      className="!text-[16px] font-medium px-2"
+                      type="button"
+                      onClick={() => {
+                        setEditingLocation(null);
+                        setLocationForm(emptyLocation());
+                        setShowLocationForm(true);
+                      }}
+                    >
+                      <Plus />
+                      Adicionar Novo Local
+                    </Button>
+                    {locations.length > 0 && (
+                      <div className="text-sm text-muted-foreground">
+                        {locations.length === 1
+                          ? `${locations.length} local adicionado`
+                          : `${locations.length} locais adicionados`}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -483,9 +592,9 @@ export const RenderStep = ({
                   {singleLocationMode === true ? (
                     <div className="text-sm font-medium">
                       Local:{" "}
-                      {locations[0]
-                        ? locations[0].name ||
-                          `${locations[0].address} ${locations[0].number}`
+                      {singleLocation
+                        ? singleLocation.name ||
+                          `${singleLocation.address} ${singleLocation.number}`
                         : "Local Principal"}
                     </div>
                   ) : (
