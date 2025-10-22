@@ -17,6 +17,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import CustomRadioInput from "@/components/CustomRadioInput";
+import LocationFormsToAdd from "./LocationFormsToAdd";
 import { Building2, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useOnboarding, type IOnboardingBody } from "@/hooks/api/useOnboarding";
@@ -101,8 +102,7 @@ export const RenderStep = ({
     if (singleLocationMode === null) return false;
     if (singleLocationMode === true) {
       return (
-        locations.length > 0 ||
-        !!(locationForm.address || locationForm.city)
+        locations.length > 0 || !!(locationForm.address || locationForm.city)
       );
     }
     return locations.length > 0;
@@ -349,69 +349,15 @@ export const RenderStep = ({
               />
             </div>
 
-            {singleLocationMode === true && (
-              <div className="mt-10 space-y-2 p-4 border rounded-lg relative">
-                <p className="font-semibold bg-white absolute -top-4 left-2 py-1 px-2">
-                  Endereço:
-                </p>
-                <div className="grid md:grid-cols-3 grid-cols-1 gap-4 mt-4">
-                  <Input
-                    type="text"
-                    label="Endereço (Rua)"
-                    value={locationForm.address}
-                    onChange={(e) =>
-                      setLocationForm((p: Location) => ({
-                        ...p,
-                        address: e.target.value,
-                      }))
-                    }
-                  />
-                  <Input
-                    type="text"
-                    label="Número"
-                    value={locationForm.number}
-                    onChange={(e) =>
-                      setLocationForm((p: Location) => ({
-                        ...p,
-                        number: e.target.value,
-                      }))
-                    }
-                  />
-                  <Input
-                    type="text"
-                    label="Estado"
-                    value={locationForm.state}
-                    onChange={(e) =>
-                      setLocationForm((p: Location) => ({
-                        ...p,
-                        state: e.target.value,
-                      }))
-                    }
-                  />
-                    <Input
-                      type="text"
-                      label="Cidade"
-                      value={locationForm.city}
-                      onChange={(e) =>
-                        setLocationForm((p: Location) => ({
-                          ...p,
-                          city: e.target.value,
-                        }))
-                      }
-                    />
-                  <Input
-                    type="text"
-                    label="Complemento (opcional)"
-                    value={locationForm.complement}
-                    onChange={(e) =>
-                      setLocationForm((p: Location) => ({
-                        ...p,
-                        complement: e.target.value,
-                      }))
-                    }
-                    className="md:col-span-2"
-                  />
-                </div>
+            {singleLocationMode && (
+              <div className="mt-10">
+                <LocationFormsToAdd
+                  multipleLocations={false}
+                  locationForm={locationForm}
+                  setLocationForm={setLocationForm}
+                  addOrUpdateLocation={addOrUpdateLocation}
+                  emptyLocation={emptyLocation}
+                />
               </div>
             )}
 
@@ -455,103 +401,13 @@ export const RenderStep = ({
                       ))}
                     </div>
                   )}
-
-                  <div className="border rounded-lg p-4 mt-4 relative">
-                    <p className="font-semibold bg-white absolute -top-4 left-2 py-1 px-2">
-                      Adicionar Local:
-                    </p>
-                    <p className="font-medium"></p>
-                    <div className="grid md:grid-cols-3 grid-cols-1 gap-4 mt-4">
-                     
-                      <Input
-                        type="text"
-                        label="Endereço (Rua)"
-                        value={locationForm.address}
-                        onChange={(e) =>
-                          setLocationForm((p: Location) => ({
-                            ...p,
-                            address: e.target.value,
-                          }))
-                        }
-                      />
-                      <Input
-                        type="text"
-                        label="Número"
-                        value={locationForm.number}
-                        onChange={(e) =>
-                          setLocationForm((p: Location) => ({
-                            ...p,
-                            number: e.target.value,
-                          }))
-                        }
-                      />
-                        <Input
-                          type="text"
-                          label="Estado"
-                          value={locationForm.state}
-                          onChange={(e) =>
-                            setLocationForm((p: Location) => ({
-                              ...p,
-                              state: e.target.value,
-                            }))
-                          }
-                        />
-                      <Input
-                        type="text"
-                        label="Cidade"
-                        value={locationForm.city}
-                        onChange={(e) =>
-                          setLocationForm((p: Location) => ({
-                            ...p,
-                            city: e.target.value,
-                          }))
-                        }
-                      />
-                      <Input
-                        type="text"
-                        label="Complemento (opcional)"
-                        value={locationForm.complement}
-                        onChange={(e) =>
-                          setLocationForm((p: Location) => ({
-                            ...p,
-                            complement: e.target.value,
-                          }))
-                        }
-                        className="md:col-span-2"
-                      />
-                       <Input
-                        type="text"
-                        label="Apelido do Local"
-                        value={locationForm.name}
-                        onChange={(e) =>
-                          setLocationForm((p: Location) => ({
-                            ...p,
-                            name: e.target.value,
-                          }))
-                        }
-                        tooltipMessage="Este campo se refere a como este endereço será chamado no sistema para facilitar suas interações."
-                      />
-                    </div>
-                    <div className="flex gap-2 mt-3 justify-end">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="px-4 font-medium"
-                        onClick={() => setLocationForm(emptyLocation())}
-                      >
-                        Limpar
-                      </Button>
-                      <Button
-                        type="button"
-                        onClick={() => {
-                          addOrUpdateLocation();
-                        }}
-                        className="px-4 font-medium !text-[14px]"
-                      >
-                        Salvar local
-                      </Button>
-                    </div>
-                  </div>
+                  <LocationFormsToAdd
+                    multipleLocations={true}
+                    locationForm={locationForm}
+                    setLocationForm={setLocationForm}
+                    addOrUpdateLocation={addOrUpdateLocation}
+                    emptyLocation={emptyLocation}
+                  />
                 </div>
               </div>
             )}
