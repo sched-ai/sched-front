@@ -145,13 +145,13 @@ export const RenderStep = ({ step, setStep }: { step: number; setStep: (step: nu
     if (step === 1) {
       return (
         <>
-          <div className="mb-20">
-            <h4 className="mb-0 font-semibold text-lg text-[24px]">Falta pouco!</h4>
-            <p className="text-muted-foreground text-[16px]">Preencha o formulário com suas informações</p>
+          <div className="mb-8">
+            <h4 className="mb-0 font-semibold text-lg text-[24px]">Sobre seu negócio</h4>
+            <p className="text-muted-foreground text-[16px]">nos informe qual perfil você se encaixa</p>
           </div>
           <div className="space-y-6">
             <p className="text-[20px] font-semibold text-gray-800 tracking-tight">Como você gostaria de usar a SchedApp?</p>
-            <div className="flex flex-col gap-8 mt-10">
+            <div className="flex flex-col gap-4 mt-8">
               <CustomRadioInput
                 label="Empresa"
                 htmlFor="empresa"
@@ -173,6 +173,32 @@ export const RenderStep = ({ step, setStep }: { step: number; setStep: (step: nu
                 onChange={handleUserTypeChange}
               />
             </div>
+            <div className="grid grid-cols-1 w-full justify-between gap-4 min-[1447px]:grid-cols-2">
+            {userType === "autonomo" && (
+              <>
+                <div className="w-full">
+                  <Input type="text" label="Sua área de atuação" id="area" value={area} onChange={(e) => setArea(e.target.value)} placeholder="Ex: Psicologia, Fisioterapia" required />
+                </div>
+                <div className="w-full">
+                  <Input label="Nº de registro profissional" type="text" id="professionalId" value={professionalId} onChange={(e) => setProfessionalId(e.target.value)} placeholder="Ex: CRP 01/12345" required />
+                </div>
+              </>
+            )}
+
+            {userType === "empresa" && (
+              <>
+                <div className="w-full">
+                  <Input type="text" label="Nome da sua empresa" id="companyName" value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Ex: Clínica Bem-Estar" required />
+                </div>
+                <div className="w-full">
+                  <Input type="text" label="CNPJ" id="cnpj" value={cnpj} onChange={handleCnpjChange} placeholder="00.000.000/0001-00" maxLength={18} required />
+                </div>
+                <div className="w-full">
+                  <Input type="text" label="Principal área de atuação" id="companyArea" value={companyArea} onChange={(e) => setCompanyArea(e.target.value)} placeholder="Ex: Odontologia" required />
+                </div>
+              </>
+            )}
+          </div>
           </div>
         </>
       );
@@ -181,53 +207,13 @@ export const RenderStep = ({ step, setStep }: { step: number; setStep: (step: nu
     if (step === 2) {
       return (
         <>
-          <div className="mb-20">
+          <div className="mb-8">
             <h4 className="mb-0 font-semibold text-lg text-[24px]">
               {userType === "autonomo" ? "Conte-nos sobre você" : "Conte-nos sobre sua empresa"}
             </h4>
             <p className="text-muted-foreground text-[16px]">Essas informações ajudarão a configurar sua agenda.</p>
           </div>
-          <div className="space-y-10">
-            {userType === "autonomo" && (
-              <>
-                <div>
-                  <Label className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="area">
-                    Sua área de atuação
-                  </Label>
-                  <Input type="text" id="area" value={area} onChange={(e) => setArea(e.target.value)} placeholder="Ex: Psicologia, Fisioterapia" required />
-                </div>
-                <div>
-                  <Label className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="professionalId">
-                    Nº de registro profissional
-                  </Label>
-                  <Input type="text" id="professionalId" value={professionalId} onChange={(e) => setProfessionalId(e.target.value)} placeholder="Ex: CRP 01/12345" required />
-                </div>
-              </>
-            )}
-
-            {userType === "empresa" && (
-              <>
-                <div>
-                  <Label className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="companyName">
-                    Nome da sua empresa
-                  </Label>
-                  <Input type="text" id="companyName" value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Ex: Clínica Bem-Estar" required />
-                </div>
-                <div>
-                  <Label className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="cnpj">
-                    CNPJ
-                  </Label>
-                  <Input type="text" id="cnpj" value={cnpj} onChange={handleCnpjChange} placeholder="00.000.000/0001-00" maxLength={18} required />
-                </div>
-                <div>
-                  <Label className="text-[20px] font-semibold text-gray-800 tracking-tight mb-2" htmlFor="companyArea">
-                    Principal área de atuação
-                  </Label>
-                  <Input type="text" id="companyArea" value={companyArea} onChange={(e) => setCompanyArea(e.target.value)} placeholder="Ex: Odontologia" required />
-                </div>
-              </>
-            )}
-          </div>
+          
         </>
       );
     }
@@ -235,7 +221,7 @@ export const RenderStep = ({ step, setStep }: { step: number; setStep: (step: nu
     // step === 3
     return (
       <>
-        <div className="mb-20">
+        <div className="mb-8">
           <h4 className="mb-0 font-semibold text-lg text-[24px]">Seus horários de trabalho</h4>
           <p className="text-muted-foreground mb-4 text-[16px]">Defina seus horários padrão. Você poderá alterá-los depois.</p>
         </div>
@@ -295,7 +281,7 @@ export const RenderStep = ({ step, setStep }: { step: number; setStep: (step: nu
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col justify-between h-[calc(100vh-200px)] lg:w-[490px] w-full">
+    <form onSubmit={handleSubmit} className="flex flex-col justify-between md:h-[calc(100vh-200px)] w-full max-w-[920px] self-center xl:border-x border-x-blue-500 xl:px-10">
       <div>
         {renderMainContent()}
       </div>

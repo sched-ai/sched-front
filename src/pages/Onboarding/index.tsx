@@ -36,7 +36,7 @@ export const Onboarding = () => {
     <div className="min-h-screen w-full">
       <div className="flex w-full min-h-screen bg-white justify-between">
         <div
-          className="hidden lg:flex flex-col justify-between max-w-[640px] w-full p-12 bg-cover bg-center border-r border-blue-400"
+          className="hidden lg:flex flex-col justify-between max-w-[640px] w-full xl:p-6 pl-6 pt-6 bg-cover bg-center border-r border-blue-400"
           style={{ backgroundImage: `url(${abstract})` }}
         >
             <h1 className="text-3xl font-semibold italic text-white mb-8">
@@ -51,7 +51,7 @@ export const Onboarding = () => {
                 const connectorClass =
                   s.step < currentStep
                     ? "bg-green-400"
-                    : s.step === currentStep
+                    : s.step === currentStep && s.step > 1
                     ? "bg-blue-500"
                     : "bg-white";
 
@@ -79,8 +79,8 @@ export const Onboarding = () => {
             </div>
           </div>
         </div>
-        <div className="flex flex-col justify-center lg:px-8 px-4 py-12 relative w-full">
-          <div className="flex w-full lg:w-fit mx-auto">
+        <div className="flex flex-col xl:justify-center lg:px-8 px-4 py-12 relative w-full">
+          <div className="flex w-full mx-auto justify-center">
             <RenderStep step={currentStep} setStep={setCurrentStep} />
           </div>
         </div>
