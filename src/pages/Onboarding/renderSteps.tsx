@@ -58,7 +58,7 @@ export const RenderStep = ({
   });
 
   const [singleLocationMode, setSingleLocationMode] = useState<boolean | null>(
-    null
+    true
   );
   const [locations, setLocations] = useState<Location[]>([]);
   const [editingLocation, setEditingLocation] = useState<Location | null>(null);
@@ -352,7 +352,7 @@ export const RenderStep = ({
               Cadastre os locais físicos onde você realiza atendimentos.
             </p>
           </div>
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4">
             <p className="font-semibold">
               Em quantos locais você realiza atendimentos?
             </p>
@@ -386,10 +386,9 @@ export const RenderStep = ({
                 }}
               />
             </div>
-
-            {singleLocationMode && (
-              <div className="mt-10">
-                {!singleLocation ? (
+            <div>
+              {singleLocationMode && !singleLocation ? (
+                <div className="mt-4">
                   <LocationFormsToAdd
                     multipleLocations={false}
                     locationForm={locationForm}
@@ -402,45 +401,43 @@ export const RenderStep = ({
                       setLocationForm(emptyLocation());
                     }}
                   />
-                ) : (
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center border p-2 rounded-lg mb-4">
-                      <div>
-                        <p className="font-semibold">
-                          {singleLocation.name ||
-                            `${singleLocation.address} ${singleLocation.number}`}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {singleLocation.city} / {singleLocation.state}
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => editLocation(singleLocation)}
-                        >
-                          Editar
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeLocation(singleLocation.id)}
-                        >
-                          Remover
-                        </Button>
-                      </div>
+                </div>
+              ) : singleLocationMode && singleLocation ? (
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center border p-2 rounded-lg mb-4">
+                    <div>
+                      <p className="font-semibold">
+                        {singleLocation.name ||
+                          `${singleLocation.address} ${singleLocation.number}`}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {singleLocation.city} / {singleLocation.state}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => editLocation(singleLocation)}
+                      >
+                        Editar
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeLocation(singleLocation.id)}
+                      >
+                        Remover
+                      </Button>
                     </div>
                   </div>
-                )}
-              </div>
-            )}
+                </div>
+              ) : null}
 
-            {!singleLocationMode && (
-              <div className="mt-10 flex flex-col justify-between h-full">
-                <div className="">
+              {!singleLocationMode && (
+                <div className="flex flex-col justify-between">
                   {locations.length === 0 || showLocationForm ? null : (
                     <div className="space-y-2 overflow-y-auto h-[336px] custom-scrollbar">
                       {!showLocationForm &&
@@ -481,45 +478,47 @@ export const RenderStep = ({
                   )}
 
                   {showLocationForm && (
-                    <LocationFormsToAdd
-                      multipleLocations={true}
-                      locationForm={locationForm}
-                      setLocationForm={setLocationForm}
-                      addOrUpdateLocation={addOrUpdateLocation}
-                      emptyLocation={emptyLocation}
-                      onCancel={() => {
-                        setShowLocationForm(false);
-                        setEditingLocation(null);
-                        setLocationForm(emptyLocation());
-                      }}
-                    />
+                    <div className="mt-4">
+                      <LocationFormsToAdd
+                        multipleLocations={true}
+                        locationForm={locationForm}
+                        setLocationForm={setLocationForm}
+                        addOrUpdateLocation={addOrUpdateLocation}
+                        emptyLocation={emptyLocation}
+                        onCancel={() => {
+                          setShowLocationForm(false);
+                          setEditingLocation(null);
+                          setLocationForm(emptyLocation());
+                        }}
+                      />
+                    </div>
+                  )}
+                  {!showLocationForm && !singleLocationMode && (
+                    <div className="flex items-center gap-2">
+                      <Button
+                        className="!text-[16px] font-medium px-2"
+                        type="button"
+                        onClick={() => {
+                          setEditingLocation(null);
+                          setLocationForm(emptyLocation());
+                          setShowLocationForm(true);
+                        }}
+                      >
+                        <Plus />
+                        Adicionar Novo Local
+                      </Button>
+                      {locations.length > 0 && (
+                        <div className="text-sm text-muted-foreground">
+                          {locations.length === 1
+                            ? `${locations.length} local adicionado`
+                            : `${locations.length} locais adicionados`}
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
-                {!showLocationForm && (
-                  <div className="flex items-center gap-2 mt-auto">
-                    <Button
-                      className="!text-[16px] font-medium px-2"
-                      type="button"
-                      onClick={() => {
-                        setEditingLocation(null);
-                        setLocationForm(emptyLocation());
-                        setShowLocationForm(true);
-                      }}
-                    >
-                      <Plus />
-                      Adicionar Novo Local
-                    </Button>
-                    {locations.length > 0 && (
-                      <div className="text-sm text-muted-foreground">
-                        {locations.length === 1
-                          ? `${locations.length} local adicionado`
-                          : `${locations.length} locais adicionados`}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </>
       );

@@ -24,7 +24,7 @@ export const LocationFormsToAdd = ({
   onCancel?: () => void;
 }) => {
   return (
-    <div className="border rounded-lg p-4 mt-4 relative">
+    <div className="border rounded-lg p-4 relative">
       <p className="font-semibold bg-white absolute -top-4 left-2 py-1 px-2">
         Adicionar Local:
       </p>
