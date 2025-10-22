@@ -190,19 +190,15 @@ export const Input = forwardRef<unknown, IProps>((props, ref) => {
               htmlFor={fieldProps.name}
             >
               {label}
-              {fieldProps.required ||
-                (isRequired && (
-                  <span className="text-danger-d text-[16px] ml-1">*</span>
-                ))}
+              {isRequired && (
+                <span className="text-red-500 text-[16px] ml-1">*</span>
+              )}
 
               <p className="text-gray-400 text-[12px]">{subtitle}</p>
             </label>
 
-             {tooltipMessage && (
-						<InfoTooltip
-            title={label}
-            message={tooltipMessage}
-						/>
+            {tooltipMessage && (
+              <InfoTooltip title={label} message={tooltipMessage} />
             )}
           </div>
         )}

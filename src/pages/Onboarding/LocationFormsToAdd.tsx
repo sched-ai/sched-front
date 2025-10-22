@@ -1,5 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { Location } from "@/types";
 
 export const LocationFormsToAdd = ({
@@ -32,6 +38,8 @@ export const LocationFormsToAdd = ({
               address: e.target.value,
             }))
           }
+          required
+          isRequired
         />
         <Input
           type="text"
@@ -43,6 +51,8 @@ export const LocationFormsToAdd = ({
               number: e.target.value,
             }))
           }
+          required
+          isRequired
         />
         <Input
           type="text"
@@ -54,6 +64,8 @@ export const LocationFormsToAdd = ({
               state: e.target.value,
             }))
           }
+          required
+          isRequired
         />
         <Input
           type="text"
@@ -65,6 +77,8 @@ export const LocationFormsToAdd = ({
               city: e.target.value,
             }))
           }
+          required
+          isRequired
         />
         <Input
           type="text"
@@ -89,6 +103,9 @@ export const LocationFormsToAdd = ({
                 name: e.target.value,
               }))
             }
+            tooltipMessage="Este campo se refere a como este endereço será chamado no sistema para facilitar suas interações."
+            required
+            isRequired
           />
         )}
       </div>
@@ -101,15 +118,33 @@ export const LocationFormsToAdd = ({
         >
           Limpar
         </Button>
-        <Button
-          type="button"
-          onClick={() => {
-            addOrUpdateLocation();
-          }}
-          className="px-4 font-medium !text-[14px]"
-        >
-          Salvar local
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span tabIndex={0}>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    addOrUpdateLocation();
+                  }}
+                  className="px-4 font-medium !text-[14px]"
+                  disabled={
+                    !locationForm.address ||
+                    !locationForm.number ||
+                    !locationForm.city ||
+                    !locationForm.state ||
+                    (multipleLocations ? !locationForm.name : false)
+                  }
+                >
+                  Salvar local
+                </Button>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Preencha todos os campos obrigatórios para salvar o local.</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
     </div>
   );
