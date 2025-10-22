@@ -16,6 +16,17 @@ export interface IOnboardingBody {
         startTime: string;
         endTime: string;
     }>;
+	locations?: Array<{
+	  id?: string;
+	  name?: string;
+	  cep?: string;
+	  address?: string;
+	  number?: string;
+	  district?: string;
+	  city?: string;
+	  state?: string;
+	  complement?: string;
+	}>;
 }
 
 export const useOnboarding = ({ onSuccessFn }: IUseMutationParams) => {

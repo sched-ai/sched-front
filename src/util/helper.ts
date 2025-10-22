@@ -62,6 +62,25 @@ export const formatCalendarDate = (date: string) => {
 	return Moment(date).format('YYYY-MM-DD');
 };
 
+export const formatCnpj = (value: string) => {
+    const cleaned = value.replace(/\D/g, "");
+    const match = cleaned.match(
+      /^(\d{0,2})(\d{0,3})(\d{0,3})(\d{0,4})(\d{0,2})$/
+    );
+
+    if (!match) return value;
+
+    let formatted = "";
+    if (match[1]) formatted += match[1];
+    if (match[2]) formatted += `.${match[2]}`;
+    if (match[3]) formatted += `.${match[3]}`;
+    if (match[4]) formatted += `/${match[4]}`;
+    if (match[5]) formatted += `-${match[5]}`;
+
+    return formatted;
+  };
+
+
 export const formatCurrency = (value: any, precision=2) => {
 	var translation = localStorage.getItem('translation');
 	var currency = 'BRL';

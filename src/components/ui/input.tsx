@@ -4,6 +4,7 @@ import InputMask from "react-input-mask";
 import classNames from "classnames";
 
 import type { TError } from "@/types";
+import { InfoTooltip } from "..";
 
 export type InputType =
   | "text"
@@ -47,7 +48,7 @@ export const Input = forwardRef<unknown, IProps>((props, ref) => {
     leftIconComponent,
     disabled,
     supportTextClassName,
-    // tooltipMessage,
+    tooltipMessage,
     isRequired,
     subtitle,
     ...fieldProps
@@ -197,12 +198,12 @@ export const Input = forwardRef<unknown, IProps>((props, ref) => {
               <p className="text-gray-400 text-[12px]">{subtitle}</p>
             </label>
 
-            {/* {tooltipMessage && (
+             {tooltipMessage && (
 						<InfoTooltip
             title={label}
             message={tooltipMessage}
 						/>
-            )} */}
+            )}
           </div>
         )}
         <div className={styles.input_wrapper}>

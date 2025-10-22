@@ -3,23 +3,23 @@ import abstract from "../../assets/abstract_signup.png";
 import { RenderStep } from "./renderSteps";
 
 export const Onboarding = () => {
-  const [currentStep, setCurrentStep] = useState<number>(1);
+  const [currentStep, setCurrentStep] = useState<number>(2);
 
   const steps = [
     {
       step: 1,
-      title: "Sobre sua clínica",
+      title: "Sobre seu negócio",
       description: "Queremos conhecer melhor seu negócio",
     },
     {
       step: 2,
       title: "Localização e Expediente",
-      description: "Assim podemos agendar as consultas",
+      description: "Assim podemos agendar seus atendimentos corretamente",
     },
     {
       step: 3,
       title: "Colaboradores",
-      description: "Para finalizar, conecte os médicos da sua equipe",
+      description: "Para finalizar, conecte os colaboradores da sua equipe",
     },
     {
       step: 4,
@@ -79,8 +79,8 @@ export const Onboarding = () => {
             </div>
           </div>
         </div>
-        <div className="flex flex-col xl:justify-center lg:px-8 px-4 py-12 relative w-full">
-          <div className="flex w-full mx-auto justify-center">
+        <div className="flex flex-col xl:justify-center p-6 py-12 relative w-full">
+          <div className="flex w-full mx-auto justify-center h-full">
             <RenderStep step={currentStep} setStep={setCurrentStep} />
           </div>
         </div>

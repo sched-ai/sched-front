@@ -173,3 +173,31 @@ export interface IValidationParams {
 	mode: 'singleField' | 'formFields',
 	fields: Record<string, any>
 }
+
+export type UserType = "empresa" | "autonomo" | "";
+
+export type DayKey =
+    | "segunda"
+    | "terça"
+    | "quarta"
+    | "quinta"
+    | "sexta"
+    | "sábado"
+    | "domingo";
+    
+export type DaySchedule = {
+	working: boolean;
+	start: string;
+	end: string;
+	locationId?: string;
+};
+
+export type Location = {
+	id: string;
+	name?: string;
+	address?: string;
+	number?: string;
+	city?: string;
+	state?: string;
+	complement?: string;
+};
