@@ -1,13 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectValue,
-  SelectItem,
-} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -153,14 +146,22 @@ export const RenderStep = ({
     }));
   };
 
-  const handleScheduleLocationChange = (
-    day: keyof typeof schedule,
-    locationId?: string
-  ) => {
-    setSchedule((prev) => ({
-      ...prev,
-      [day]: { ...prev[day], locationId: locationId || undefined },
-    }));
+  // schedule mode: 'fixo' (same hours for selected days) or 'flexivel' (per-day)
+  const [scheduleMode, setScheduleMode] = useState<"fixo" | "flexivel">("fixo");
+  const [fixedStart, setFixedStart] = useState("09:00");
+  const [fixedEnd, setFixedEnd] = useState("18:00");
+  const [fixedDays, setFixedDays] = useState<DayKey[]>([
+    "segunda",
+    "terça",
+    "quarta",
+    "quinta",
+    "sexta",
+  ]);
+
+  const toggleFixedDay = (day: DayKey) => {
+    setFixedDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+    );
   };
 
   const handleCnpjChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -536,96 +537,142 @@ export const RenderStep = ({
           </p>
         </div>
         <div className="">
-          
-          {/* {Object.keys(schedule).map((day) => {
-            const dayKey = day as keyof typeof schedule;
-            const dayLabel = day.charAt(0).toUpperCase() + day.slice(1);
-            return (
-              <div
-                key={dayKey}
-                className="flex flex-col md:flex-row justify-between items-center gap-x-2 md:gap-x-4 w-full"
-              >
-                <div className="flex items-center gap-2 w-full md:w-auto">
-                  <Checkbox
-                    id={dayKey}
-                    checked={schedule[dayKey].working}
-                    onCheckedChange={(checked) =>
-                      handleScheduleChange(dayKey, "working", !!checked)
-                    }
-                    className=" cursor-pointer"
-                  />
-                  <Label
-                    htmlFor={dayKey}
-                    className="cursor-pointer capitalize text-[20px] font-semibold text-gray-800 tracking-tight"
-                  >
-                    {dayLabel}
-                  </Label>
-                </div>
-                <div className="flex items-center gap-2 w-full md:w-auto">
-                  <Input
-                    type="time"
-                    value={schedule[dayKey].start}
-                    onChange={(e) =>
-                      handleScheduleChange(dayKey, "start", e.target.value)
-                    }
-                    disabled={!schedule[dayKey].working}
-                    className="w-full max-w-[120px]"
-                  />
-                  <span
-                    className={
-                      !schedule[dayKey].working ? "text-muted-foreground" : ""
-                    }
-                  >
-                    às
-                  </span>
-                  <Input
-                    type="time"
-                    value={schedule[dayKey].end}
-                    onChange={(e) =>
-                      handleScheduleChange(dayKey, "end", e.target.value)
-                    }
-                    disabled={!schedule[dayKey].working}
-                    className="w-full max-w-[120px]"
-                  />
-                </div>
-                <div className="w-full md:w-1/3 mt-2 md:mt-0">
-                  {singleLocationMode === true ? (
-                    <div className="text-sm font-medium">
-                      Local:{" "}
-                      {singleLocation
-                        ? singleLocation.name ||
-                          `${singleLocation.address} ${singleLocation.number}`
-                        : "Local Principal"}
-                    </div>
-                  ) : (
-                    <Select
-                      value={schedule[dayKey].locationId ?? ""}
-                      onValueChange={(val) =>
-                        handleScheduleLocationChange(dayKey, val || undefined)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue>
-                          {schedule[dayKey].locationId
-                            ? locations.find(
-                                (l) => l.id === schedule[dayKey].locationId
-                              )?.name
-                            : "Selecione o local"}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {locations.map((loc) => (
-                          <SelectItem key={loc.id} value={loc.id}>
-                            {loc.name || `${loc.address} ${loc.number}`}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
+          <div className="flex gap-4">
+            <CustomRadioInput
+              label="Horário Fixo"
+              htmlFor="horarioFixo"
+              name="tipoHorario"
+              Icon={undefined}
+              value="fixo"
+              checked={scheduleMode === "fixo"}
+              subtitle="O horário será igual para os dias selecionados"
+              onChange={() => setScheduleMode("fixo")}
+            />
+            <CustomRadioInput
+              label="Horário Flexível"
+              htmlFor="flexivel"
+              name="tipoHorario"
+              Icon={undefined}
+              value="flexivel"
+              checked={scheduleMode === "flexivel"}
+              subtitle="Selecione horários diferentes para cada dia da semana"
+              onChange={() => setScheduleMode("flexivel")}
+            />
+          </div>
+
+          {scheduleMode === "fixo" && (
+            <div className="mt-6 grid grid-cols-1 gap-4">
+              <div className="flex flex-col gap-4">
+                <p className="font-semibold">
+                  Selecione o horário de trabalho:
+                </p>
+                <div className="flex items-center gap-4">
+                  <div className="flex flex-col gap-2">
+                    <Label>Horário de Início</Label>
+                    <Input
+                      type="time"
+                      value={fixedStart}
+                      onChange={(e) => setFixedStart(e.target.value)}
+                    />
+                  </div>
+                  -
+                  <div className="flex flex-col gap-2">
+                    <Label>Horário de Término</Label>
+                    <Input
+                      type="time"
+                      value={fixedEnd}
+                      onChange={(e) => setFixedEnd(e.target.value)}
+                    />
+                  </div>
                 </div>
               </div>
-            );
-          })} */}
+              <p className="font-semibold">Selecione os dias da semana:</p>
+              <div className="flex flex-wrap justify-center gap-4">
+                {(
+                  [
+                    "segunda",
+                    "terça",
+                    "quarta",
+                    "quinta",
+                    "sexta",
+                    "sábado",
+                    "domingo",
+                  ] as DayKey[]
+                ).map((d) => (
+                  <div className="flex items-center justify-between gap-4 border p-2 rounded-lg">
+                    <div className="flex items-center gap-4">
+                      <Checkbox
+                        checked={fixedDays.includes(d)}
+                        onCheckedChange={() => toggleFixedDay(d)}
+                      />
+                      <div className="w-24 capitalize">{d}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {scheduleMode === "flexivel" && (
+            <div className="mt-6 grid gap-2">
+              {(Object.keys(schedule) as DayKey[]).map((day) => {
+                const isWorking = Boolean(schedule[day].working);
+                return (
+                  <div
+                    key={day}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => handleScheduleChange(day, "working", !isWorking)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleScheduleChange(day, "working", !isWorking);
+                      }
+                    }}
+                    className={`flex items-center justify-between gap-4 border p-2 rounded-lg transition-discrete ${
+                      !isWorking
+                        ? "bg-gray-100"
+                        : "bg-white hover:shadow-[3px_4px_35px_#1417362B]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-4" onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        checked={schedule[day].working}
+                        onCheckedChange={(v) =>
+                          handleScheduleChange(day, "working", Boolean(v))
+                        }
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <div className="w-24 capitalize">{day}</div>
+                    </div>
+
+                    <div
+                      className={`flex items-center gap-2 ${!isWorking ? "opacity-60" : ""}`}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Input
+                        type="time"
+                        value={schedule[day].start}
+                        onChange={(e) =>
+                          handleScheduleChange(day, "start", e.target.value)
+                        }
+                        disabled={!isWorking}
+                      />
+                      <span>-</span>
+                      <Input
+                        type="time"
+                        value={schedule[day].end}
+                        onChange={(e) =>
+                          handleScheduleChange(day, "end", e.target.value)
+                        }
+                        disabled={!isWorking}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </>
     );
