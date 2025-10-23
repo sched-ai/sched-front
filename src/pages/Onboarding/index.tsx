@@ -3,7 +3,7 @@ import abstract from "../../assets/abstract_dark.png";
 import { RenderStep } from "./renderSteps";
 
 export const Onboarding = () => {
-  const [currentStep, setCurrentStep] = useState<number>(3);
+  const [currentStep, setCurrentStep] = useState<number>(1);
 
   const steps = [
     {
