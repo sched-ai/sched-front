@@ -17,6 +17,12 @@ import { useOnboarding, type IOnboardingBody } from "@/hooks/api/useOnboarding";
 import { queryClient } from "@/App";
 import { formatCnpj } from "@/util/helper";
 import type { DayKey, DaySchedule, Location, UserType } from "@/types";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export const RenderStep = ({
   step,
@@ -146,8 +152,9 @@ export const RenderStep = ({
     }));
   };
 
-  // schedule mode: 'fixo' (same hours for selected days) or 'flexivel' (per-day)
-  const [scheduleMode, setScheduleMode] = useState<"fixo" | "flexivel">("fixo");
+  const [scheduleMode, setScheduleMode] = useState<
+    "fixo" | "flexivel" | "porLocal"
+  >("porLocal");
   const [fixedStart, setFixedStart] = useState("09:00");
   const [fixedEnd, setFixedEnd] = useState("18:00");
   const [fixedDays, setFixedDays] = useState<DayKey[]>([
@@ -478,7 +485,7 @@ export const RenderStep = ({
                     </div>
                   )}
 
-                  {showLocationForm && (
+                  {showLocationForm || locations.length === 0 && (
                     <div className="mt-8">
                       <LocationFormsToAdd
                         multipleLocations={true}
@@ -494,7 +501,7 @@ export const RenderStep = ({
                       />
                     </div>
                   )}
-                  {!showLocationForm && !singleLocationMode && (
+                  {!showLocationForm && !singleLocationMode && locations.length > 0 && (
                     <div className="flex items-center gap-2">
                       <Button
                         className="!text-[16px] font-medium px-2"
@@ -545,7 +552,7 @@ export const RenderStep = ({
               Icon={undefined}
               value="fixo"
               checked={scheduleMode === "fixo"}
-              subtitle="O horário será igual para os dias selecionados"
+              subtitle="Tenho horários iguais todos os dias"
               onChange={() => setScheduleMode("fixo")}
             />
             <CustomRadioInput
@@ -555,9 +562,21 @@ export const RenderStep = ({
               Icon={undefined}
               value="flexivel"
               checked={scheduleMode === "flexivel"}
-              subtitle="Selecione horários diferentes para cada dia da semana"
+              subtitle="Tenho horários diferentes"
               onChange={() => setScheduleMode("flexivel")}
             />
+            {singleLocationMode === false && (
+              <CustomRadioInput
+                label="Horário por local de trabalho"
+                htmlFor="porLocal"
+                name="tipoHorario"
+                Icon={undefined}
+                value="porLocal"
+                checked={scheduleMode === "porLocal"}
+                subtitle="Tenho horários diferentes para cada local"
+                onChange={() => setScheduleMode("porLocal")}
+              />
+            )}
           </div>
 
           {scheduleMode === "fixo" && (
@@ -622,7 +641,9 @@ export const RenderStep = ({
                     key={day}
                     role="button"
                     tabIndex={0}
-                    onClick={() => handleScheduleChange(day, "working", !isWorking)}
+                    onClick={() =>
+                      handleScheduleChange(day, "working", !isWorking)
+                    }
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
@@ -635,7 +656,10 @@ export const RenderStep = ({
                         : "bg-white hover:shadow-[3px_4px_35px_#1417362B]"
                     }`}
                   >
-                    <div className="flex items-center gap-4" onClick={(e) => e.stopPropagation()}>
+                    <div
+                      className="flex items-center gap-4"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <Checkbox
                         checked={schedule[day].working}
                         onCheckedChange={(v) =>
@@ -647,7 +671,9 @@ export const RenderStep = ({
                     </div>
 
                     <div
-                      className={`flex items-center gap-2 ${!isWorking ? "opacity-60" : ""}`}
+                      className={`flex items-center gap-2 ${
+                        !isWorking ? "opacity-60" : ""
+                      }`}
                       onClick={(e) => e.stopPropagation()}
                     >
                       <Input
@@ -673,6 +699,109 @@ export const RenderStep = ({
               })}
             </div>
           )}
+
+          {scheduleMode === "porLocal" && (
+            <div className="mt-6">
+              {locations.map((loc) => (
+                <Accordion type="single" collapsible key={loc.id}>
+                  <AccordionItem
+                    value="item-1"
+                    className="!border rounded-lg mb-4 hover:shadow-[3px_4px_35px_#1417362B] transition-shadow"
+                  >
+                    <AccordionTrigger className="cursor-pointer !no-underline p-4">
+                      <div className="flex flex-col">
+                        <p className="font-semibold">Apelido do local</p>
+                        <p className="text-sm text-muted-foreground">
+                          cidade / estado
+                        </p>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="border-t py-2 grid min-[1600px]:grid-cols-2 gap-4 px-2 max-h-[400px] overflow-y-auto custom-scrollbar ">
+                      {(Object.keys(schedule) as DayKey[]).map((day) => {
+                        const isWorking = Boolean(schedule[day].working);
+                        return (
+                          <div
+                            key={day}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() =>
+                              handleScheduleChange(day, "working", !isWorking)
+                            }
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                handleScheduleChange(
+                                  day,
+                                  "working",
+                                  !isWorking
+                                );
+                              }
+                            }}
+                            className={`flex items-center justify-between gap-4 border px-2 rounded-lg transition-discrete py-1 ${
+                              !isWorking
+                                ? "bg-gray-100"
+                                : "bg-white hover:shadow-[3px_4px_35px_#1417362B]"
+                            }`}
+                          >
+                            <div
+                              className="flex items-center gap-4"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Checkbox
+                                checked={schedule[day].working}
+                                onCheckedChange={(v) =>
+                                  handleScheduleChange(
+                                    day,
+                                    "working",
+                                    Boolean(v)
+                                  )
+                                }
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                              <div className="w-24 capitalize">{day}</div>
+                            </div>
+
+                            <div
+                              className={`flex items-center gap-2 ${
+                                !isWorking ? "opacity-60" : ""
+                              }`}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Input
+                                type="time"
+                                value={schedule[day].start}
+                                onChange={(e) =>
+                                  handleScheduleChange(
+                                    day,
+                                    "start",
+                                    e.target.value
+                                  )
+                                }
+                                disabled={!isWorking}
+                              />
+                              <span>-</span>
+                              <Input
+                                type="time"
+                                value={schedule[day].end}
+                                onChange={(e) =>
+                                  handleScheduleChange(
+                                    day,
+                                    "end",
+                                    e.target.value
+                                  )
+                                }
+                                disabled={!isWorking}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              ))}
+            </div>
+          )}
         </div>
       </>
     );
@@ -680,7 +809,7 @@ export const RenderStep = ({
 
   const renderFooter = () => {
     return (
-      <div className="flex justify-between items-center mt-6">
+      <div className={"flex justify-between items-center mt-6" + (step === 1 && " justify-end")}>
         <Button
           type="button"
           variant="ghost"
@@ -746,7 +875,7 @@ export const RenderStep = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col justify-between h-full w-full xl:border-x border-x-blue-500 xl:px-10"
+      className="flex flex-col justify-between h-full w-full"
     >
       <div className="h-[80%]">{renderMainContent()}</div>
       {renderFooter()}

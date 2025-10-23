@@ -3,7 +3,7 @@ import abstract from "../../assets/abstract_dark.png";
 import { RenderStep } from "./renderSteps";
 
 export const Onboarding = () => {
-  const [currentStep, setCurrentStep] = useState<number>(1);
+  const [currentStep, setCurrentStep] = useState<number>(3);
 
   const steps = [
     {
@@ -79,7 +79,7 @@ export const Onboarding = () => {
             </div>
           </div>
         </div>
-        <div className="flex flex-col xl:justify-center p-6 py-12 relative w-full overflow-hidden h-screen">
+        <div className="flex flex-col xl:justify-center p-6 relative w-full overflow-hidden h-screen">
           <div className="flex w-full mx-auto justify-center h-full">
             <RenderStep step={currentStep} setStep={setCurrentStep} />
           </div>
