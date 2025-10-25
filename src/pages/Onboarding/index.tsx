@@ -33,8 +33,8 @@ export const Onboarding = () => {
   const upcomingStepStyle = 'bg-transparent text-white';
 
   return (
-    <div className="min-h-screen w-full">
-      <div className="flex w-full min-h-screen bg-white justify-between">
+    <div className="h-screen w-full">
+      <div className="flex w-full h-screen bg-white justify-between">
         <div
           className="hidden lg:flex flex-col justify-between max-w-[640px] w-full xl:p-6 pl-6 pt-6 bg-cover bg-center border-r border-blue-400 h-screen animated-bg animated-bg--slow"
           style={{ backgroundImage: `url(${abstract})` }}
@@ -79,7 +79,7 @@ export const Onboarding = () => {
             </div>
           </div>
         </div>
-        <div className="flex flex-col xl:justify-center p-6 relative w-full overflow-hidden h-screen">
+        <div className="flex flex-col xl:justify-center p-6 relative w-full overflow-y-auto h-full max-h-screen">
           <div className="flex w-full mx-auto justify-center h-full">
             <RenderStep step={currentStep} setStep={setCurrentStep} />
           </div>

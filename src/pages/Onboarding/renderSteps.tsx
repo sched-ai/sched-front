@@ -68,7 +68,6 @@ export const RenderStep = ({
   const [locationForm, setLocationForm] = useState<Location>(emptyLocation());
 
   const addOrUpdateLocation = () => {
-    // se estiver no modo de único local, atualiza singleLocation
     if (singleLocationMode === true) {
       if (
         editingLocation &&
@@ -85,7 +84,6 @@ export const RenderStep = ({
       return;
     }
 
-    // modo múltiplos locais
     if (editingLocation) {
       setLocations((prev) =>
         prev.map((l) => (l.id === locationForm.id ? locationForm : l))
@@ -95,7 +93,6 @@ export const RenderStep = ({
       setLocations((prev) => [...prev, locationForm]);
     }
     setLocationForm(emptyLocation());
-    // fechar formulário após adicionar/atualizar
     setShowLocationForm(false);
   };
 
@@ -289,7 +286,7 @@ export const RenderStep = ({
 
   const renderFooter = () => {
     return (
-      <div className={"flex justify-between items-center mt-6" + (step === 1 && " justify-end")}>
+      <div className={"flex justify-between items-center mt-6 h-fit" + (step === 1 && " justify-end")}>
         <Button
           type="button"
           variant="ghost"
@@ -357,7 +354,7 @@ export const RenderStep = ({
       onSubmit={handleSubmit}
       className="flex flex-col justify-between h-full w-full"
     >
-      <div className="h-[80%]">{renderMainContent()}</div>
+      <div>{renderMainContent()}</div>
       {renderFooter()}
     </form>
   );
