@@ -70,7 +70,7 @@ export default function Step2({
       </div>
       <div className="flex flex-col gap-4 h-full">
         <div className="flex gap-2 flex-wrap justify-between h-fit mt-2">
-          <label className={`flex items-start gap-2 border ${attendHome ? 'bg-blue-700' : 'border-gray-500'} p-2 rounded-md w-full max-w-[30%] cursor-pointer hover:shadow-[3px_4px_35px_#0015fc2b] transition duration-200`}>
+          <label className={`flex items-start gap-2 border ${attendHome ? 'bg-blue-500' : 'border-gray-500'} p-2 rounded-md w-full max-w-[30%] cursor-pointer hover:shadow-[3px_4px_35px_#0015fc2b] transition duration-200`}>
             <Checkbox
               checked={attendHome}
               onCheckedChange={(v) => setAttendHome(Boolean(v))}
@@ -80,7 +80,7 @@ export default function Step2({
               <House className="self-center" size={42} />
             </div>
           </label>
-          <label className={`flex items-start gap-2 border ${attendOnline ? 'bg-blue-700' : 'border-gray-500'} p-2 rounded-md w-full max-w-[30%] cursor-pointer hover:shadow-[3px_4px_35px_#0015fc2b] transition duration-200`}>
+          <label className={`flex items-start gap-2 border ${attendOnline ? 'bg-blue-500' : 'border-gray-500'} p-2 rounded-md w-full max-w-[30%] cursor-pointer hover:shadow-[3px_4px_35px_#0015fc2b] transition duration-200`}>
             <Checkbox
               checked={attendOnline}
               onCheckedChange={(v) => setAttendOnline(Boolean(v))}
@@ -90,7 +90,7 @@ export default function Step2({
               <MessagesSquare className="self-center" size={42} />
             </div>
           </label>
-          <label className={`flex items-start gap-2 border ${attendWorkspace ? 'bg-blue-700' : 'border-gray-500'} p-2 rounded-md w-full max-w-[30%] cursor-pointer hover:shadow-[3px_4px_35px_#0015fc2b] transition duration-200`}>
+          <label className={`flex items-start gap-2 border ${attendWorkspace ? 'bg-blue-500' : 'border-gray-500'} p-2 rounded-md w-full max-w-[30%] cursor-pointer hover:shadow-[3px_4px_35px_#0015fc2b] transition duration-200`}>
             <Checkbox
               checked={attendWorkspace}
               onCheckedChange={(v) => setAttendWorkspace(Boolean(v))}
