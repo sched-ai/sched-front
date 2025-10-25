@@ -11,7 +11,7 @@ interface ProtectedRouteProps {
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { userData, userLoading } = useUser();
   const location = useLocation();
-
+  console.log('ProtectedRoute - userData:', userData, location);
     if (userLoading) {
       return <LoadingScreen />;
     }
