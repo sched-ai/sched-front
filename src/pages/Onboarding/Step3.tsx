@@ -1,4 +1,5 @@
 import CustomRadioInput from "@/components/CustomRadioInput";
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,6 +28,9 @@ interface Step3Props {
   ) => void;
   singleLocationMode: boolean | null;
   locations: Location[];
+  step?: number;
+  setStep?: (step: number | ((prev: number) => number)) => void;
+  prevStep?: () => void;
 }
 
 export default function Step3({
@@ -42,12 +46,33 @@ export default function Step3({
   handleScheduleChange,
   singleLocationMode,
   locations,
+  step,
+  setStep,
+  prevStep,
 }: Step3Props) {
+  const goPrev = () => {
+    if (prevStep) return prevStep();
+    if (setStep) return setStep((p) => p - 1);
+    return;
+  };
   return (
     <>
-      <div className="mb-8">
-        <h4 className="mb-0 font-semibold text-lg text-[24px]">Seus horários de trabalho</h4>
-        <p className="text-muted-foreground mb-4 text-[16px]">Defina seus horários padrão. Você poderá alterá-los depois.</p>
+      <div className="mb-8 flex items-start justify-between">
+        <div>
+          <h4 className="mb-0 font-semibold text-lg text-[24px]">Seus horários de trabalho</h4>
+          <p className="text-muted-foreground mb-4 text-[16px]">Defina seus horários padrão. Você poderá alterá-los depois.</p>
+        </div>
+        <Button
+          type="button"
+          variant="ghost"
+          className={
+            "font-semibold text-[#141736] flex items-center gap-2 px-6 py-3 bg-transparent border-none shadow-none" +
+            (step === 1 ? " hidden" : "")
+          }
+          onClick={goPrev}
+        >
+          <span aria-hidden>←</span> VOLTAR
+        </Button>
       </div>
       <div className="">
         <div className="flex gap-4">

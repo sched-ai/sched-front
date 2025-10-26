@@ -1,4 +1,5 @@
 import React from "react";
+import { Button } from "@/components/ui/button";
 import CustomRadioInput from "@/components/CustomRadioInput";
 import { Input } from "@/components/ui/input";
 import { Building2, User } from "lucide-react";
@@ -17,6 +18,9 @@ interface Step1Props {
   handleCnpjChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   companyArea: string;
   setCompanyArea: (v: string) => void;
+  step?: number;
+  setStep?: (step: number | ((prev: number) => number)) => void;
+  prevStep?: () => void;
 }
 
 export default function Step1({
@@ -32,16 +36,37 @@ export default function Step1({
   handleCnpjChange,
   companyArea,
   setCompanyArea,
+  step,
+  setStep,
+  prevStep,
 }: Step1Props) {
+  const goPrev = () => {
+    if (prevStep) return prevStep();
+    if (setStep) return setStep((p) => p - 1);
+    return;
+  };
   const handleUserTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUserType(e.target.value as UserType);
   };
 
   return (
     <>
-      <div className="mb-8">
-        <h4 className="mb-0 font-semibold text-lg text-[24px]">Sobre seu negócio</h4>
-        <p className="text-muted-foreground text-[16px]">nos informe qual perfil você se encaixa</p>
+      <div className="mb-8 flex items-start justify-between">
+        <div>
+          <h4 className="mb-0 font-semibold text-lg text-[24px]">Sobre seu negócio</h4>
+          <p className="text-muted-foreground text-[16px]">nos informe qual perfil você se encaixa</p>
+        </div>
+        <Button
+          type="button"
+          variant="ghost"
+          className={
+            "font-semibold text-[#141736] flex items-center gap-2 px-6 py-3 bg-transparent border-none shadow-none" +
+            (step === 1 ? " hidden" : "")
+          }
+          onClick={goPrev}
+        >
+          <span aria-hidden>←</span> VOLTAR
+        </Button>
       </div>
       <div className="space-y-6">
         <p className="text-[20px] font-semibold text-gray-800 tracking-tight">Como você gostaria de usar a SchedApp?</p>

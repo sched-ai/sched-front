@@ -21,9 +21,14 @@ interface Step2Props {
   setShowLocationForm: (v: boolean) => void;
   locations: Location[];
   setEditingLocation: React.Dispatch<React.SetStateAction<Location | null>>;
+  step: number;
+  prevStep: () => void;
+  setStep: (step: number | ((prev: number) => number)) => void;
 }
 
 export default function Step2({
+  step,
+  setStep,
   singleLocationMode,
   setSingleLocationMode,
   locationForm,
@@ -45,6 +50,8 @@ export default function Step2({
   const [animateIn, setAnimateIn] = useState(false);
   const questionRef = useRef<HTMLDivElement | null>(null);
 
+  const prevStep = () => setStep((prev: number) => prev - 1);
+
   const showLocationsQuestion = attendWorkspace;
 
   useEffect(() => {
@@ -62,11 +69,25 @@ export default function Step2({
 
   return (
     <>
-      <div className="mb-2">
-        <h4 className="font-semibold text-lg text-[24px]">Onde você atende?</h4>
-        <p className="text-muted-foreground text-[16px]">
-          Cadastre os locais físicos onde você realiza atendimentos.
-        </p>
+      <div className="mb-2 flex items-start justify-between">
+        <div>
+          <h4 className="font-semibold text-lg text-[30px]">Onde você atende?</h4>
+          <p className="text-muted-foreground text-[16px] mb-8">
+            Cadastre os locais físicos onde você realiza atendimentos.
+          </p>
+        </div>
+
+        <Button
+          type="button"
+          variant="ghost"
+          className={
+            "font-semibold text-[#141736] flex items-center gap-2 px-6 py-3 bg-transparent border-none shadow-none" +
+            (step === 1 ? " hidden" : "")
+          }
+          onClick={prevStep}
+        >
+          <span aria-hidden>←</span> VOLTAR
+        </Button>
       </div>
       <div className="flex flex-col gap-4 h-full">
         <div className="flex gap-2 flex-wrap justify-between h-fit mt-2">
@@ -75,7 +96,7 @@ export default function Step2({
               checked={attendHome}
               onCheckedChange={(v) => setAttendHome(Boolean(v))}
             />
-            <div className="flex flex-col w-full justify-center text-center pr-2 gap-4 text-gray-500 transition-colors duration-200 ease-in-out peer-data-[state=checked]:text-white">
+            <div className="flex flex-col w-full justify-center text-center pr-6 gap-4 text-gray-500 transition-colors duration-200 ease-in-out peer-data-[state=checked]:text-white">
               <span className="select-none font-semibold">A domicilio</span>
               <House className="self-center" size={42} />
             </div>
@@ -85,7 +106,7 @@ export default function Step2({
               checked={attendOnline}
               onCheckedChange={(v) => setAttendOnline(Boolean(v))}
             />
-            <div className="flex flex-col w-full justify-center text-center pr-2 gap-4 text-gray-500 transition-colors duration-200 ease-in-out peer-data-[state=checked]:text-white">
+            <div className="flex flex-col w-full justify-center text-center pr-6 gap-4 text-gray-500 transition-colors duration-200 ease-in-out peer-data-[state=checked]:text-white">
               <span className="select-none font-semibold">Online</span>
               <MessagesSquare className="self-center" size={42} />
             </div>
@@ -95,7 +116,7 @@ export default function Step2({
               checked={attendWorkspace}
               onCheckedChange={(v) => setAttendWorkspace(Boolean(v))}
             />
-            <div className="flex flex-col w-full justify-center text-center pr-2 gap-4 text-gray-500 transition-colors duration-200 ease-in-out peer-data-[state=checked]:text-white">
+            <div className="flex flex-col w-full justify-center text-center pr-4 gap-4 text-gray-500 transition-colors duration-200 ease-in-out peer-data-[state=checked]:text-white">
               <span className="select-none font-semibold leading-none">Local de Atendimento</span>
               <MapPinned className="self-center" size={42} />
             </div>
@@ -114,7 +135,7 @@ export default function Step2({
             </p>
             <div className="flex gap-4">
               <CustomRadioInput
-                label="Em um único local"
+                label="Local Único"
                 htmlFor="single-local"
                 name="locationsMode"
                 Icon={Building}

@@ -224,6 +224,8 @@ export const RenderStep = ({
     if (step === 1) {
       return (
         <Step1
+          step={step}
+          setStep={setStep}
           userType={userType}
           setUserType={setUserType}
           area={area}
@@ -236,6 +238,7 @@ export const RenderStep = ({
           handleCnpjChange={handleCnpjChange}
           companyArea={companyArea}
           setCompanyArea={setCompanyArea}
+          prevStep={prevStep}
         />
       );
     }
@@ -243,6 +246,9 @@ export const RenderStep = ({
     if (step === 2) {
       return (
         <Step2
+          step={step}
+          setStep={setStep}
+          prevStep={prevStep}
           singleLocationMode={singleLocationMode}
           setSingleLocationMode={setSingleLocationMode}
           locationForm={locationForm}
@@ -268,6 +274,9 @@ export const RenderStep = ({
     // step === 3
     return (
       <Step3
+        step={step}
+        setStep={setStep}
+        prevStep={prevStep}
         scheduleMode={scheduleMode}
         setScheduleMode={setScheduleMode}
         fixedStart={fixedStart}
@@ -285,19 +294,23 @@ export const RenderStep = ({
   };
 
   const renderFooter = () => {
+    const containerClass = `flex items-center mt-6 h-fit ${step === 3 ? 'justify-between' : 'justify-end'}`;
+
     return (
-      <div className={"flex justify-between items-center mt-6 h-fit" + (step === 1 && " justify-end")}>
-        <Button
-          type="button"
-          variant="ghost"
-          className={
-            "font-semibold text-[#141736] flex items-center gap-2 px-6 py-3 bg-transparent border-none shadow-none" +
-            (step === 1 ? " hidden" : "")
-          }
-          onClick={prevStep}
-        >
-          <span aria-hidden>←</span> VOLTAR
-        </Button>
+      <div className={containerClass}>
+        {/* Back button only on step 3 in footer (header still has back for other steps) */}
+        {step === 3 && (
+          <Button
+            type="button"
+            variant="ghost"
+            className={
+              "font-semibold text-[#141736] flex items-center gap-2 px-6 py-3 bg-transparent border-none shadow-none"
+            }
+            onClick={prevStep}
+          >
+            <span aria-hidden>←</span> VOLTAR
+          </Button>
+        )}
 
         {step < 3 ? (
           !(
