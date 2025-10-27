@@ -53,8 +53,8 @@ export default function Step1({
     <>
       <div className="mb-8 flex items-start justify-between">
         <div>
-          <h4 className="mb-0 font-semibold text-lg text-[24px]">Sobre seu negócio</h4>
-          <p className="text-muted-foreground text-[16px]">nos informe qual perfil você se encaixa</p>
+          <h4 className="mb-0 font-semibold text-lg text-[30px]">Sobre seu negócio</h4>
+          <p className="text-muted-foreground text-[20px]">nos informe em qual perfil você se encaixa</p>
         </div>
         <Button
           type="button"
@@ -69,8 +69,7 @@ export default function Step1({
         </Button>
       </div>
       <div className="space-y-6">
-        <p className="text-[20px] font-semibold text-gray-800 tracking-tight">Como você gostaria de usar a SchedApp?</p>
-        <div className="flex flex-col gap-4 mt-8">
+        <div className="flex md:flex-col sm:flex-col gap-4 mt-8">
           <CustomRadioInput
             label="Empresa"
             htmlFor="empresa"

@@ -72,7 +72,7 @@ export default function Step2({
       <div className="mb-2 flex items-start justify-between">
         <div>
           <h4 className="font-semibold text-lg text-[30px]">Onde você atende?</h4>
-          <p className="text-muted-foreground text-[16px] mb-8">
+          <p className="text-muted-foreground text-[20px] mb-8">
             Cadastre os locais físicos onde você realiza atendimentos.
           </p>
         </div>

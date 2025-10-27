@@ -20,7 +20,7 @@ export const Onboarding = () => {
     {
       step: 3,
       title: "Colaboradores",
-      description: "Para finalizar, conecte os colaboradores da sua equipe",
+      description: "Conecte os colaboradores da sua equipe",
     },
     {
       step: 4,

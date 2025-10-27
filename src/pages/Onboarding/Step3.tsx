@@ -59,8 +59,8 @@ export default function Step3({
     <>
       <div className="mb-8 flex items-start justify-between">
         <div>
-          <h4 className="mb-0 font-semibold text-lg text-[24px]">Seus horários de trabalho</h4>
-          <p className="text-muted-foreground mb-4 text-[16px]">Defina seus horários padrão. Você poderá alterá-los depois.</p>
+          <h4 className="mb-0 font-semibold text-lg text-[30px]">Seus horários de trabalho</h4>
+          <p className="text-muted-foreground mb-4 text-[20px]">Defina seus horários padrão. Você poderá alterá-los depois.</p>
         </div>
         <Button
           type="button"
