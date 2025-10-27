@@ -1,6 +1,7 @@
 import { useState } from "react";
 import abstract from "../../assets/abstract_dark.png";
 import { RenderStep } from "./renderSteps";
+import logo from "@/assets/logo.png";
 
 export const Onboarding = () => {
   const [currentStep, setCurrentStep] = useState<number>(1);
@@ -39,9 +40,7 @@ export const Onboarding = () => {
           className="hidden lg:flex flex-col justify-between max-w-[640px] w-full xl:p-6 pl-6 pt-6 bg-cover bg-center border-r border-blue-400 h-screen animated-bg animated-bg--slow"
           style={{ backgroundImage: `url(${abstract})` }}
         >
-            <h1 className="text-3xl font-semibold italic text-white mb-8">
-              SCHED
-            </h1>
+            <img className="w-15 mb-10" src={logo} alt="logo do sched em cor branca" />
           <div className="flex flex-col gap-6 h-[90%]">
             <h2 className="text-4xl font-semibold text-white mb-8">
               Vamos começar!
