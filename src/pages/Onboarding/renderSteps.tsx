@@ -29,7 +29,8 @@ export const RenderStep = ({
       navigate("/");
     },
   });
-  const [userType, setUserType] = useState<UserType>("");
+  // empresa selecionado por padrão
+  const [userType, setUserType] = useState<UserType>("empresa");
 
   const [area, setArea] = useState("");
   const [professionalId, setProfessionalId] = useState("");
