@@ -1,7 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import CustomRadioInput from "@/components/CustomRadioInput";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import { Building2, User } from "lucide-react";
 import type { UserType } from "@/types";
 
@@ -45,6 +52,7 @@ export default function Step1({
     if (setStep) return setStep((p) => p - 1);
     return;
   };
+  const [referrer, setReferrer] = useState("");
   const handleUserTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUserType(e.target.value as UserType);
   };
@@ -68,7 +76,7 @@ export default function Step1({
           <span aria-hidden>←</span> VOLTAR
         </Button>
       </div>
-      <div className="space-y-6">
+  <div className="space-y-6">
         <div className="flex max-sm:flex-col md:felx-col max-lg:flex-col gap-4 mt-8">
           <CustomRadioInput
             label="Empresa"
@@ -157,6 +165,19 @@ export default function Step1({
               </div>
             </>
           )}
+        </div>
+        <div className="mt-6">
+          <label className="block mb-2 font-medium text-sm">Onde você nos conheceu?</label>
+          <Select value={referrer} onValueChange={(v) => setReferrer(v)}>
+            <SelectTrigger className="w-full md:w-80" size="default">
+              <SelectValue placeholder="Selecione a categoria" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="instagram">Instagram</SelectItem>
+              <SelectItem value="google">Google</SelectItem>
+              <SelectItem value="indicacao">Indicação</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
     </>
