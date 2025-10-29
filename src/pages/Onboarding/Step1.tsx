@@ -69,7 +69,7 @@ export default function Step1({
         </Button>
       </div>
       <div className="space-y-6">
-        <div className="flex md:flex-col sm:flex-col gap-4 mt-8">
+        <div className="flex max-sm:flex-col md:felx-col max-lg:flex-col gap-4 mt-8">
           <CustomRadioInput
             label="Empresa"
             htmlFor="empresa"
