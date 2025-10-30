@@ -7,6 +7,7 @@ import type {
 
 import { type LucideProps } from "lucide-react";
 import { cn } from "@/lib/utils";
+import SharedIcon from "@/components/Icon";
 
 export interface CustomRadioInputProps {
   label: string;
@@ -15,6 +16,12 @@ export interface CustomRadioInputProps {
   Icon?: ForwardRefExoticComponent<
     Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>
   >;
+  /**
+  Use um ícone do arquivo index.tsx pelo nome.
+  Exemplo: iconName="person" ou iconName="enterprise".
+  Quando fornecido, iconName tem prioridade sobre a prop Icon do componente.
+   */
+  iconName?: string;
   onChange?: ChangeEventHandler<HTMLInputElement>;
   checked?: boolean;
   name: string;
@@ -30,6 +37,7 @@ const CustomRadioInput = (props: CustomRadioInputProps) => {
     htmlFor,
     image,
     Icon,
+    iconName,
     checked,
     name,
     omit_radio,
@@ -51,7 +59,11 @@ const CustomRadioInput = (props: CustomRadioInputProps) => {
       )}
     >
       <div className="flex items-center gap-x-4">
-        {Icon && <Icon className="w-6 h-6" color="#141736" />}
+        {iconName ? (
+          <SharedIcon name={iconName} size={20} className="w-6 h-6 fill-[#141736]" />
+        ) : (
+          Icon && <Icon className="w-6 h-6" color="#141736" />
+        )}
         {image && <img src={image} className="sm:w-9 w-6" />}
         <div>
           <p
