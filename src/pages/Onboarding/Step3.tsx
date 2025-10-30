@@ -31,6 +31,8 @@ interface Step3Props {
   step?: number;
   setStep?: (step: number | ((prev: number) => number)) => void;
   prevStep?: () => void;
+  /** Optional node to render above the title (e.g. back arrow) */
+  headerLeft?: React.ReactNode;
 }
 
 export default function Step3({
@@ -49,30 +51,19 @@ export default function Step3({
   step,
   setStep,
   prevStep,
+  headerLeft,
 }: Step3Props) {
-  const goPrev = () => {
-    if (prevStep) return prevStep();
-    if (setStep) return setStep((p) => p - 1);
-    return;
-  };
+  void step;
+  void setStep;
+  void prevStep;
   return (
     <>
-      <div className="mb-8 flex items-start justify-between">
+  <div className="mb-8 flex flex-col items-start">
+        {headerLeft && <div className="mb-3">{headerLeft}</div>}
         <div>
           <h4 className="mb-0 font-semibold text-lg text-[30px]">Seus horários de trabalho</h4>
           <p className="text-muted-foreground mb-4 text-[20px]">Defina seus horários padrão. Você poderá alterá-los depois.</p>
         </div>
-        <Button
-          type="button"
-          variant="ghost"
-          className={
-            "font-semibold text-[#141736] flex items-center gap-2 px-6 py-3 bg-transparent border-none shadow-none" +
-            (step === 1 ? " hidden" : "")
-          }
-          onClick={goPrev}
-        >
-          <span aria-hidden>←</span> VOLTAR
-        </Button>
       </div>
       <div className="">
         <div className="flex gap-4">

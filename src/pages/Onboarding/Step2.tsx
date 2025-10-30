@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import CustomRadioInput from "@/components/CustomRadioInput";
 import LocationFormsToAdd from "./LocationFormsToAdd";
-import { House, MapPinned, MessagesSquare, Plus } from "lucide-react";
+import { House, MapPin, Plus, Globe} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { Location } from "@/types";
@@ -24,6 +24,9 @@ interface Step2Props {
   step: number;
   prevStep: () => void;
   setStep: (step: number | ((prev: number) => number)) => void;
+
+  headerLeft?: React.ReactNode;
+  initialAttendWorkspace?: boolean;
 }
 
 export default function Step2({
@@ -43,19 +46,32 @@ export default function Step2({
   setShowLocationForm,
   locations,
   setEditingLocation,
+  initialAttendWorkspace,
+  headerLeft,
 }: Step2Props) {
   const [attendHome, setAttendHome] = useState(false);
   const [attendOnline, setAttendOnline] = useState(false);
-  const [attendWorkspace, setAttendWorkspace] = useState(false);
+  const [attendWorkspace, setAttendWorkspace] = useState(
+    Boolean(initialAttendWorkspace)
+  );
   const [animateIn, setAnimateIn] = useState(false);
   const questionRef = useRef<HTMLDivElement | null>(null);
 
-  const prevStep = () => setStep((prev: number) => prev - 1);
+  const initialMountRef = useRef(true);
+
+  void step;
+  void setStep;
 
   const showLocationsQuestion = attendWorkspace;
 
   useEffect(() => {
     if (showLocationsQuestion && questionRef.current) {
+     
+      if (initialMountRef.current) {
+        setAnimateIn(true);
+        initialMountRef.current = false;
+        return;
+      }
       setAnimateIn(false);
       questionRef.current.scrollIntoView({
         behavior: "smooth",
@@ -69,57 +85,52 @@ export default function Step2({
 
   return (
     <>
-      <div className="mb-2 flex items-start justify-between">
+      <div className="mb-2 flex flex-col items-start">
+        {headerLeft && <div className="mb-3">{headerLeft}</div>}
         <div>
           <h4 className="font-semibold text-lg text-[30px]">Onde você atende?</h4>
-          <p className="text-muted-foreground text-[20px] mb-8">
-            Cadastre os locais físicos onde você realiza atendimentos.
+          <p className="text-muted-foreground text-[20px] mb-2">
+            Cadastre os locais de atendimento.
           </p>
         </div>
-
-        <Button
-          type="button"
-          variant="ghost"
-          className={
-            "font-semibold text-[#141736] flex items-center gap-2 px-6 py-3 bg-transparent border-none shadow-none" +
-            (step === 1 ? " hidden" : "")
-          }
-          onClick={prevStep}
-        >
-          <span aria-hidden>←</span> VOLTAR
-        </Button>
       </div>
       <div className="flex flex-col gap-4 h-full">
-        <div className="flex gap-2 flex-wrap justify-between h-fit mt-2">
-          <label className={`flex items-start gap-2 border ${attendHome ? 'bg-blue-500' : 'border-gray-500'} p-2 rounded-md w-full max-w-[30%] cursor-pointer hover:shadow-[3px_4px_35px_#0015fc2b] transition duration-200`}>
+  <div className="flex flex-col items-center gap-[25px] mt-2 mb-2 md:flex-row md:flex-wrap md:justify-between h-fit">
+          <label className={`relative flex items-start gap-2 border p-6 rounded-lg w-[80%] md:flex-1 md:min-w-[220px] md:max-w-[32%] mx-auto cursor-pointer hover:shadow-[3px_4px_35px_#0015fc2b] transition duration-200 ${attendWorkspace ? 'border-[#141736]' : 'border-gray-400'}`}>
             <Checkbox
-              checked={attendHome}
-              onCheckedChange={(v) => setAttendHome(Boolean(v))}
-            />
-            <div className="flex flex-col w-full justify-center text-center pr-6 gap-4 text-gray-500 transition-colors duration-200 ease-in-out peer-data-[state=checked]:text-white">
-              <span className="select-none font-semibold">A domicilio</span>
-              <House className="self-center" size={42} />
-            </div>
-          </label>
-          <label className={`flex items-start gap-2 border ${attendOnline ? 'bg-blue-500' : 'border-gray-500'} p-2 rounded-md w-full max-w-[30%] cursor-pointer hover:shadow-[3px_4px_35px_#0015fc2b] transition duration-200`}>
-            <Checkbox
-              checked={attendOnline}
-              onCheckedChange={(v) => setAttendOnline(Boolean(v))}
-            />
-            <div className="flex flex-col w-full justify-center text-center pr-6 gap-4 text-gray-500 transition-colors duration-200 ease-in-out peer-data-[state=checked]:text-white">
-              <span className="select-none font-semibold">Online</span>
-              <MessagesSquare className="self-center" size={42} />
-            </div>
-          </label>
-          <label className={`flex items-start gap-2 border ${attendWorkspace ? 'bg-blue-500' : 'border-gray-500'} p-2 rounded-md w-full max-w-[30%] cursor-pointer hover:shadow-[3px_4px_35px_#0015fc2b] transition duration-200`}>
-            <Checkbox
+              className="sr-only"
               checked={attendWorkspace}
               onCheckedChange={(v) => setAttendWorkspace(Boolean(v))}
             />
-            <div className="flex flex-col w-full justify-center text-center pr-4 gap-4 text-gray-500 transition-colors duration-200 ease-in-out peer-data-[state=checked]:text-white">
-              <span className="select-none font-semibold leading-none">Local de Atendimento</span>
-              <MapPinned className="self-center" size={42} />
+            <div className={`flex flex-col w-full justify-center text-center gap-4 transition-colors duration-200 ease-in-out ${attendWorkspace ? 'text-[#141736]' : 'text-[#A8A7A7]'}`}>
+              <span className="select-none font-semibold text-[20px]">Consultório</span>
+              <MapPin className="self-center text-black" size={48} />
             </div>
+            <div className={`absolute top-4 right-4 h-5 w-5 rounded-full border ${attendWorkspace ? 'bg-[#141736] border-[#141736]' : 'bg-white border-gray-500'}`} />
+          </label>
+          <label className={`relative flex items-start gap-2 border p-6 rounded-lg w-[80%] md:flex-1 md:min-w-[220px] md:max-w-[32%] mx-auto cursor-pointer hover:shadow-[3px_4px_35px_#0015fc2b] transition duration-200 ${attendOnline ? 'border-[#141736]' : 'border-gray-400'}`}>
+            <Checkbox
+              className="sr-only"
+              checked={attendOnline}
+              onCheckedChange={(v) => setAttendOnline(Boolean(v))}
+            />
+            <div className={`flex flex-col w-full justify-center text-center gap-4 transition-colors duration-200 ease-in-out ${attendOnline ? 'text-[#141736]' : 'text-[#A8A7A7]'}`}>
+              <span className="select-none font-semibold text-[20px]">Online</span>
+              <Globe className="self-center text-black" size={48} />
+            </div>
+            <div className={`absolute top-4 right-4 h-5 w-5 rounded-full border ${attendOnline ? 'bg-[#141736] border-[#141736]' : 'bg-white border-gray-500'}`} />
+          </label>
+          <label className={`relative flex items-start gap-2 border p-6 rounded-lg w-[80%] md:flex-1 md:min-w-[220px] md:max-w-[32%] mx-auto cursor-pointer hover:shadow-[3px_4px_35px_#0015fc2b] transition duration-200 ${attendHome ? 'border-[#141736]' : 'border-gray-400'}`}>
+            <Checkbox
+              className="sr-only"
+              checked={attendHome}
+              onCheckedChange={(v) => setAttendHome(Boolean(v))}
+            />
+            <div className={`flex flex-col w-full justify-center text-center gap-4 transition-colors duration-200 ease-in-out ${attendHome ? 'text-[#141736]' : 'text-[#A8A7A7]'}`}>
+              <span className="select-none font-semibold text-[20px]">A domicilio</span>
+              <House className="self-center text-black" size={48} />
+            </div>
+            <div className={`absolute top-4 right-4 h-5 w-5 rounded-full border ${attendHome ? 'bg-[#141736] border-[#141736]' : 'bg-white border-gray-500'}`} />
           </label>
         </div>
 
