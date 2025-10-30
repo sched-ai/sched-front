@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { useOnboarding, type IOnboardingBody } from "@/hooks/api/useOnboarding";
 import { queryClient } from "@/App";
 import { formatCnpj } from "@/util/helper"; 
+import {ArrowLeft} from "lucide-react";
 import type { DayKey, DaySchedule, Location, UserType } from "@/types";
 import Step3 from "./Step3";
 import Step2 from "./Step2";
@@ -250,6 +251,8 @@ export const RenderStep = ({
           step={step}
           setStep={setStep}
           prevStep={prevStep}
+          initialAttendWorkspace={true}
+          headerLeft={<ArrowLeft className="w-6 h-6 text-[#141736] cursor-pointer" onClick={prevStep} />}
           singleLocationMode={singleLocationMode}
           setSingleLocationMode={setSingleLocationMode}
           locationForm={locationForm}
@@ -278,6 +281,7 @@ export const RenderStep = ({
         step={step}
         setStep={setStep}
         prevStep={prevStep}
+        headerLeft={<ArrowLeft className="w-6 h-6 text-[#141736] cursor-pointer" onClick={prevStep} />}
         scheduleMode={scheduleMode}
         setScheduleMode={setScheduleMode}
         fixedStart={fixedStart}
