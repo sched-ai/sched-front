@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import CustomRadioInput from "@/components/CustomRadioInput";
 import LocationFormsToAdd from "./LocationFormsToAdd";
-import { Building, Building2, House, MapPinned, MessagesSquare, Plus } from "lucide-react";
+import { House, MapPinned, MessagesSquare, Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { Location } from "@/types";
@@ -138,7 +138,7 @@ export default function Step2({
                 label="Local Único"
                 htmlFor="single-local"
                 name="locationsMode"
-                Icon={Building}
+                iconName="enterprise"
                 value="single"
                 checked={singleLocationMode === true}
                 subtitle="Uso apenas um endereço principal"
@@ -152,7 +152,7 @@ export default function Step2({
                 label="Em múltiplos locais"
                 htmlFor="multiple-locals"
                 name="locationsMode"
-                Icon={Building2}
+                iconName="companies"
                 value="multiple"
                 checked={singleLocationMode === false}
                 subtitle="Tenho mais de um local de atendimento"

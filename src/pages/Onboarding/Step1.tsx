@@ -9,7 +9,6 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { Building2, User } from "lucide-react";
 import type { UserType } from "@/types";
 
 interface Step1Props {
@@ -53,6 +52,7 @@ export default function Step1({
     return;
   };
   const [referrer, setReferrer] = useState("");
+  const [referrerOther, setReferrerOther] = useState("");
   const handleUserTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUserType(e.target.value as UserType);
   };
@@ -77,31 +77,32 @@ export default function Step1({
         </Button>
       </div>
   <div className="space-y-6">
-        <div className="flex max-sm:flex-col md:felx-col max-lg:flex-col gap-4 mt-8">
-          <CustomRadioInput
-            label="Empresa"
-            htmlFor="empresa"
-            name="userType"
-            Icon={Building2}
-            value="empresa"
-            checked={userType === "empresa"}
-            subtitle="Para gerenciar sua empresa"
-            onChange={handleUserTypeChange}
-          />
+        <div className="flex flex-col md:flex-row gap-4 mt-8">
           <CustomRadioInput
             label="Profissional Autônomo"
             htmlFor="autonomo"
             name="userType"
-            Icon={User}
+            iconName="person"
             value="autonomo"
             checked={userType === "autonomo"}
             subtitle="Para gerenciar sua agenda"
+            onChange={handleUserTypeChange}
+          />
+          <CustomRadioInput
+            label="Empresa"
+            htmlFor="empresa"
+            name="userType"
+            iconName="enterprise"
+            value="empresa"
+            checked={userType === "empresa"}
+            subtitle="Para gerenciar sua empresa"
             onChange={handleUserTypeChange}
           />
         </div>
         <div className="grid grid-cols-1 w-full justify-between gap-4 min-[1447px]:grid-cols-2">
           {userType === "autonomo" && (
             <>
+              {/* left column */}
               <div className="w-full">
                 <Input
                   type="text"
@@ -113,6 +114,8 @@ export default function Step1({
                   required
                 />
               </div>
+
+              {/* right column: stack professionalId and the conditional 'outro' input */}
               <div className="w-full">
                 <Input
                   label="Nº de registro profissional"
@@ -165,19 +168,32 @@ export default function Step1({
               </div>
             </>
           )}
-        </div>
-        <div className="mt-6">
-          <label className="block mb-2 font-medium text-sm">Onde você nos conheceu?</label>
-          <Select value={referrer} onValueChange={(v) => setReferrer(v)}>
-            <SelectTrigger className="w-full md:w-80" size="default">
-              <SelectValue placeholder="Selecione a categoria" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="instagram">Instagram</SelectItem>
-              <SelectItem value="google">Google</SelectItem>
-              <SelectItem value="indicacao">Indicação</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="w-full h-full">
+            <label className="block mb-2 font-medium text-[16px] text-[#384455]">Onde você nos conheceu?</label>
+            <Select value={referrer} onValueChange={(v) => setReferrer(v)}>
+              <SelectTrigger className="w-full h-10 px-4 py-6 rounded-[10px]">
+                <SelectValue placeholder="Selecione a categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="instagram">Instagram</SelectItem>
+                <SelectItem value="google">Google</SelectItem>
+                <SelectItem value="indicacao">Indicação</SelectItem>
+                <SelectItem value="outro">Outro</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {referrer === "outro" && (
+            <div className="w-full">
+              <Input
+                type="text"
+                label="Onde você nos encontrou?"
+                id="referrerOther"
+                value={referrerOther}
+                onChange={(e) => setReferrerOther(e.target.value)}
+                placeholder="Conte-nos onde nos encontrou"
+              />
+            </div>
+          )}
         </div>
       </div>
     </>
