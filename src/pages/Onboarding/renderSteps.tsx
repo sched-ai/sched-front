@@ -29,8 +29,8 @@ export const RenderStep = ({
       navigate("/");
     },
   });
-  // empresa selecionado por padrão
-  const [userType, setUserType] = useState<UserType>("empresa");
+  // padrão autônomo selecionado ao entrar no onboarding
+  const [userType, setUserType] = useState<UserType>("autonomo");
 
   const [area, setArea] = useState("");
   const [professionalId, setProfessionalId] = useState("");
