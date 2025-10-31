@@ -52,6 +52,9 @@ export const RenderStep = ({
   const [singleLocationMode, setSingleLocationMode] = useState<boolean | null>(
     true
   );
+  const [attendOnline, setAttendOnline] = useState(false);
+  const [attendHome, setAttendHome] = useState(false);
+  const [attendWorkspace, setAttendWorkspace] = useState(true);
   const [locations, setLocations] = useState<Location[]>([]);
   const [editingLocation, setEditingLocation] = useState<Location | null>(null);
   const [showLocationForm, setShowLocationForm] = useState(false);
@@ -116,13 +119,13 @@ export const RenderStep = ({
   const canProceedStep1 = userType !== "";
 
   const canProceedLocations = () => {
+    // se usuário selecionar online ou a domicílio, permite avançar imediatamente
+    if (attendOnline || attendHome) return true;
     if (singleLocationMode === null) return false;
     if (singleLocationMode === true) {
-      return (
-        !!singleLocation ||
-        locations.length > 0 ||
-        !!(locationForm.address || locationForm.city)
-      );
+      // Exigir que o usuário realmente adicione o local usando a ação "Adicionar".
+      // NÃO permitir avançar apenas preenchendo os campos do formulário (locationForm).
+      return !!singleLocation || locations.length > 0;
     }
     return locations.length > 0;
   };
@@ -253,6 +256,12 @@ export const RenderStep = ({
           prevStep={prevStep}
           initialAttendWorkspace={true}
           headerLeft={<ArrowLeft className="w-6 h-6 text-[#141736] cursor-pointer" onClick={prevStep} />}
+          attendOnline={attendOnline}
+          setAttendOnline={setAttendOnline}
+          attendHome={attendHome}
+          setAttendHome={setAttendHome}
+          attendWorkspace={attendWorkspace}
+          setAttendWorkspace={setAttendWorkspace}
           singleLocationMode={singleLocationMode}
           setSingleLocationMode={setSingleLocationMode}
           locationForm={locationForm}
@@ -303,7 +312,6 @@ export const RenderStep = ({
 
     return (
       <div className={containerClass}>
-        {/* Back button only on step 3 in footer (header still has back for other steps) */}
         {step === 3 && (
           <Button
             type="button"
