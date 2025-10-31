@@ -27,6 +27,12 @@ interface Step2Props {
 
   headerLeft?: React.ReactNode;
   initialAttendWorkspace?: boolean;
+  attendHome?: boolean;
+  setAttendHome?: (v: boolean) => void;
+  attendOnline?: boolean;
+  setAttendOnline?: (v: boolean) => void;
+  attendWorkspace?: boolean;
+  setAttendWorkspace?: (v: boolean) => void;
 }
 
 export default function Step2({
@@ -48,12 +54,48 @@ export default function Step2({
   setEditingLocation,
   initialAttendWorkspace,
   headerLeft,
+  attendHome: propAttendHome,
+  setAttendHome: propSetAttendHome,
+  attendOnline: propAttendOnline,
+  setAttendOnline: propSetAttendOnline,
+  attendWorkspace: propAttendWorkspace,
+  setAttendWorkspace: propSetAttendWorkspace,
 }: Step2Props) {
-  const [attendHome, setAttendHome] = useState(false);
-  const [attendOnline, setAttendOnline] = useState(false);
-  const [attendWorkspace, setAttendWorkspace] = useState(
-    Boolean(initialAttendWorkspace)
+  const [attendHomeState, setAttendHomeState] = useState<boolean>(
+    propAttendHome ?? false
   );
+  const [attendOnlineState, setAttendOnlineState] = useState<boolean>(
+    propAttendOnline ?? false
+  );
+  const [attendWorkspaceState, setAttendWorkspaceState] = useState<boolean>(
+    propAttendWorkspace ?? Boolean(initialAttendWorkspace)
+  );
+
+  // Sync local state when parent-controlled values change
+  useEffect(() => {
+    if (propAttendHome !== undefined) setAttendHomeState(propAttendHome);
+  }, [propAttendHome]);
+  useEffect(() => {
+    if (propAttendOnline !== undefined) setAttendOnlineState(propAttendOnline);
+  }, [propAttendOnline]);
+  useEffect(() => {
+    if (propAttendWorkspace !== undefined)
+      setAttendWorkspaceState(propAttendWorkspace);
+  }, [propAttendWorkspace]);
+
+
+  const setAttendHome = (v: boolean) => {
+    if (typeof propSetAttendHome === "function") propSetAttendHome(v);
+    else setAttendHomeState(v);
+  };
+  const setAttendOnline = (v: boolean) => {
+    if (typeof propSetAttendOnline === "function") propSetAttendOnline(v);
+    else setAttendOnlineState(v);
+  };
+  const setAttendWorkspace = (v: boolean) => {
+    if (typeof propSetAttendWorkspace === "function") propSetAttendWorkspace(v);
+    else setAttendWorkspaceState(v);
+  };
   const [animateIn, setAnimateIn] = useState(false);
   const questionRef = useRef<HTMLDivElement | null>(null);
 
@@ -61,6 +103,10 @@ export default function Step2({
 
   void step;
   void setStep;
+
+  const attendHome = propAttendHome ?? attendHomeState;
+  const attendOnline = propAttendOnline ?? attendOnlineState;
+  const attendWorkspace = propAttendWorkspace ?? attendWorkspaceState;
 
   const showLocationsQuestion = attendWorkspace;
 
