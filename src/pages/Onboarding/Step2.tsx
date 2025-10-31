@@ -234,7 +234,7 @@ export default function Step2({
                 </div>
               ) : singleLocationMode && singleLocation ? (
                 <div className="space-y-2">
-                  <div className="flex justify-between items-center border p-2 rounded-lg mb-4">
+                  <div className="flex justify-between items-center border p-2 rounded-lg mb-4 mt-6">
                     <div>
                       <p className="font-semibold">
                         {singleLocation.name ||
