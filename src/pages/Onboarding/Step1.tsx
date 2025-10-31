@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import CustomRadioInput from "@/components/CustomRadioInput";
 import { Input } from "@/components/ui/input";
@@ -53,6 +53,24 @@ export default function Step1({
   };
   const [referrer, setReferrer] = useState("");
   const [referrerOther, setReferrerOther] = useState("");
+
+  useEffect(() => {
+    if (referrer === "outro") {
+      // foca no input de "outro" após um pequeno delay para garantir
+      // que o Select (overlay) já tenha fechado e o input esteja interativo
+      setTimeout(() => {
+        const el = document.getElementById("referrerOther") as HTMLInputElement | null;
+        if (el) {
+          el.focus();
+          try {
+            el.select();
+          } catch (e) {
+
+          }
+        }
+      }, 150);
+    }
+  }, [referrer]);
   const handleUserTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUserType(e.target.value as UserType);
   };
@@ -115,7 +133,6 @@ export default function Step1({
                 />
               </div>
 
-              {/* right column: stack professionalId and the conditional 'outro' input */}
               <div className="w-full">
                 <Input
                   label="Nº de registro profissional"
@@ -186,11 +203,10 @@ export default function Step1({
             <div className="w-full">
               <Input
                 type="text"
-                label="Onde você nos encontrou?"
+                label="Por favor, especifique"
                 id="referrerOther"
                 value={referrerOther}
                 onChange={(e) => setReferrerOther(e.target.value)}
-                placeholder="Conte-nos onde nos encontrou"
               />
             </div>
           )}
