@@ -104,7 +104,7 @@ export default function Step2({
             />
             <div className={`flex flex-col w-full justify-center text-center gap-4 transition-colors duration-200 ease-in-out ${attendWorkspace ? 'text-[#141736]' : 'text-[#A8A7A7]'}`}>
               <span className="select-none font-semibold text-[20px]">Consultório</span>
-              <MapPin className="self-center text-black" size={48} />
+              <MapPin className={`self-center ${attendWorkspace ? 'text-black' : 'text[#A8A7A7]'}`} size={48} />
             </div>
             <div className={`absolute top-4 right-4 h-5 w-5 rounded-full border ${attendWorkspace ? 'bg-[#141736] border-[#141736]' : 'bg-white border-gray-500'}`} />
           </label>
@@ -116,7 +116,7 @@ export default function Step2({
             />
             <div className={`flex flex-col w-full justify-center text-center gap-4 transition-colors duration-200 ease-in-out ${attendOnline ? 'text-[#141736]' : 'text-[#A8A7A7]'}`}>
               <span className="select-none font-semibold text-[20px]">Online</span>
-              <Globe className="self-center text-black" size={48} />
+              <Globe className={`self-center ${attendOnline ? 'text-black' : 'text[#A8A7A7]'}`} size={48} />
             </div>
             <div className={`absolute top-4 right-4 h-5 w-5 rounded-full border ${attendOnline ? 'bg-[#141736] border-[#141736]' : 'bg-white border-gray-500'}`} />
           </label>
@@ -128,7 +128,7 @@ export default function Step2({
             />
             <div className={`flex flex-col w-full justify-center text-center gap-4 transition-colors duration-200 ease-in-out ${attendHome ? 'text-[#141736]' : 'text-[#A8A7A7]'}`}>
               <span className="select-none font-semibold text-[20px]">A domicilio</span>
-              <House className="self-center text-black" size={48} />
+              <House className={`self-center ${attendHome ? 'text-black' : 'text[#A8A7A7]'}`} size={48} />
             </div>
             <div className={`absolute top-4 right-4 h-5 w-5 rounded-full border ${attendHome ? 'bg-[#141736] border-[#141736]' : 'bg-white border-gray-500'}`} />
           </label>
