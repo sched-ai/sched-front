@@ -309,6 +309,7 @@ export const RenderStep = ({
         handleScheduleChange={handleScheduleChange}
         singleLocationMode={singleLocationMode}
         locations={locations}
+        singleLocation={singleLocation}
       />
     );
   };

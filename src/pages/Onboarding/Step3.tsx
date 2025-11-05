@@ -28,10 +28,11 @@ interface Step3Props {
   ) => void;
   singleLocationMode: boolean | null;
   locations: Location[];
+  singleLocation?: Location | null;
   step?: number;
   setStep?: (step: number | ((prev: number) => number)) => void;
   prevStep?: () => void;
-  /** Optional node to render above the title (e.g. back arrow) */
+  /** nó opcional para renderizar acima do título (por exemplo, seta para voltar) */
   headerLeft?: React.ReactNode;
 }
 
@@ -48,6 +49,7 @@ export default function Step3({
   handleScheduleChange,
   singleLocationMode,
   locations,
+  singleLocation,
   step,
   setStep,
   prevStep,
@@ -56,6 +58,14 @@ export default function Step3({
   void step;
   void setStep;
   void prevStep;
+  // construir a lista de locais para exibir os horários:
+  const locationsForSchedule =
+    singleLocationMode === true
+      ? singleLocation
+        ? [singleLocation]
+        : []
+      : locations || [];
+
   return (
     <>
   <div className="mb-8 flex flex-col items-start">
@@ -67,38 +77,44 @@ export default function Step3({
       </div>
       <div className="">
         <div className="flex gap-4">
-          <CustomRadioInput
-            label="Horário Fixo"
-            htmlFor="horarioFixo"
-            name="tipoHorario"
-            Icon={undefined}
-            value="fixo"
-            checked={scheduleMode === "fixo"}
-            subtitle="Tenho horários iguais todos os dias"
-            onChange={() => setScheduleMode("fixo")}
-          />
-          <CustomRadioInput
-            label="Horário Flexível"
-            htmlFor="flexivel"
-            name="tipoHorario"
-            Icon={undefined}
-            value="flexivel"
-            checked={scheduleMode === "flexivel"}
-            subtitle="Tenho horários diferentes"
-            onChange={() => setScheduleMode("flexivel")}
-          />
-          {singleLocationMode === false && (
+          <div className="flex-1">
             <CustomRadioInput
-              label="Horário por local de trabalho"
+              label="Horário Fixo"
+              htmlFor="horarioFixo"
+              name="tipoHorario"
+              Icon={undefined}
+              value="fixo"
+              checked={scheduleMode === "fixo"}
+              subtitle="Tenho horários iguais todos os dias"
+              onChange={() => setScheduleMode("fixo")}
+            />
+          </div>
+          <div className="flex-1">
+            <CustomRadioInput
+              label="Horário Flexível"
+              htmlFor="flexivel"
+              name="tipoHorario"
+              Icon={undefined}
+              value="flexivel"
+              checked={scheduleMode === "flexivel"}
+              subtitle="Tenho horários diferentes"
+              onChange={() => setScheduleMode("flexivel")}
+            />
+          </div>
+          <div className={`flex-1 ${locationsForSchedule.length === 0 ? 'opacity-50 pointer-events-none' : ''}`}>
+            <CustomRadioInput
+              label="Horário por local"
               htmlFor="porLocal"
               name="tipoHorario"
               Icon={undefined}
               value="porLocal"
               checked={scheduleMode === "porLocal"}
               subtitle="Tenho horários diferentes para cada local"
-              onChange={() => setScheduleMode("porLocal")}
+              onChange={() => {
+                if (locationsForSchedule.length > 0) setScheduleMode("porLocal");
+              }}
             />
-          )}
+          </div>
         </div>
 
         {scheduleMode === "fixo" && (
@@ -118,8 +134,8 @@ export default function Step3({
               </div>
             </div>
             <p className="font-semibold">Selecione os dias da semana:</p>
-            <div className="flex flex-wrap justify-center gap-4">
-              {([
+            <div className="mt-2 grid gap-2">
+              {( [
                 "segunda",
                 "terça",
                 "quarta",
@@ -127,14 +143,31 @@ export default function Step3({
                 "sexta",
                 "sábado",
                 "domingo",
-              ] as DayKey[]).map((d) => (
-                <div key={d} className="flex items-center justify-between gap-4 border p-2 rounded-lg">
-                  <div className="flex items-center gap-4">
-                    <Checkbox checked={fixedDays.includes(d)} onCheckedChange={() => toggleFixedDay(d)} />
-                    <div className="w-24 capitalize">{d}</div>
+              ] as DayKey[]).map((d) => {
+                const isSelected = fixedDays.includes(d);
+                return (
+                  <div
+                    key={d}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => toggleFixedDay(d)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        toggleFixedDay(d);
+                      }
+                    }}
+                    className={`flex items-center justify-between gap-4 border p-4 rounded-lg transition-discrete ${!isSelected ? "bg-gray-100" : "bg-white hover:shadow-[3px_4px_35px_#1417362B]"}`}
+                  >
+                    <div className="flex items-center gap-4" onClick={(e) => e.stopPropagation()}>
+                      <Checkbox checked={isSelected} onCheckedChange={() => toggleFixedDay(d)} onClick={(e) => e.stopPropagation()} />
+                      <div className="w-32 capitalize">{d}</div>
+                    </div>
+                    {/* lado direito vazio para combinar com o layout flexível */}
+                    <div className="w-40" />
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
@@ -155,11 +188,11 @@ export default function Step3({
                       handleScheduleChange(day, "working", !isWorking);
                     }
                   }}
-                  className={`flex items-center justify-between gap-4 border p-2 rounded-lg transition-discrete ${!isWorking ? "bg-gray-100" : "bg-white hover:shadow-[3px_4px_35px_#1417362B]"}`}
+                  className={`flex items-center justify-between gap-4 border p-4 rounded-lg transition-discrete ${!isWorking ? "bg-gray-100" : "bg-white hover:shadow-[3px_4px_35px_#1417362B]"}`}
                 >
                   <div className="flex items-center gap-4" onClick={(e) => e.stopPropagation()}>
                     <Checkbox checked={schedule[day].working} onCheckedChange={(v) => handleScheduleChange(day, "working", Boolean(v))} onClick={(e) => e.stopPropagation()} />
-                    <div className="w-24 capitalize">{day}</div>
+                    <div className="w-32 capitalize">{day}</div>
                   </div>
 
                   <div className={`flex items-center gap-2 ${!isWorking ? "opacity-60" : ""}`} onClick={(e) => e.stopPropagation()}>
@@ -175,49 +208,53 @@ export default function Step3({
 
         {scheduleMode === "porLocal" && (
           <div className="mt-6">
-            {locations.map((loc) => (
-              <Accordion type="single" collapsible key={loc.id}>
-                <AccordionItem value="item-1" className="!border rounded-lg mb-4 hover:shadow-[3px_4px_35px_#1417362B] transition-shadow">
-                  <AccordionTrigger className="cursor-pointer !no-underline p-4">
-                    <div className="flex flex-col">
-                      <p className="font-semibold">Apelido do local</p>
-                      <p className="text-sm text-muted-foreground">cidade / estado</p>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="border-t py-2 grid min-[1600px]:grid-cols-2 gap-4 px-2 max-h-[400px] overflow-y-auto custom-scrollbar ">
-                    {(Object.keys(schedule) as DayKey[]).map((day) => {
-                      const isWorking = Boolean(schedule[day].working);
-                      return (
-                        <div
-                          key={day}
-                          role="button"
-                          tabIndex={0}
-                          onClick={() => handleScheduleChange(day, "working", !isWorking)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              handleScheduleChange(day, "working", !isWorking);
-                            }
-                          }}
-                          className={`flex items-center justify-between gap-4 border px-2 rounded-lg transition-discrete py-1 ${!isWorking ? "bg-gray-100" : "bg-white hover:shadow-[3px_4px_35px_#1417362B]"}`}
-                        >
-                          <div className="flex items-center gap-4" onClick={(e) => e.stopPropagation()}>
-                            <Checkbox checked={schedule[day].working} onCheckedChange={(v) => handleScheduleChange(day, "working", Boolean(v))} onClick={(e) => e.stopPropagation()} />
-                            <div className="w-24 capitalize">{day}</div>
-                          </div>
+            {locationsForSchedule.length === 0 ? (
+              <div className="text-sm text-muted-foreground">Nenhum local cadastrado.</div>
+            ) : (
+              locationsForSchedule.map((loc) => (
+                <Accordion type="single" collapsible key={loc.id}>
+                  <AccordionItem value={`loc-${loc.id}`} className="!border rounded-lg mb-4 hover:shadow-[3px_4px_35px_#1417362B] transition-shadow">
+                    <AccordionTrigger className="cursor-pointer !no-underline p-4">
+                      <div className="flex flex-col">
+                        <p className="font-semibold">{loc.name || `${loc.address} ${loc.number}`}</p>
+                        <p className="text-sm text-muted-foreground">{loc.city} / {loc.state}</p>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="border-t py-2 grid min-[1600px]:grid-cols-2 gap-4 px-2 max-h-[400px] overflow-y-auto custom-scrollbar ">
+                      {(Object.keys(schedule) as DayKey[]).map((day) => {
+                        const isWorking = Boolean(schedule[day].working);
+                        return (
+                          <div
+                            key={day}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => handleScheduleChange(day, "working", !isWorking)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                handleScheduleChange(day, "working", !isWorking);
+                              }
+                            }}
+                            className={`flex items-center justify-between gap-4 border px-4 rounded-lg transition-discrete py-2 ${!isWorking ? "bg-gray-100" : "bg-white hover:shadow-[3px_4px_35px_#1417362B]"}`}
+                          >
+                            <div className="flex items-center gap-4" onClick={(e) => e.stopPropagation()}>
+                              <Checkbox checked={schedule[day].working} onCheckedChange={(v) => handleScheduleChange(day, "working", Boolean(v))} onClick={(e) => e.stopPropagation()} />
+                              <div className="w-24 capitalize">{day}</div>
+                            </div>
 
-                          <div className={`flex items-center gap-2 ${!isWorking ? "opacity-60" : ""}`} onClick={(e) => e.stopPropagation()}>
-                            <Input type="time" value={schedule[day].start} onChange={(e) => handleScheduleChange(day, "start", e.target.value)} disabled={!isWorking} />
-                            <span>-</span>
-                            <Input type="time" value={schedule[day].end} onChange={(e) => handleScheduleChange(day, "end", e.target.value)} disabled={!isWorking} />
+                            <div className={`flex items-center gap-2 ${!isWorking ? "opacity-60" : ""}`} onClick={(e) => e.stopPropagation()}>
+                              <Input type="time" value={schedule[day].start} onChange={(e) => handleScheduleChange(day, "start", e.target.value)} disabled={!isWorking} />
+                              <span>-</span>
+                              <Input type="time" value={schedule[day].end} onChange={(e) => handleScheduleChange(day, "end", e.target.value)} disabled={!isWorking} />
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-            ))}
+                        );
+                      })}
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              ))
+            )}
           </div>
         )}
       </div>
