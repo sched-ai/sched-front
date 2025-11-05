@@ -119,8 +119,14 @@ export const RenderStep = ({
   const canProceedStep1 = userType !== "";
 
   const canProceedLocations = () => {
-    // se usuário selecionar online ou a domicílio, permite avançar imediatamente
+    // requer ao menos um tipo de atendimento selecionado
+    const anyAttendanceSelected = attendOnline || attendHome || attendWorkspace;
+    if (!anyAttendanceSelected) return false;
+
+    // se o usuário atende online ou em domicílio, pode prosseguir
     if (attendOnline || attendHome) return true;
+
+    // A partir daqui, attendWorkspace deve ser verdadeiro. Então consultório deve ter um local adicionado.
     if (singleLocationMode === null) return false;
     if (singleLocationMode === true) {
       // Exigir que o usuário realmente adicione o local usando a ação "Adicionar".
