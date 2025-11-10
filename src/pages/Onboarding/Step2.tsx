@@ -140,7 +140,7 @@ export default function Step2({
           </p>
         </div>
       </div>
-      <div className="flex flex-col gap-4 h-full">
+      <div className="flex flex-col gap-4">
   <div className="flex flex-col items-center gap-[25px] mt-2 mb-2 md:flex-row md:flex-wrap md:justify-between h-fit">
           <label className={`relative flex items-start gap-2 border p-6 rounded-lg w-[80%] md:flex-1 md:min-w-[220px] md:max-w-[32%] mx-auto cursor-pointer hover:shadow-[3px_4px_35px_#0015fc2b] transition duration-200 ${attendWorkspace ? 'border-[#141736]' : 'border-gray-400'}`}>
             <Checkbox

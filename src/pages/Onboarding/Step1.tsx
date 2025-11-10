@@ -56,8 +56,6 @@ export default function Step1({
 
   useEffect(() => {
     if (referrer === "outro") {
-      // foca no input de "outro" após um pequeno delay para garantir
-      // que o Select (overlay) já tenha fechado e o input esteja interativo
       setTimeout(() => {
         const el = document.getElementById("referrerOther") as HTMLInputElement | null;
         if (el) {
@@ -65,7 +63,7 @@ export default function Step1({
           try {
             el.select();
           } catch (e) {
-
+            console.log("Erro ao selecionar o texto do input de outro referrer:", e);
           }
         }
       }, 150);
