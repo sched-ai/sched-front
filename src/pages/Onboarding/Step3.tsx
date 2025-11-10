@@ -1,5 +1,4 @@
 import CustomRadioInput from "@/components/CustomRadioInput";
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,6 +28,14 @@ interface Step3Props {
   singleLocationMode: boolean | null;
   locations: Location[];
   singleLocation?: Location | null;
+  // schedules por local: chave = location.id
+  locationSchedules?: Record<string, Record<DayKey, DaySchedule>>;
+  handleLocationScheduleChange?: (
+    locationId: string,
+    day: DayKey,
+    field: "working" | "start" | "end",
+    value: string | boolean
+  ) => void;
   step?: number;
   setStep?: (step: number | ((prev: number) => number)) => void;
   prevStep?: () => void;
@@ -50,6 +57,8 @@ export default function Step3({
   singleLocationMode,
   locations,
   singleLocation,
+  locationSchedules,
+  handleLocationScheduleChange,
   step,
   setStep,
   prevStep,
@@ -221,31 +230,77 @@ export default function Step3({
                       </div>
                     </AccordionTrigger>
                     <AccordionContent className="border-t py-2 grid min-[1600px]:grid-cols-2 gap-4 px-2 max-h-[400px] overflow-y-auto custom-scrollbar ">
-                      {(Object.keys(schedule) as DayKey[]).map((day) => {
-                        const isWorking = Boolean(schedule[day].working);
+                      {(Object.keys(
+                        // usar schedule do local específico se existir
+                        (locationSchedules && locationSchedules[loc.id]) || schedule
+                      ) as DayKey[]).map((day) => {
+                        const localSched = (locationSchedules && locationSchedules[loc.id]) || schedule;
+                        const isWorking = Boolean(localSched[day].working);
                         return (
                           <div
                             key={day}
                             role="button"
                             tabIndex={0}
-                            onClick={() => handleScheduleChange(day, "working", !isWorking)}
+                            onClick={() => {
+                              if (scheduleMode === "porLocal" && handleLocationScheduleChange) {
+                                handleLocationScheduleChange(loc.id, day, "working", !isWorking);
+                              } else {
+                                handleScheduleChange(day, "working", !isWorking);
+                              }
+                            }}
                             onKeyDown={(e) => {
                               if (e.key === "Enter" || e.key === " ") {
                                 e.preventDefault();
-                                handleScheduleChange(day, "working", !isWorking);
+                                if (scheduleMode === "porLocal" && handleLocationScheduleChange) {
+                                  handleLocationScheduleChange(loc.id, day, "working", !isWorking);
+                                } else {
+                                  handleScheduleChange(day, "working", !isWorking);
+                                }
                               }
                             }}
                             className={`flex items-center justify-between gap-4 border px-4 rounded-lg transition-discrete py-2 ${!isWorking ? "bg-gray-100" : "bg-white hover:shadow-[3px_4px_35px_#1417362B]"}`}
                           >
                             <div className="flex items-center gap-4" onClick={(e) => e.stopPropagation()}>
-                              <Checkbox checked={schedule[day].working} onCheckedChange={(v) => handleScheduleChange(day, "working", Boolean(v))} onClick={(e) => e.stopPropagation()} />
+                              <Checkbox
+                                checked={localSched[day].working}
+                                onCheckedChange={(v) => {
+                                  if (scheduleMode === "porLocal") {
+                                    if (handleLocationScheduleChange) handleLocationScheduleChange(loc.id, day, "working", Boolean(v));
+                                  } else {
+                                    handleScheduleChange(day, "working", Boolean(v));
+                                  }
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                              />
                               <div className="w-24 capitalize">{day}</div>
                             </div>
 
                             <div className={`flex items-center gap-2 ${!isWorking ? "opacity-60" : ""}`} onClick={(e) => e.stopPropagation()}>
-                              <Input type="time" value={schedule[day].start} onChange={(e) => handleScheduleChange(day, "start", e.target.value)} disabled={!isWorking} />
+                              <Input
+                                type="time"
+                                value={localSched[day].start}
+                                onChange={(e) => {
+                                  if (scheduleMode === "porLocal") {
+                                    if (handleLocationScheduleChange) handleLocationScheduleChange(loc.id, day, "start", e.target.value);
+                                  } else {
+                                    handleScheduleChange(day, "start", e.target.value);
+                                  }
+                                }}
+                                disabled={!isWorking}
+                              />
                               <span>-</span>
-                              <Input type="time" value={schedule[day].end} onChange={(e) => handleScheduleChange(day, "end", e.target.value)} disabled={!isWorking} />
+                              <Input
+                                type="time"
+                                value={localSched[day].end}
+                                onChange={(e) => {
+                                  if (scheduleMode === "porLocal") {
+                                    if (handleLocationScheduleChange) handleLocationScheduleChange(loc.id, day, "end", e.target.value);
+                                  } else {
+                                    handleScheduleChange(day, "end", e.target.value);
+                                  }
+                                }}
+                                disabled={!isWorking}
+                              />
                             </div>
                           </div>
                         );

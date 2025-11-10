@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/tooltip";
 import { useNavigate } from "react-router-dom";
 import { useOnboarding, type IOnboardingBody } from "@/hooks/api/useOnboarding";
-import { queryClient } from "@/App";
 import { formatCnpj } from "@/util/helper"; 
 import {ArrowLeft} from "lucide-react";
 import type { DayKey, DaySchedule, Location, UserType } from "@/types";
@@ -26,7 +25,6 @@ export const RenderStep = ({
   const navigate = useNavigate();
   const { mutate: submitOnboarding } = useOnboarding({
     onSuccessFn: () => {
-      queryClient.invalidateQueries({ queryKey: ["user"] });
       navigate("/");
     },
   });
@@ -72,6 +70,17 @@ export const RenderStep = ({
 
   const [locationForm, setLocationForm] = useState<Location>(emptyLocation());
 
+  // schedules por local: chave = location.id -> Record<DayKey, DaySchedule>
+  const [locationSchedules, setLocationSchedules] = useState<
+    Record<string, Record<DayKey, DaySchedule>>
+  >({});
+
+  const cloneSchedule = (s: Record<DayKey, DaySchedule>) => {
+    return Object.fromEntries(
+      Object.entries(s).map(([k, v]) => [k, { ...(v as DaySchedule) }])
+    ) as Record<DayKey, DaySchedule>;
+  };
+
   const addOrUpdateLocation = () => {
     if (singleLocationMode === true) {
       if (
@@ -96,6 +105,11 @@ export const RenderStep = ({
       setEditingLocation(null);
     } else {
       setLocations((prev) => [...prev, locationForm]);
+      // inicializa o schedule do novo local com a configuração atual
+      setLocationSchedules((prev) => ({
+        ...prev,
+        [locationForm.id]: cloneSchedule(schedule),
+      }));
     }
     setLocationForm(emptyLocation());
     setShowLocationForm(false);
@@ -107,6 +121,11 @@ export const RenderStep = ({
       return;
     }
     setLocations((prev) => prev.filter((l) => l.id !== id));
+    setLocationSchedules((prev) => {
+      const copy = { ...prev };
+      delete copy[id];
+      return copy;
+    });
   };
 
   const editLocation = (loc: Location) => {
@@ -114,6 +133,22 @@ export const RenderStep = ({
     setLocationForm(loc);
     // abrir formulário ao editar
     setShowLocationForm(true);
+  };
+
+  // handler para atualizar schedule de um local específico
+  const handleLocationScheduleChange = (
+    locationId: string,
+    day: keyof typeof schedule,
+    field: "working" | "start" | "end",
+    value: string | boolean
+  ) => {
+    setLocationSchedules((prev) => ({
+      ...prev,
+      [locationId]: {
+        ...prev[locationId],
+        [day]: { ...prev[locationId][day], [field]: value },
+      },
+    }));
   };
 
   const canProceedStep1 = userType !== "";
@@ -206,7 +241,11 @@ export const RenderStep = ({
       fieldOfWork: userType === "autonomo" ? area : companyArea,
       professionalLicense: userType === "autonomo" ? professionalId : undefined,
       companyName: userType === "empresa" ? companyName : undefined,
-      companyDocument: userType === "empresa" ? cnpj : undefined,
+      // enviar o documento sem formatação para a API
+      companyDocument:
+        userType === "empresa" ? cnpj.replace(/\D/g, "") : undefined,
+      offersHomeVisit: attendHome,
+      offersOnline: attendOnline,
       workSchedules,
       locations:
         singleLocationMode === true && singleLocation
@@ -310,12 +349,44 @@ export const RenderStep = ({
         singleLocationMode={singleLocationMode}
         locations={locations}
         singleLocation={singleLocation}
+        locationSchedules={locationSchedules}
+        handleLocationScheduleChange={handleLocationScheduleChange}
       />
     );
   };
 
+  // sincroniza locationSchedules quando entramos em modo porLocal ou quando locais mudam
+  useEffect(() => {
+    if (scheduleMode !== "porLocal") return;
+    // caso singleLocationMode, garantir entry para singleLocation
+    if (singleLocationMode === true) {
+      if (!singleLocation) return;
+      setLocationSchedules((prev) => {
+        if (prev[singleLocation.id]) return prev; // já existe, nada a fazer
+        return { ...prev, [singleLocation.id]: cloneSchedule(schedule) };
+      });
+      return;
+    }
+
+    // para múltiplos locais, garantir entries para todos
+    if (locations && locations.length > 0) {
+      setLocationSchedules((prev) => {
+        // só criar novo objeto se realmente houver locais faltantes
+        let changed = false;
+        const next = { ...prev };
+        for (const loc of locations) {
+          if (!next[loc.id]) {
+            next[loc.id] = cloneSchedule(schedule);
+            changed = true;
+          }
+        }
+        return changed ? next : prev;
+      });
+    }
+  }, [scheduleMode, locations, singleLocation, singleLocationMode, schedule]);
+
   const renderFooter = () => {
-    const containerClass = `flex items-center mt-6 h-fit ${step === 3 ? 'justify-between' : 'justify-end'}`;
+    const containerClass = `flex items-center my-2 h-fit ${step === 3 ? 'justify-between' : 'justify-end'}`;
 
     return (
       <div className={containerClass}>

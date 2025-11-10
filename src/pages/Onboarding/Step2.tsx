@@ -190,7 +190,7 @@ export default function Step2({
             <p className="font-semibold mb-2">
               Em quantos locais você realiza atendimentos?
             </p>
-            <div className="flex gap-4">
+            <div className="flex gap-4 mb-6 relative z-10">
               <CustomRadioInput
                 label="Local Único"
                 htmlFor="single-local"
@@ -222,7 +222,7 @@ export default function Step2({
             </div>
             <div>
               {singleLocationMode && !singleLocation ? (
-                <div className="mt-8">
+                <div>
                   <LocationFormsToAdd
                     multipleLocations={false}
                     locationForm={locationForm}
@@ -234,7 +234,7 @@ export default function Step2({
                 </div>
               ) : singleLocationMode && singleLocation ? (
                 <div className="space-y-2">
-                  <div className="flex justify-between items-center border p-2 rounded-lg mb-4 mt-6">
+                  <div className="flex justify-between items-center border p-2 rounded-lg mb-4">
                     <div>
                       <p className="font-semibold">
                         {singleLocation.name ||
@@ -308,7 +308,7 @@ export default function Step2({
                   )}
 
                   {(showLocationForm || locations.length === 0) && (
-                    <div className="mt-8">
+                    <div>
                       <LocationFormsToAdd
                         multipleLocations={true}
                         locationForm={locationForm}
