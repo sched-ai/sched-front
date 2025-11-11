@@ -67,7 +67,7 @@ export const Onboarding = () => {
                       <div
                         className={`w-10 h-10 rounded-full border-2 border-white ${isCompleted ? completedStepStyle : isCurrent ? currentStepStyle : upcomingStepStyle} flex items-center justify-center ${isCurrent ? 'scale-105 shadow-lg' : ''} transition-all duration-300 ease-in-out`}
                       >
-                        <span className="font-semibold leading-0">{s.step === 2 ? '2-3' : s.step}</span>
+                        <span className="font-semibold leading-0">{s.step}</span>
                       </div>
                       <div>
                         <h5 className="text-white font-semibold text-2xl">
