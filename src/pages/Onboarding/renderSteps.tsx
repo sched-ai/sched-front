@@ -28,7 +28,7 @@ export const RenderStep = ({
       navigate("/");
     },
   });
-  // padrão autônomo selecionado ao entrar no onboarding
+
   const [userType, setUserType] = useState<UserType>("autonomo");
 
   const [area, setArea] = useState("");
@@ -57,6 +57,46 @@ export const RenderStep = ({
   const [editingLocation, setEditingLocation] = useState<Location | null>(null);
   const [showLocationForm, setShowLocationForm] = useState(false);
   const [singleLocation, setSingleLocation] = useState<Location | null>(null);
+
+  useEffect(() => {
+    const addOrRemoveSpecial = (
+      flag: boolean,
+      id: string,
+      name: string
+    ) => {
+      setLocations((prev) => {
+        const exists = prev.some((l) => l.id === id);
+        if (flag && !exists) {
+          return [
+            { id, name, address: "", number: "", city: "", state: "", complement: "" },
+            ...prev,
+          ];
+        }
+        if (!flag && exists) {
+          return prev.filter((l) => l.id !== id);
+        }
+        return prev;
+      });
+
+      setLocationSchedules((prev) => {
+        const copy = { ...prev };
+        if (flag) {
+          if (!copy[id]) copy[id] = cloneSchedule(schedule);
+        } else {
+          if (copy[id]) delete copy[id];
+        }
+        return copy;
+      });
+
+      if (!flag && singleLocation?.id === id) {
+        setSingleLocation(null);
+      }
+    };
+
+    addOrRemoveSpecial(attendOnline, "online", "Online");
+    addOrRemoveSpecial(attendHome, "home", "Domicílio");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [attendOnline, attendHome]);
 
   const emptyLocation = (): Location => ({
     id: Date.now().toString(),
@@ -154,6 +194,18 @@ export const RenderStep = ({
     if (!anyAttendanceSelected) return false;
 
     if ((attendOnline || attendHome) && !attendWorkspace) return true;
+
+    const isSpecial = (id: string) => id === "online" || id === "home";
+
+    let hasNonSpecial = false;
+    if (singleLocationMode === true) {
+      if (singleLocation && !isSpecial(singleLocation.id)) hasNonSpecial = true;
+      if (!hasNonSpecial && locations.some((l) => !isSpecial(l.id))) hasNonSpecial = true;
+    } else {
+      if (locations.some((l) => !isSpecial(l.id))) hasNonSpecial = true;
+    }
+
+    if (attendWorkspace && !hasNonSpecial) return false;
 
     if (singleLocationMode === null) return false;
     if (singleLocationMode === true) {
@@ -332,10 +384,71 @@ export const RenderStep = ({
       offersHomeVisit: attendHome,
       offersOnline: attendOnline,
       workSchedules,
-      locations:
-        singleLocationMode === true && singleLocation
-          ? [singleLocation]
-          : locations,
+      locations: (() => {
+        const specialIds = new Set(["online", "home"]);
+
+        const buildLocationSchedulesFromMap = (
+          schedMap: Record<string, { working: boolean; start: string; end: string }>
+        ) => {
+          return Object.entries(schedMap)
+            .filter(([, details]) => details.working)
+            .map(([day, details]) => ({
+              day: dayMap[day as keyof typeof dayMap],
+              startTime: details.start,
+              endTime: details.end,
+            }));
+        };
+
+        const buildSchedulesForLocation = (locId: string) => {
+          if (scheduleMode === "porLocal") {
+            const map = locationSchedules[locId] ?? schedule;
+            return buildLocationSchedulesFromMap(map);
+          }
+
+          if (scheduleMode === "fixo") {
+            return fixedDays.map((d) => ({
+              day: dayMap[d],
+              startTime: fixedStart,
+              endTime: fixedEnd,
+            }));
+          }
+
+          return Object.entries(schedule)
+            .filter(([, details]) => details.working)
+            .map(([day, details]) => ({
+              day: dayMap[day as keyof typeof dayMap],
+              startTime: details.start,
+              endTime: details.end,
+            }));
+        };
+
+        const mapLocation = (l: Location) => {
+          const trimmedName = l.name?.trim();
+          const addressPart = l.address?.trim() ? `${l.address}${l.number ? ` ${l.number}` : ""}` : "";
+          const fallback = l.id === "online" ? "Online" : l.id === "home" ? "Domicílio" : addressPart || "Local";
+          return {
+            nickname: trimmedName || fallback,
+            address: l.address,
+            state: l.state,
+            city: l.city,
+            number: l.number,
+            complement: l.complement,
+            schedules: buildSchedulesForLocation(l.id),
+          };
+        };
+
+        if (singleLocationMode === true) {
+          if (singleLocation) {
+            const specials = locations.filter(
+              (l) => specialIds.has(l.id) && l.id !== singleLocation.id
+            );
+            return [mapLocation(singleLocation), ...specials.map(mapLocation)];
+          }
+          return locations.length > 0 ? locations.map(mapLocation) : undefined;
+        }
+
+        return locations.length > 0 ? locations.map(mapLocation) : undefined;
+      })(),
     };
 
     submitOnboarding(apiPayload);
@@ -478,12 +591,12 @@ export const RenderStep = ({
 
   const renderFooter = () => {
     const containerClass = `flex items-center my-2 h-fit ${
-      step === 3 ? "justify-between" : "justify-end"
+      step > 1 ? "justify-between" : "justify-end"
     }`;
 
     return (
       <div className={containerClass}>
-        {step === 3 && (
+        {step > 1 && (
           <Button
             type="button"
             variant="ghost"

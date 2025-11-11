@@ -48,18 +48,18 @@ export const useOnboarding = ({ onSuccessFn }: IUseMutationParams) => {
 			showSuccessFeedback: false,
 			endpoint: '/onboarding',
 			body: (() => {
-				const mappedLocations = (body.locations || []).map(loc => ({
-					id: loc.id,
-					nickname: loc.name,
-					cep: loc.cep,
-					address: loc.address,
-					number: loc.number,
-					district: loc.district,
-					city: loc.city,
-					state: loc.state,
-					complement: loc.complement,
-					schedules: loc.schedules ? loc.schedules.map(s => ({ day: s.dayOfWeek, startTime: s.startTime, endTime: s.endTime })) : [],
-				}));
+					const mappedLocations = (body.locations || []).map(loc => ({
+						id: loc.id,
+						nickname: (loc as { nickname?: string }).nickname ?? loc.name,
+						cep: loc.cep,
+						address: loc.address,
+						number: loc.number,
+						district: loc.district,
+						city: loc.city,
+						state: loc.state,
+						complement: loc.complement,
+						schedules: loc.schedules ? loc.schedules.map(s => ({ day: s.dayOfWeek, startTime: s.startTime, endTime: s.endTime })) : [],
+					}));
 
 				if (body.workSchedules && body.workSchedules.length > 0) {
 					const hasLocationIds = body.workSchedules.some(s => !!s.locationId);

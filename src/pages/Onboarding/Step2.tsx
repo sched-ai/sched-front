@@ -107,6 +107,9 @@ export default function Step2({
   const attendHome = propAttendHome ?? attendHomeState;
   const attendOnline = propAttendOnline ?? attendOnlineState;
   const attendWorkspace = propAttendWorkspace ?? attendWorkspaceState;
+  const visibleLocations = locations.filter(
+    (l) => l.id !== "online" && l.id !== "home"
+  );
 
   const showLocationsQuestion = attendWorkspace;
 
@@ -134,27 +137,27 @@ export default function Step2({
       <div className="mb-2 flex flex-col items-start">
         {headerLeft && <div className="mb-3">{headerLeft}</div>}
         <div>
-          <h4 className="font-semibold text-lg text-[30px]">Onde você atende?</h4>
-          <p className="text-muted-foreground text-[20px] mb-2">
+          <h4 className="font-semibold text-[30px] leading-none">Onde você atende?</h4>
+          <p className="text-muted-foreground text-[20px]">
             Cadastre os locais de atendimento.
           </p>
         </div>
       </div>
       <div className="flex flex-col gap-4">
   <div className="flex flex-col items-center gap-[25px] mt-2 mb-2 md:flex-row md:flex-wrap md:justify-between h-fit">
-          <label className={`relative flex items-start gap-2 border p-6 rounded-lg w-[80%] md:flex-1 md:min-w-[220px] md:max-w-[32%] mx-auto cursor-pointer hover:shadow-[3px_4px_35px_#0015fc2b] transition duration-200 ${attendWorkspace ? 'border-[#141736]' : 'border-gray-400'}`}>
+          <label className={`relative flex items-start gap-2 border p-4 rounded-lg w-[80%] md:flex-1 md:min-w-[220px] md:max-w-[32%] mx-auto cursor-pointer hover:shadow-[3px_4px_35px_#0015fc2b] transition duration-200 ${attendWorkspace ? 'border-[#141736]' : 'border-gray-400'}`}>
             <Checkbox
               className="sr-only"
               checked={attendWorkspace}
               onCheckedChange={(v) => setAttendWorkspace(Boolean(v))}
             />
             <div className={`flex flex-col w-full justify-center text-center gap-4 transition-colors duration-200 ease-in-out ${attendWorkspace ? 'text-[#141736]' : 'text-[#A8A7A7]'}`}>
-              <span className="select-none font-semibold text-[20px]">Consultório</span>
+              <span className="select-none font-semibold text-[20px]">Local de trabalho</span>
               <MapPin className={`self-center ${attendWorkspace ? 'text-black' : 'text[#A8A7A7]'}`} size={48} />
             </div>
             <div className={`absolute top-4 right-4 h-5 w-5 rounded-full border ${attendWorkspace ? 'bg-[#141736] border-[#141736]' : 'bg-white border-gray-500'}`} />
           </label>
-          <label className={`relative flex items-start gap-2 border p-6 rounded-lg w-[80%] md:flex-1 md:min-w-[220px] md:max-w-[32%] mx-auto cursor-pointer hover:shadow-[3px_4px_35px_#0015fc2b] transition duration-200 ${attendOnline ? 'border-[#141736]' : 'border-gray-400'}`}>
+          <label className={`relative flex items-start gap-2 border p-4 rounded-lg w-[80%] md:flex-1 md:min-w-[220px] md:max-w-[32%] mx-auto cursor-pointer hover:shadow-[3px_4px_35px_#0015fc2b] transition duration-200 ${attendOnline ? 'border-[#141736]' : 'border-gray-400'}`}>
             <Checkbox
               className="sr-only"
               checked={attendOnline}
@@ -166,7 +169,7 @@ export default function Step2({
             </div>
             <div className={`absolute top-4 right-4 h-5 w-5 rounded-full border ${attendOnline ? 'bg-[#141736] border-[#141736]' : 'bg-white border-gray-500'}`} />
           </label>
-          <label className={`relative flex items-start gap-2 border p-6 rounded-lg w-[80%] md:flex-1 md:min-w-[220px] md:max-w-[32%] mx-auto cursor-pointer hover:shadow-[3px_4px_35px_#0015fc2b] transition duration-200 ${attendHome ? 'border-[#141736]' : 'border-gray-400'}`}>
+          <label className={`relative flex items-start gap-2 border p-4 rounded-lg w-[80%] md:flex-1 md:min-w-[220px] md:max-w-[32%] mx-auto cursor-pointer hover:shadow-[3px_4px_35px_#0015fc2b] transition duration-200 ${attendHome ? 'border-[#141736]' : 'border-gray-400'}`}>
             <Checkbox
               className="sr-only"
               checked={attendHome}
@@ -221,7 +224,7 @@ export default function Step2({
               />
             </div>
             <div>
-              {singleLocationMode && !singleLocation ? (
+                  {singleLocationMode && !singleLocation ? (
                 <div>
                   <LocationFormsToAdd
                     multipleLocations={false}
@@ -268,10 +271,10 @@ export default function Step2({
 
               {!singleLocationMode && (
                 <div className="flex flex-col justify-between h-full max-h-[95%]">
-                  {locations.length === 0 || showLocationForm ? null : (
-                    <div className="overflow-y-auto h-[336px] custom-scrollbar">
-                      {!showLocationForm &&
-                        locations.map((loc) => (
+                  {visibleLocations.length === 0 || showLocationForm ? null : (
+                        <div className="overflow-y-auto h-[336px] custom-scrollbar">
+                          {!showLocationForm &&
+                            visibleLocations.map((loc) => (
                           <div
                             key={loc.id}
                             className="flex justify-between items-center border p-2 rounded-lg mb-4"
@@ -303,11 +306,11 @@ export default function Step2({
                               </Button>
                             </div>
                           </div>
-                        ))}
+                            ))}
                     </div>
                   )}
 
-                  {(showLocationForm || locations.length === 0) && (
+                  {(showLocationForm || visibleLocations.length === 0) && (
                     <div>
                       <LocationFormsToAdd
                         multipleLocations={true}
@@ -321,7 +324,7 @@ export default function Step2({
                   )}
                   {!showLocationForm &&
                     !singleLocationMode &&
-                    locations.length > 0 && (
+                    visibleLocations.length > 0 && (
                       <div className="flex items-center gap-2">
                         <Button
                           className="!text-[16px] font-medium px-2"
@@ -335,11 +338,11 @@ export default function Step2({
                           <Plus />
                           Adicionar Novo Local
                         </Button>
-                        {locations.length > 0 && (
+                        {visibleLocations.length > 0 && (
                           <div className="text-sm text-muted-foreground">
-                            {locations.length === 1
-                              ? `${locations.length} local adicionado`
-                              : `${locations.length} locais adicionados`}
+                            {visibleLocations.length === 1
+                              ? `${visibleLocations.length} local adicionado`
+                              : `${visibleLocations.length} locais adicionados`}
                           </div>
                         )}
                       </div>

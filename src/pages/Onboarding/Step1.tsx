@@ -128,6 +128,7 @@ export default function Step1({
                   onChange={(e) => setArea(e.target.value)}
                   placeholder="Ex: Psicologia, Fisioterapia"
                   required
+                  isRequired
                 />
               </div>
 
@@ -136,6 +137,7 @@ export default function Step1({
                   label="Nº de registro profissional"
                   type="text"
                   id="professionalId"
+                  isRequired
                   value={professionalId}
                   onChange={(e) => setProfessionalId(e.target.value)}
                   placeholder="Ex: CRP 01/12345"
