@@ -1,10 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import abstract from "../../assets/abstract_dark.png";
 import { RenderStep } from "./renderSteps";
 import logo from "@/assets/logo.png";
+import { useUser } from "@/context/user";
+import LoadingScreen from "../LoadingScreen";
 
 export const Onboarding = () => {
-  const [currentStep, setCurrentStep] = useState<number>(1);
+  const { userData, userLoading } = useUser();
+  const [currentStep, setCurrentStep] = useState<number>(userData?.onboardingStep || 1);
+
+  useEffect(() => {
+    if (typeof userData?.onboardingStep === "number") {
+      setCurrentStep(userData.onboardingStep);
+    }
+  }, [userData?.onboardingStep]);
 
   const steps = [
     {
@@ -37,6 +46,10 @@ export const Onboarding = () => {
   const completedStepStyle = 'bg-green-400 !border-green-400 text-white';
   const currentStepStyle = 'bg-white';
   const upcomingStepStyle = 'bg-transparent text-white';
+
+  if (userLoading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <div className="h-screen w-full">
