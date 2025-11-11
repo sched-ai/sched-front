@@ -8,8 +8,8 @@ import {
 } from "@/components/ui/tooltip";
 import { useNavigate } from "react-router-dom";
 import { useOnboarding, type IOnboardingBody } from "@/hooks/api/useOnboarding";
-import { formatCnpj } from "@/util/helper"; 
-import {ArrowLeft} from "lucide-react";
+import { formatCnpj } from "@/util/helper";
+import { ArrowLeft } from "lucide-react";
 import type { DayKey, DaySchedule, Location, UserType } from "@/types";
 import Step3 from "./Step3";
 import Step2 from "./Step2";
@@ -175,7 +175,7 @@ export const RenderStep = ({
 
   const [scheduleMode, setScheduleMode] = useState<
     "fixo" | "flexivel" | "porLocal"
-  >("porLocal");
+  >("fixo");
   const [fixedStart, setFixedStart] = useState("09:00");
   const [fixedEnd, setFixedEnd] = useState("18:00");
   const [fixedDays, setFixedDays] = useState<DayKey[]>([
@@ -211,7 +211,10 @@ export const RenderStep = ({
     };
 
     const buildEntriesFromScheduleMap = (
-      schedMap: Record<DayKey, { working: boolean; start: string; end: string }>,
+      schedMap: Record<
+        DayKey,
+        { working: boolean; start: string; end: string }
+      >,
       locationId?: string
     ) => {
       return Object.entries(schedMap)
@@ -252,10 +255,23 @@ export const RenderStep = ({
       }));
 
       if (singleLocationMode === true) {
-        if (singleLocation) workSchedules = base.map((b) => ({ ...b, locationId: singleLocation.id }));
+        if (singleLocation) {
+          workSchedules = base.map((b) => ({
+            ...b,
+            locationId: singleLocation.id,
+          }));
+        } else {
+          workSchedules = base.map((b) => ({ ...b }));
+        }
       } else {
-        for (const loc of locations) {
-          workSchedules.push(...base.map((b) => ({ ...b, locationId: loc.id })));
+        if (locations && locations.length > 0) {
+          for (const loc of locations) {
+            workSchedules.push(
+              ...base.map((b) => ({ ...b, locationId: loc.id }))
+            );
+          }
+        } else {
+          workSchedules = base.map((b) => ({ ...b }));
         }
       }
     } else {
@@ -268,10 +284,23 @@ export const RenderStep = ({
         }));
 
       if (singleLocationMode === true) {
-        if (singleLocation) workSchedules = base.map((b) => ({ ...b, locationId: singleLocation.id }));
+        if (singleLocation) {
+          workSchedules = base.map((b) => ({
+            ...b,
+            locationId: singleLocation.id,
+          }));
+        } else {
+          workSchedules = base.map((b) => ({ ...b }));
+        }
       } else {
-        for (const loc of locations) {
-          workSchedules.push(...base.map((b) => ({ ...b, locationId: loc.id })));
+        if (locations && locations.length > 0) {
+          for (const loc of locations) {
+            workSchedules.push(
+              ...base.map((b) => ({ ...b, locationId: loc.id }))
+            );
+          }
+        } else {
+          workSchedules = base.map((b) => ({ ...b }));
         }
       }
     }
@@ -356,7 +385,12 @@ export const RenderStep = ({
           setStep={setStep}
           prevStep={prevStep}
           initialAttendWorkspace={true}
-          headerLeft={<ArrowLeft className="w-6 h-6 text-[#141736] cursor-pointer" onClick={prevStep} />}
+          headerLeft={
+            <ArrowLeft
+              className="w-6 h-6 text-[#141736] cursor-pointer"
+              onClick={prevStep}
+            />
+          }
           attendOnline={attendOnline}
           setAttendOnline={setAttendOnline}
           attendHome={attendHome}
@@ -391,7 +425,12 @@ export const RenderStep = ({
         step={step}
         setStep={setStep}
         prevStep={prevStep}
-        headerLeft={<ArrowLeft className="w-6 h-6 text-[#141736] cursor-pointer" onClick={prevStep} />}
+        headerLeft={
+          <ArrowLeft
+            className="w-6 h-6 text-[#141736] cursor-pointer"
+            onClick={prevStep}
+          />
+        }
         scheduleMode={scheduleMode}
         setScheduleMode={setScheduleMode}
         fixedStart={fixedStart}
@@ -438,7 +477,9 @@ export const RenderStep = ({
   }, [scheduleMode, locations, singleLocation, singleLocationMode, schedule]);
 
   const renderFooter = () => {
-    const containerClass = `flex items-center my-2 h-fit ${step === 3 ? 'justify-between' : 'justify-end'}`;
+    const containerClass = `flex items-center my-2 h-fit ${
+      step === 3 ? "justify-between" : "justify-end"
+    }`;
 
     return (
       <div className={containerClass}>

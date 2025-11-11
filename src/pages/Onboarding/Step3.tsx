@@ -28,7 +28,6 @@ interface Step3Props {
   singleLocationMode: boolean | null;
   locations: Location[];
   singleLocation?: Location | null;
-  // schedules por local: chave = location.id
   locationSchedules?: Record<string, Record<DayKey, DaySchedule>>;
   handleLocationScheduleChange?: (
     locationId: string,
@@ -39,7 +38,6 @@ interface Step3Props {
   step?: number;
   setStep?: (step: number | ((prev: number) => number)) => void;
   prevStep?: () => void;
-  /** nó opcional para renderizar acima do título (por exemplo, seta para voltar) */
   headerLeft?: React.ReactNode;
 }
 
@@ -110,20 +108,20 @@ export default function Step3({
               onChange={() => setScheduleMode("flexivel")}
             />
           </div>
-          <div className={`flex-1 ${locationsForSchedule.length === 0 ? 'opacity-50 pointer-events-none' : ''}`}>
-            <CustomRadioInput
-              label="Horário por local"
-              htmlFor="porLocal"
-              name="tipoHorario"
-              Icon={undefined}
-              value="porLocal"
-              checked={scheduleMode === "porLocal"}
-              subtitle="Tenho horários diferentes para cada local"
-              onChange={() => {
-                if (locationsForSchedule.length > 0) setScheduleMode("porLocal");
-              }}
-            />
-          </div>
+          {locationsForSchedule.length > 1 && (
+            <div className="flex-1">
+              <CustomRadioInput
+                label="Horário por local"
+                htmlFor="porLocal"
+                name="tipoHorario"
+                Icon={undefined}
+                value="porLocal"
+                checked={scheduleMode === "porLocal"}
+                subtitle="Tenho horários diferentes para cada local"
+                onChange={() => setScheduleMode("porLocal")}
+              />
+            </div>
+          )}
         </div>
 
         {scheduleMode === "fixo" && (
