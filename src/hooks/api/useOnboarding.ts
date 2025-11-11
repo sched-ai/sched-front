@@ -73,7 +73,7 @@ export const useOnboarding = ({ onSuccessFn }: IUseMutationParams) => {
 						if (mappedLocations.length === 0) {
 							mappedLocations.push({
 								id: undefined,
-								nickname: 'Main location',
+								nickname: 'Without location',
 								address: '',
 								cep: undefined,
 								number: '',
