@@ -13,6 +13,7 @@ import type { DayKey, DaySchedule, Location, UserType } from "@/types";
 import Step3 from "./Step3";
 import Step2 from "./Step2";
 import Step1 from "./Step1";
+import Step4 from "./Step4";
 
 export const RenderStep = ({
   step,
@@ -22,9 +23,7 @@ export const RenderStep = ({
   setStep: (step: number | ((prev: number) => number)) => void;
 }) => {
   const [loading, setLoading] = React.useState(false);
-  const [collaborators, setCollaborators] = React.useState<
-    { id: string; name: string; email: string; role: string }[]
-  >([]);
+  console.log(loading)
 
   const { mutate: submitOnboarding } = useOnboarding({
     onSuccessFn: () => {
@@ -541,54 +540,7 @@ export const RenderStep = ({
     }
 
       if (step === 4) {
-        const addCollaborator = () => {
-          setCollaborators((prev) => [
-            ...prev,
-            { id: Date.now().toString(), name: "", email: "", role: "" },
-          ]);
-        };
-
-        const updateCollaborator = (id: string, key: string, value: string) => {
-          setCollaborators((prev) => prev.map((c) => (c.id === id ? { ...c, [key]: value } : c)));
-        };
-
-        const removeCollaborator = (id: string) => {
-          setCollaborators((prev) => prev.filter((c) => c.id !== id));
-        };
-
-        return (
-          <div className={`relative w-full ${loading ? "filter blur-sm" : ""}`}>
-            <div className="flex flex-col gap-4 w-full max-w-2xl">
-              <h3 className="text-2xl font-semibold">Adicione colaboradores</h3>
-              <p className="text-sm text-muted-foreground">Adicione os membros da equipe que irão atender no Sched.</p>
-
-              <div className="flex flex-col gap-3">
-                {collaborators.map((c) => (
-                  <div key={c.id} className="flex gap-2 items-center">
-                    <input className="input flex-1" placeholder="Nome" value={c.name} onChange={(e) => updateCollaborator(c.id, "name", e.target.value)} />
-                    <input className="input flex-1" placeholder="Email" value={c.email} onChange={(e) => updateCollaborator(c.id, "email", e.target.value)} />
-                    <input className="input flex-1" placeholder="Cargo" value={c.role} onChange={(e) => updateCollaborator(c.id, "role", e.target.value)} />
-                    <button type="button" className="text-red-500" onClick={() => removeCollaborator(c.id)}>Remover</button>
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex gap-2 mt-2">
-                <button type="button" className="btn" onClick={addCollaborator}>Adicionar colaborador</button>
-              </div>
-            </div>
-            {loading && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="bg-black/40 rounded-md p-6 flex items-center gap-4">
-                  <div className="w-12 h-12">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white" />
-                  </div>
-                  <div className="text-white">Finalizando cadastro... aguarde</div>
-                </div>
-              </div>
-            )}
-          </div>
-        );
+       return <Step4 /> 
       }
 
     // step === 3
@@ -653,9 +605,13 @@ export const RenderStep = ({
       step > 1 ? "justify-between" : "justify-end"
     }`;
 
+    if (step === 4) {
+      return <div className={containerClass} />;
+    }
+
     return (
       <div className={containerClass}>
-        {step > 1 && step !== 4 && (
+        {step > 1 && (
           <Button
             type="button"
             variant="ghost"
