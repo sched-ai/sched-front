@@ -176,7 +176,7 @@ export default function Step4({ onSkip }: { onSkip?: () => void } = {}) {
             return (
               <div
                 key={c.id}
-                className="flex flex-col w-fit items-start gap-4 bg-white border border-neutral-100 rounded-lg p-4 shadow-sm"
+                className="flex flex-col w-full items-start gap-4 bg-white border border-neutral-100 rounded-lg p-4 shadow-sm"
               >
                 <div className="flex items-center gap-3 w-full">
                   <div className="flex items-center gap-3">
@@ -193,7 +193,7 @@ export default function Step4({ onSkip }: { onSkip?: () => void } = {}) {
                     </div>
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 w-full">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3 flex-1">
                     <Input
                       id={`collab-name-${c.id}`}
