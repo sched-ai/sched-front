@@ -10,6 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useCreateEmployee } from "@/hooks/api/useCreateEmployee";
+import { useUser } from "@/context/user";
 
 type Collaborator = { id: string; name: string; email: string; role: string };
 
@@ -29,8 +31,19 @@ function isEmailValid(email: string) {
 export default function Step4({ onSkip }: { onSkip?: () => void } = {}) {
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
   const { showToast } = useToast();
+  const { userData } = useUser();
   const [isSending, setIsSending] = useState(false);
   const [sent, setSent] = useState(false);
+
+  const { mutate: createEmployee } = useCreateEmployee({
+    onSuccessFn: () => {
+      showToast({
+        label: "Funcionário criado",
+        message: "Funcionário adicionado com sucesso.",
+        type: "success",
+      });
+    },
+  });
 
   const addCollaborator = () => {
     const id = Date.now().toString();
@@ -74,13 +87,53 @@ export default function Step4({ onSkip }: { onSkip?: () => void } = {}) {
 
   const sendInvites = async () => {
     if (!allFilled || isSending || sent) return;
+    if (!userData?.membership?.company?.id) {
+      showToast({
+        label: "Erro",
+        message: "Empresa não encontrada. Faça login novamente.",
+        type: "error",
+      });
+      return;
+    }
+
     setIsSending(true);
     try {
-      await new Promise((res) => setTimeout(res, 700));
+      let successCount = 0;
+      
+      for (const collaborator of collaborators) {
+        await new Promise<void>((resolve, reject) => {
+          createEmployee(
+            {
+              companyId: userData.membership.company.id,
+              name: collaborator.name,
+              email: collaborator.email,
+              cargo: collaborator.role,
+            },
+            {
+              onSuccess: () => {
+                successCount++;
+                resolve();
+              },
+              onError: (error) => {
+                reject(error);
+              },
+            }
+          );
+        });
+      }
+
       setSent(true);
-      showToast({ label: "Convites enviados", message: `${collaborators.length} convites enviados com sucesso.`, type: 'success' });
+      showToast({
+        label: "Convites enviados",
+        message: `${successCount} funcionário(s) adicionado(s) com sucesso.`,
+        type: "success",
+      });
     } catch (err) {
-      showToast({ label: "Erro ao enviar", message: (err as Error).message  , type: 'error' });
+      showToast({
+        label: "Erro ao enviar",
+        message: (err as Error).message,
+        type: "error",
+      });
     } finally {
       setIsSending(false);
     }
