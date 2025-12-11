@@ -2,10 +2,11 @@ import { Button } from "@/components/ui/button";
 import Input from "@/components/ui/input";
 import {
   Plus,
-  ClipboardList,
   EllipsisVertical,
   Edit2,
   Trash2,
+  ListFilter,
+  Package,
 } from "lucide-react";
 import { useState } from "react";
 import {
@@ -29,6 +30,7 @@ import {
 
 export const Servicos = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [filter, setFilter] = useState<"all" | "service" | "package">("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState<string | null>(null);
@@ -85,7 +87,7 @@ export const Servicos = () => {
       style={{ minHeight: "calc(100vh - 80px)" }}
     >
       <div>
-        <ClipboardList className="mx-auto h-24 w-24 text-gray-300" />
+        <Package className="mx-auto h-24 w-24" />
         <h2 className="mt-6 text-2xl font-semibold text-gray-800">
           Comece a cadastrar seus serviços e pacotes
         </h2>
@@ -93,13 +95,6 @@ export const Servicos = () => {
           Você ainda não possui nenhum serviço ou pacote. <br />
           Clique no botão abaixo para adicionar o primeiro.
         </p>
-        <Button
-          className="mt-6 bg-blue-600 transition-colors gap-2"
-          onClick={handleOpenCreateModal}
-        >
-          <Plus size={18} />
-          Adicionar Serviço
-        </Button>
       </div>
     </main>
   );
@@ -112,99 +107,192 @@ export const Servicos = () => {
 
       {services && services.length > 0 ? (
         <main className="p-4 md:p-8">
-          <div className="bg-white shadow-custom p-4 mb-4 rounded-lg">
-            <div className="flex items-end gap-6">
+          <div
+            className="bg-white p-4 mb-4 rounded-lg"
+            style={{ boxShadow: "0 6px 12px -6px #A4A4A4" }}
+          >
+            <div className="flex flex-col md:flex-row items-start md:items-end gap-[30px]">
               <Input
                 type="text"
                 label="Pesquisar"
-                placeholder="Pesquisar por paciente, especialidade ou médico..."
+                placeholder="Pesquise por serviço ou pacote"
                 value={searchTerm}
                 onChange={handleSearchChange}
-                className="w-full"
+                className="w-full md:flex-1"
               />
+              <div className="w-full md:w-auto">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="!text-[#121535] w-full md:w-[236px] !border-[#121535] flex items-center justify-center gap-2"
+                    >
+                      <ListFilter size={16} />
+                      {filter === "all" ? "Ver Todos" : filter === "service" ? "Serviços" : "Pacotes"}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    <DropdownMenuLabel>Mostrar</DropdownMenuLabel>
+                    <DropdownMenuItem onSelect={() => setFilter("all")}>Todos</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => setFilter("service")}>Serviços</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => setFilter("package")}>Pacotes</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
               <Button
-                className="bg-blue-600 transition-colors gap-1"
+                className="bg-[#121535] transition-colors gap-1 text-white text-[15px] w-full md:w-auto"
                 onClick={handleOpenCreateModal}
               >
-                <Plus size={18} />
-                Adicionar Serviço
+                <Plus size={15} />
+                Adicionar Serviço/Pacote
               </Button>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {services?.map((service) => (
+            {services
+              ?.filter((s) => {
+                if (filter === "service") return s.type === "SERVICE";
+                if (filter === "package") return s.type === "PACKAGE";
+                return true;
+              })
+              .filter((s) =>
+                s.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                s.description?.toLowerCase().includes(searchTerm.toLowerCase())
+              )
+              .map((service) => (
               <div
                 key={service.id}
-                className="bg-white shadow-custom border border-gray-200 rounded-lg p-4 flex flex-col justify-between min-h-[160px]"
+                className="bg-white shadow-custom border border-gray-200 rounded-lg p-6 min-h-[160px] relative overflow-hidden"
               >
-                <div className="flex flex-col">
-                  <div className="flex justify-between items-center">
-                    <span
-                      className={`text-sm font-semibold px-2.5 py-0.5 rounded-sm ${
-                        service.type === "SERVICE"
-                          ? "bg-blue-600 text-blue-100"
-                          : "bg-blue-100 text-blue-600"
-                      }`}
-                    >
-                      {service.type === "SERVICE" ? "Serviço" : "Pacote"}
-                    </span>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger
-                        asChild
-                        className="w-fit border-none"
-                      >
-                        <Button variant="outline">
-                          <EllipsisVertical />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-56" align="start">
-                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                        <DropdownMenuGroup>
-                          <DropdownMenuItem
-                            onClick={() => handleOpenEditModal(service)}
-                          >
-                            Editar
-                            <DropdownMenuShortcut>
-                              <Edit2 />
-                            </DropdownMenuShortcut>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setServiceToDelete(service.id);
-                              setIsDeleteModalOpen(true);
-                            }}
-                          >
-                            Excluir
-                            <DropdownMenuShortcut>
-                              <Trash2 />
-                            </DropdownMenuShortcut>
-                          </DropdownMenuItem>
-                        </DropdownMenuGroup>
-                        <DropdownMenuSeparator />
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                  <div className="flex justify-between items-start mb-1">
-                    <h2 className="text-md font-semibold truncate max-w-full">
-                      {service.name}
-                    </h2>
-                  </div>
-                  <p className="text-gray-600 mb-2 text-[12px] line-clamp-3">
-                    {service.description}
-                  </p>
+                {/* Badge + Dropdown (top-right) */}
+                <div className="absolute top-4 right-4 flex items-center gap-[5px]">
+                  <span className={`text-sm font-semibold px-3 py-1 rounded-full text-white ${service.type === 'SERVICE' ? 'bg-[#0177fb]' : 'bg-[#121535]'}`}>
+                    {service.type === "SERVICE" ? "Serviço" : "Pacote"}
+                  </span>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="p-1.5">
+                        <EllipsisVertical />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56" align="start">
+                      <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                      <DropdownMenuGroup>
+                        <DropdownMenuItem onClick={() => handleOpenEditModal(service)}>
+                          Editar
+                          <DropdownMenuShortcut>
+                            <Edit2 />
+                          </DropdownMenuShortcut>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setServiceToDelete(service.id);
+                            setIsDeleteModalOpen(true);
+                          }}
+                        >
+                          Excluir
+                          <DropdownMenuShortcut>
+                            <Trash2 />
+                          </DropdownMenuShortcut>
+                        </DropdownMenuItem>
+                      </DropdownMenuGroup>
+                      <DropdownMenuSeparator />
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
-                <div className="w-full flex justify-end">
-                  <div className="flex flex-col">
-                    <p className="text-xs text-gray-500 self-end">{formatDurationLabel(service.duration)}</p>
-                    <p className="text-sm">R$ {service.price}</p>
-                  </div>
+
+                <div className="pr-32">
+                  <h2 className="text-black text-xl font-semibold truncate">{service.name}</h2>
+                  {service.type === 'SERVICE' ? (
+                    <p className="text-gray-400 text-sm mt-3 line-clamp-3">{service.description}</p>
+                  ) : (
+                    <div className="text-gray-400 text-sm mt-3 space-y-1">
+                      {service.description ? service.description.split(/\n|,/)?.map((line, idx) => (
+                        <div key={idx} className="truncate">{line.trim()}</div>
+                      )) : <div className="truncate">{service.description}</div>}
+                    </div>
+                  )}
+                </div>
+
+                {/* Right column: price / previous / discount or duration+price */}
+                <div className="absolute bottom-4 right-4 text-right">
+                  {service.type === 'PACKAGE' ? (
+                    <>
+                      {(service as any).previousPrice ? (
+                        <div className="text-gray-400 text-sm line-through">
+                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number((service as any).previousPrice))}
+                        </div>
+                      ) : null}
+                      <div className="text-black font-semibold text-lg mt-1">
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(service.price))}
+                      </div>
+                      {(service as any).previousPrice ? (
+                        <div className="text-[#0177fb] text-sm mt-1">
+                          {Math.round(((Number((service as any).previousPrice) - Number(service.price)) / Number((service as any).previousPrice)) * 100)}% off
+                        </div>
+                      ) : null}
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-gray-400 text-sm">{formatDurationLabel(service.duration)}</div>
+                      <div className="text-black font-semibold text-lg mt-1">
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(service.price))}
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             ))}
           </div>
         </main>
       ) : (
-        <EmptyState />
+        <>
+          <div className="p-4 md:p-8">
+            <div
+              className="bg-white p-4 mb-4 rounded-lg"
+              style={{ boxShadow: "0 6px 12px -6px #A4A4A4" }}
+            >
+                <div className="flex flex-col md:flex-row items-start md:items-end gap-[30px]">
+                  <Input
+                    type="text"
+                    label="Pesquisar"
+                    placeholder="Pesquise por serviço ou pacote"
+                    value={searchTerm}
+                    onChange={handleSearchChange}
+                    className="w-full md:flex-1"
+                  />
+                  <div className="w-full md:w-auto">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="!text-[#121535] w-full md:w-[236px] !border-[#121535] flex items-center justify-center gap-2"
+                        >
+                          <ListFilter size={16} />
+                          {filter === "all" ? "Ver Todos" : filter === "service" ? "Serviços" : "Pacotes"}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start">
+                        <DropdownMenuLabel>Mostrar</DropdownMenuLabel>
+                        <DropdownMenuItem onSelect={() => setFilter("all")}>Todos</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => setFilter("service")}>Serviços</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => setFilter("package")}>Pacotes</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                  <Button
+                    className="bg-[#121535] hover:brightness-110 transition-colors gap-1 text-white text-[15px] w-full md:w-auto"
+                    onClick={handleOpenCreateModal}
+                  >
+                    <Plus size={15} />
+                    Adicionar Serviço/Pacote
+                  </Button>
+                </div>
+              </div>
+          </div>
+          <EmptyState />
+        </>
       )}
 
       <ModalCreateService
