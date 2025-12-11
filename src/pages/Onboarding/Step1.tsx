@@ -56,16 +56,14 @@ export default function Step1({
 
   useEffect(() => {
     if (referrer === "outro") {
-      // foca no input de "outro" após um pequeno delay para garantir
-      // que o Select (overlay) já tenha fechado e o input esteja interativo
       setTimeout(() => {
         const el = document.getElementById("referrerOther") as HTMLInputElement | null;
         if (el) {
           el.focus();
           try {
             el.select();
-          } catch (e) {
-
+          } catch {
+            // do nothing
           }
         }
       }, 150);
@@ -130,6 +128,7 @@ export default function Step1({
                   onChange={(e) => setArea(e.target.value)}
                   placeholder="Ex: Psicologia, Fisioterapia"
                   required
+                  isRequired
                 />
               </div>
 
@@ -138,6 +137,7 @@ export default function Step1({
                   label="Nº de registro profissional"
                   type="text"
                   id="professionalId"
+                  isRequired
                   value={professionalId}
                   onChange={(e) => setProfessionalId(e.target.value)}
                   placeholder="Ex: CRP 01/12345"

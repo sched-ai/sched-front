@@ -11,8 +11,8 @@ interface ProtectedRouteProps {
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { userData, userLoading } = useUser();
   const location = useLocation();
-  console.log('ProtectedRoute - userData:', userData, location);
-    if (userLoading) {
+
+  if (userLoading) {
       return <LoadingScreen />;
     }
 
@@ -20,13 +20,13 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     return <Navigate to="/signin" replace />;
   }
   
-  // if (userData && userData.onboarded === false && location.pathname !== '/onboarding') {
-  //   return <Navigate to="/onboarding" replace />;
-  // }
+   if (userData && userData.onboardingStep < 6 && location.pathname !== '/onboarding') {
+     return <Navigate to="/onboarding" replace />;
+   }
 
-  // if (userData && userData.onboarded === true && location.pathname === '/onboarding') {
-  //       return <Navigate to="/" replace />;
-  // }
+   if (userData && userData.onboardingStep > 5 && location.pathname === '/onboarding') {
+         return <Navigate to="/" replace />;
+   }
 
   return <>{children}</>;
 };

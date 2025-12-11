@@ -25,7 +25,7 @@ export interface IUser {
   id: string;
   name: string;
   email: string;
-  onboarded: boolean;
+  onboardingStep: number;
   membership: IMembership;
 }
 

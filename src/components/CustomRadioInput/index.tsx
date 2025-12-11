@@ -52,7 +52,7 @@ const CustomRadioInput = (props: CustomRadioInputProps) => {
       onClick={onClick}
       htmlFor={htmlFor}
       className={cn(
-        "p-4 border-2 custom-2md:h-[81px] m-auto sm:m-0 w-full border-[#E1E1E1] rounded-md cursor-pointer flex items-center relative hover:shadow-[3px_4px_35px_#1417362B] transition-all group",
+        "p-4 border-2 custom-2md:h-[81px] m-auto sm:m-0 w-full border-[#E1E1E1] rounded-md cursor-pointer h-full flex items-center relative hover:shadow-[3px_4px_35px_#1417362B] transition-all group",
         {
           "border-[#141736]": checked,
         }

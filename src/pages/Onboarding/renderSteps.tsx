@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -6,15 +6,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useNavigate } from "react-router-dom";
 import { useOnboarding, type IOnboardingBody } from "@/hooks/api/useOnboarding";
-import { queryClient } from "@/App";
-import { formatCnpj } from "@/util/helper"; 
-import {ArrowLeft} from "lucide-react";
+import { formatCnpj } from "@/util/helper";
+import { ArrowLeft } from "lucide-react";
 import type { DayKey, DaySchedule, Location, UserType } from "@/types";
 import Step3 from "./Step3";
 import Step2 from "./Step2";
 import Step1 from "./Step1";
+import Step4 from "./Step4";
+import { Step5 } from "./Step5";
+import { useNavigate } from "react-router-dom";
 
 export const RenderStep = ({
   step,
@@ -23,14 +24,16 @@ export const RenderStep = ({
   step: number;
   setStep: (step: number | ((prev: number) => number)) => void;
 }) => {
-  const navigate = useNavigate();
+
+
   const { mutate: submitOnboarding } = useOnboarding({
     onSuccessFn: () => {
-      queryClient.invalidateQueries({ queryKey: ["user"] });
-      navigate("/");
+      setStep(4);
+    },
+    onErrorFn: () => {
     },
   });
-  // padrão autônomo selecionado ao entrar no onboarding
+
   const [userType, setUserType] = useState<UserType>("autonomo");
 
   const [area, setArea] = useState("");
@@ -60,6 +63,46 @@ export const RenderStep = ({
   const [showLocationForm, setShowLocationForm] = useState(false);
   const [singleLocation, setSingleLocation] = useState<Location | null>(null);
 
+  useEffect(() => {
+    const addOrRemoveSpecial = (
+      flag: boolean,
+      id: string,
+      name: string
+    ) => {
+      setLocations((prev) => {
+        const exists = prev.some((l) => l.id === id);
+        if (flag && !exists) {
+          return [
+            { id, name, address: "", number: "", city: "", state: "", complement: "" },
+            ...prev,
+          ];
+        }
+        if (!flag && exists) {
+          return prev.filter((l) => l.id !== id);
+        }
+        return prev;
+      });
+
+      setLocationSchedules((prev) => {
+        const copy = { ...prev };
+        if (flag) {
+          if (!copy[id]) copy[id] = cloneSchedule(schedule);
+        } else {
+          if (copy[id]) delete copy[id];
+        }
+        return copy;
+      });
+
+      if (!flag && singleLocation?.id === id) {
+        setSingleLocation(null);
+      }
+    };
+
+    addOrRemoveSpecial(attendOnline, "online", "Online");
+    addOrRemoveSpecial(attendHome, "home", "Domicílio");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [attendOnline, attendHome]);
+
   const emptyLocation = (): Location => ({
     id: Date.now().toString(),
     name: "",
@@ -71,6 +114,16 @@ export const RenderStep = ({
   });
 
   const [locationForm, setLocationForm] = useState<Location>(emptyLocation());
+
+  const [locationSchedules, setLocationSchedules] = useState<
+    Record<string, Record<DayKey, DaySchedule>>
+  >({});
+
+  const cloneSchedule = (s: Record<DayKey, DaySchedule>) => {
+    return Object.fromEntries(
+      Object.entries(s).map(([k, v]) => [k, { ...(v as DaySchedule) }])
+    ) as Record<DayKey, DaySchedule>;
+  };
 
   const addOrUpdateLocation = () => {
     if (singleLocationMode === true) {
@@ -96,6 +149,10 @@ export const RenderStep = ({
       setEditingLocation(null);
     } else {
       setLocations((prev) => [...prev, locationForm]);
+      setLocationSchedules((prev) => ({
+        ...prev,
+        [locationForm.id]: cloneSchedule(schedule),
+      }));
     }
     setLocationForm(emptyLocation());
     setShowLocationForm(false);
@@ -107,30 +164,56 @@ export const RenderStep = ({
       return;
     }
     setLocations((prev) => prev.filter((l) => l.id !== id));
+    setLocationSchedules((prev) => {
+      const copy = { ...prev };
+      delete copy[id];
+      return copy;
+    });
   };
 
   const editLocation = (loc: Location) => {
     setEditingLocation(loc);
     setLocationForm(loc);
-    // abrir formulário ao editar
     setShowLocationForm(true);
+  };
+
+  const handleLocationScheduleChange = (
+    locationId: string,
+    day: keyof typeof schedule,
+    field: "working" | "start" | "end",
+    value: string | boolean
+  ) => {
+    setLocationSchedules((prev) => ({
+      ...prev,
+      [locationId]: {
+        ...prev[locationId],
+        [day]: { ...prev[locationId][day], [field]: value },
+      },
+    }));
   };
 
   const canProceedStep1 = userType !== "";
 
   const canProceedLocations = () => {
-    // requer ao menos um tipo de atendimento selecionado
     const anyAttendanceSelected = attendOnline || attendHome || attendWorkspace;
     if (!anyAttendanceSelected) return false;
 
-    // se o usuário atende online ou em domicílio, pode prosseguir
-    if (attendOnline || attendHome) return true;
+    if ((attendOnline || attendHome) && !attendWorkspace) return true;
 
-    // A partir daqui, attendWorkspace deve ser verdadeiro. Então consultório deve ter um local adicionado.
+    const isSpecial = (id: string) => id === "online" || id === "home";
+
+    let hasNonSpecial = false;
+    if (singleLocationMode === true) {
+      if (singleLocation && !isSpecial(singleLocation.id)) hasNonSpecial = true;
+      if (!hasNonSpecial && locations.some((l) => !isSpecial(l.id))) hasNonSpecial = true;
+    } else {
+      if (locations.some((l) => !isSpecial(l.id))) hasNonSpecial = true;
+    }
+
+    if (attendWorkspace && !hasNonSpecial) return false;
+
     if (singleLocationMode === null) return false;
     if (singleLocationMode === true) {
-      // Exigir que o usuário realmente adicione o local usando a ação "Adicionar".
-      // NÃO permitir avançar apenas preenchendo os campos do formulário (locationForm).
       return !!singleLocation || locations.length > 0;
     }
     return locations.length > 0;
@@ -149,7 +232,7 @@ export const RenderStep = ({
 
   const [scheduleMode, setScheduleMode] = useState<
     "fixo" | "flexivel" | "porLocal"
-  >("porLocal");
+  >("fixo");
   const [fixedStart, setFixedStart] = useState("09:00");
   const [fixedEnd, setFixedEnd] = useState("18:00");
   const [fixedDays, setFixedDays] = useState<DayKey[]>([
@@ -174,7 +257,6 @@ export const RenderStep = ({
   const prevStep = () => setStep((prev: number) => prev - 1);
   const handleFinalSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-
     const dayMap: { [key: string]: number } = {
       segunda: 1,
       terça: 2,
@@ -185,20 +267,116 @@ export const RenderStep = ({
       domingo: 0,
     };
 
-    const workSchedules = Object.entries(schedule)
-      .filter(([, details]) => details.working)
-      .map(([day, details]) => ({
-        dayOfWeek: dayMap[day],
-        startTime: details.start,
-        endTime: details.end,
-        locationId:
-          details.locationId ||
-          (singleLocationMode === true
-            ? singleLocation?.id
-            : locations[0]
-            ? locations[0].id
-            : undefined),
+    const buildEntriesFromScheduleMap = (
+      schedMap: Record<
+        DayKey,
+        { working: boolean; start: string; end: string }
+      >,
+      locationId?: string
+    ) => {
+      return Object.entries(schedMap)
+        .filter(([, details]) => details.working)
+        .map(([day, details]) => ({
+          dayOfWeek: dayMap[day as keyof typeof dayMap],
+          startTime: details.start,
+          endTime: details.end,
+          locationId,
+        }));
+    };
+
+    let workSchedules: Array<{
+      dayOfWeek: number;
+      startTime: string;
+      endTime: string;
+      locationId?: string;
+    }> = [];
+
+    if (scheduleMode === "porLocal") {
+      if (singleLocationMode === true) {
+        if (singleLocation) {
+          const sched = locationSchedules[singleLocation.id] ?? schedule;
+          workSchedules = buildEntriesFromScheduleMap(sched, singleLocation.id);
+        }
+      } else {
+        for (const loc of locations) {
+          const sched = locationSchedules[loc.id] ?? schedule;
+          const entries = buildEntriesFromScheduleMap(sched, loc.id);
+          workSchedules.push(...entries);
+        }
+      }
+    } else if (scheduleMode === "fixo") {
+      const base = fixedDays.map((d) => ({
+        dayOfWeek: dayMap[d],
+        startTime: fixedStart,
+        endTime: fixedEnd,
       }));
+
+      if (singleLocationMode === true) {
+        if (singleLocation) {
+          workSchedules = base.map((b) => ({
+            ...b,
+            locationId: singleLocation.id,
+          }));
+        } else {
+          workSchedules = base.map((b) => ({ ...b }));
+        }
+      } else {
+        if (locations && locations.length > 0) {
+          for (const loc of locations) {
+            workSchedules.push(
+              ...base.map((b) => ({ ...b, locationId: loc.id }))
+            );
+          }
+        } else {
+          workSchedules = base.map((b) => ({ ...b }));
+        }
+      }
+    } else {
+      const base = Object.entries(schedule)
+        .filter(([, details]) => details.working)
+        .map(([day, details]) => ({
+          dayOfWeek: dayMap[day as keyof typeof dayMap],
+          startTime: details.start,
+          endTime: details.end,
+        }));
+
+      if (singleLocationMode === true) {
+        if (singleLocation) {
+          workSchedules = base.map((b) => ({
+            ...b,
+            locationId: singleLocation.id,
+          }));
+        } else {
+          workSchedules = base.map((b) => ({ ...b }));
+        }
+      } else {
+        if (locations && locations.length > 0) {
+          for (const loc of locations) {
+            workSchedules.push(
+              ...base.map((b) => ({ ...b, locationId: loc.id }))
+            );
+          }
+        } else {
+          workSchedules = base.map((b) => ({ ...b }));
+        }
+      }
+    }
+
+    if (workSchedules.length === 0) {
+      workSchedules = Object.entries(schedule)
+        .filter(([, details]) => details.working)
+        .map(([day, details]) => ({
+          dayOfWeek: dayMap[day as keyof typeof dayMap],
+          startTime: details.start,
+          endTime: details.end,
+          locationId:
+            singleLocationMode === true
+              ? singleLocation?.id
+              : locations[0]
+              ? locations[0].id
+              : undefined,
+        }));
+    }
 
     const apiPayload: IOnboardingBody = {
       type: userType === "autonomo" ? "AUTONOMO" : "EMPRESA",
@@ -206,12 +384,76 @@ export const RenderStep = ({
       fieldOfWork: userType === "autonomo" ? area : companyArea,
       professionalLicense: userType === "autonomo" ? professionalId : undefined,
       companyName: userType === "empresa" ? companyName : undefined,
-      companyDocument: userType === "empresa" ? cnpj : undefined,
+      companyDocument:
+        userType === "empresa" ? cnpj.replace(/\D/g, "") : undefined,
+      offersHomeVisit: attendHome,
+      offersOnline: attendOnline,
       workSchedules,
-      locations:
-        singleLocationMode === true && singleLocation
-          ? [singleLocation]
-          : locations,
+      locations: (() => {
+        const specialIds = new Set(["online", "home"]);
+
+        const buildLocationSchedulesFromMap = (
+          schedMap: Record<string, { working: boolean; start: string; end: string }>
+        ) => {
+          return Object.entries(schedMap)
+            .filter(([, details]) => details.working)
+            .map(([day, details]) => ({
+              day: dayMap[day as keyof typeof dayMap],
+              startTime: details.start,
+              endTime: details.end,
+            }));
+        };
+
+        const buildSchedulesForLocation = (locId: string) => {
+          if (scheduleMode === "porLocal") {
+            const map = locationSchedules[locId] ?? schedule;
+            return buildLocationSchedulesFromMap(map);
+          }
+
+          if (scheduleMode === "fixo") {
+            return fixedDays.map((d) => ({
+              day: dayMap[d],
+              startTime: fixedStart,
+              endTime: fixedEnd,
+            }));
+          }
+
+          return Object.entries(schedule)
+            .filter(([, details]) => details.working)
+            .map(([day, details]) => ({
+              day: dayMap[day as keyof typeof dayMap],
+              startTime: details.start,
+              endTime: details.end,
+            }));
+        };
+
+        const mapLocation = (l: Location) => {
+          const trimmedName = l.name?.trim();
+          const addressPart = l.address?.trim() ? `${l.address}${l.number ? ` ${l.number}` : ""}` : "";
+          const fallback = l.id === "online" ? "Online" : l.id === "home" ? "Domicílio" : addressPart || "Local";
+          return {
+            nickname: trimmedName || fallback,
+            address: l.address,
+            state: l.state,
+            city: l.city,
+            number: l.number,
+            complement: l.complement,
+            schedules: buildSchedulesForLocation(l.id),
+          };
+        };
+
+        if (singleLocationMode === true) {
+          if (singleLocation) {
+            const specials = locations.filter(
+              (l) => specialIds.has(l.id) && l.id !== singleLocation.id
+            );
+            return [mapLocation(singleLocation), ...specials.map(mapLocation)];
+          }
+          return locations.length > 0 ? locations.map(mapLocation) : undefined;
+        }
+
+        return locations.length > 0 ? locations.map(mapLocation) : undefined;
+      })(),
     };
 
     submitOnboarding(apiPayload);
@@ -231,7 +473,13 @@ export const RenderStep = ({
     handleFinalSubmit();
   };
 
+  const navigate = useNavigate();
+
   const renderMainContent = () => {
+    if (step > 5) {
+      navigate("/");
+    }
+
     if (step === 1) {
       return (
         <Step1
@@ -261,7 +509,12 @@ export const RenderStep = ({
           setStep={setStep}
           prevStep={prevStep}
           initialAttendWorkspace={true}
-          headerLeft={<ArrowLeft className="w-6 h-6 text-[#141736] cursor-pointer" onClick={prevStep} />}
+          headerLeft={
+            <ArrowLeft
+              className="w-6 h-6 text-[#141736] cursor-pointer"
+              onClick={prevStep}
+            />
+          }
           attendOnline={attendOnline}
           setAttendOnline={setAttendOnline}
           attendHome={attendHome}
@@ -290,13 +543,26 @@ export const RenderStep = ({
       );
     }
 
+      if (step === 4) {
+       return <Step4 /> 
+      }
+
+      if (step  === 5) {
+        return <Step5 />
+      }
+
     // step === 3
     return (
       <Step3
         step={step}
         setStep={setStep}
         prevStep={prevStep}
-        headerLeft={<ArrowLeft className="w-6 h-6 text-[#141736] cursor-pointer" onClick={prevStep} />}
+        headerLeft={
+          <ArrowLeft
+            className="w-6 h-6 text-[#141736] cursor-pointer"
+            onClick={prevStep}
+          />
+        }
         scheduleMode={scheduleMode}
         setScheduleMode={setScheduleMode}
         fixedStart={fixedStart}
@@ -310,16 +576,54 @@ export const RenderStep = ({
         singleLocationMode={singleLocationMode}
         locations={locations}
         singleLocation={singleLocation}
+        locationSchedules={locationSchedules}
+        handleLocationScheduleChange={handleLocationScheduleChange}
       />
     );
   };
 
+    useEffect(() => {
+      setScheduleMode("fixo");
+    }, [step]);
+
+  useEffect(() => {
+    if (scheduleMode !== "porLocal") return;
+    if (singleLocationMode === true) {
+      if (!singleLocation) return;
+      setLocationSchedules((prev) => {
+        if (prev[singleLocation.id]) return prev;
+        return { ...prev, [singleLocation.id]: cloneSchedule(schedule) };
+      });
+      return;
+    }
+
+    if (locations && locations.length > 0) {
+      setLocationSchedules((prev) => {
+        let changed = false;
+        const next = { ...prev };
+        for (const loc of locations) {
+          if (!next[loc.id]) {
+            next[loc.id] = cloneSchedule(schedule);
+            changed = true;
+          }
+        }
+        return changed ? next : prev;
+      });
+    }
+  }, [scheduleMode, locations, singleLocation, singleLocationMode, schedule]);
+
   const renderFooter = () => {
-    const containerClass = `flex items-center mt-6 h-fit ${step === 3 ? 'justify-between' : 'justify-end'}`;
+    const containerClass = `flex items-center my-2 h-fit ${
+      step > 1 ? "justify-between" : "justify-end"
+    }`;
+
+    if (step === 4 || step === 5) {
+      return <div className={containerClass} />;
+    }
 
     return (
       <div className={containerClass}>
-        {step === 3 && (
+        {step > 1 && (
           <Button
             type="button"
             variant="ghost"
