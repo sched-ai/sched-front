@@ -31,7 +31,7 @@ export const routesConfig: RouteConfig[] = [
     path: "/onboarding",
     element: <Onboarding />,
     template: false,
-    authRoute: false
+    authRoute: true
   },
   {
     path: "/",

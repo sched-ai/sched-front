@@ -7,11 +7,12 @@ import LoadingScreen from "../LoadingScreen";
 
 export const Onboarding = () => {
   const { userData, userLoading } = useUser();
-  const [currentStep, setCurrentStep] = useState<number>(userData?.onboardingStep || 1);
+  const [currentStep, setCurrentStep] = useState<number>(1);
 
   useEffect(() => {
     if (typeof userData?.onboardingStep === "number") {
-      setCurrentStep(userData.onboardingStep);
+      const step = userData.onboardingStep === 0 ? 1 : userData.onboardingStep;
+      setCurrentStep(step);
     }
   }, [userData?.onboardingStep]);
 
@@ -66,7 +67,7 @@ export const Onboarding = () => {
             <div className="flex flex-col gap-4 h-full">
               {steps.map((s, idx) => {
                 const isCompleted = s.step < currentStep;
-                const isCurrent = s.step === currentStep || (s.step === 2 && currentStep === 3);
+                const isCurrent = s.step === currentStep;
 
                 const connectorClass = isCompleted
                   ? "bg-green-400"

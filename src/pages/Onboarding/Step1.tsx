@@ -62,8 +62,8 @@ export default function Step1({
           el.focus();
           try {
             el.select();
-          } catch (e) {
-            console.log("Erro ao selecionar o texto do input de outro referrer:", e);
+          } catch {
+            // do nothing
           }
         }
       }, 150);

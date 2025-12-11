@@ -23,7 +23,7 @@ export const useCreateEmployee = ({ onSuccessFn }: IUseMutationParams) => {
       }),
     
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["employees"] });
+      queryClient.invalidateQueries({ queryKey: ["employees", "user"] });
       if (onSuccessFn) {
         onSuccessFn()
       }

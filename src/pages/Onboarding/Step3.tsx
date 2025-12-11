@@ -65,7 +65,6 @@ export default function Step3({
   void step;
   void setStep;
   void prevStep;
-  // construir a lista de locais para exibir os horários:
   const specialLocations = (locations || []).filter(
     (l) => l.id === "online" || l.id === "home"
   );
@@ -77,15 +76,17 @@ export default function Step3({
             singleLocation,
             ...specialLocations.filter((l) => l.id !== singleLocation.id),
           ]
-        : []
+        : specialLocations
       : locations || [];
 
   const hasSpecialLocations = (locations || []).some(
     (l) => l.id === "online" || l.id === "home"
   );
 
+  console.log(locationsForSchedule);
+  
   const showPorLocalOption =
-    (singleLocationMode === false && (locations || []).length > 1) ||
+    ((locations || []).length > 1) ||
     (singleLocationMode === true && !!singleLocation && hasSpecialLocations);
 
   return (

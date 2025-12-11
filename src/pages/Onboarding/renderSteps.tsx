@@ -14,6 +14,8 @@ import Step3 from "./Step3";
 import Step2 from "./Step2";
 import Step1 from "./Step1";
 import Step4 from "./Step4";
+import { Step5 } from "./Step5";
+import { useNavigate } from "react-router-dom";
 
 export const RenderStep = ({
   step,
@@ -22,16 +24,13 @@ export const RenderStep = ({
   step: number;
   setStep: (step: number | ((prev: number) => number)) => void;
 }) => {
-  const [loading, setLoading] = React.useState(false);
-  console.log(loading)
+
 
   const { mutate: submitOnboarding } = useOnboarding({
     onSuccessFn: () => {
-      setLoading(false);
       setStep(4);
     },
     onErrorFn: () => {
-      setLoading(false);
     },
   });
 
@@ -457,7 +456,6 @@ export const RenderStep = ({
       })(),
     };
 
-    setLoading(true);
     submitOnboarding(apiPayload);
   };
 
@@ -475,7 +473,13 @@ export const RenderStep = ({
     handleFinalSubmit();
   };
 
+  const navigate = useNavigate();
+
   const renderMainContent = () => {
+    if (step > 5) {
+      navigate("/");
+    }
+
     if (step === 1) {
       return (
         <Step1
@@ -543,6 +547,10 @@ export const RenderStep = ({
        return <Step4 /> 
       }
 
+      if (step  === 5) {
+        return <Step5 />
+      }
+
     // step === 3
     return (
       <Step3
@@ -573,6 +581,10 @@ export const RenderStep = ({
       />
     );
   };
+
+    useEffect(() => {
+      setScheduleMode("fixo");
+    }, [step]);
 
   useEffect(() => {
     if (scheduleMode !== "porLocal") return;
@@ -605,7 +617,7 @@ export const RenderStep = ({
       step > 1 ? "justify-between" : "justify-end"
     }`;
 
-    if (step === 4) {
+    if (step === 4 || step === 5) {
       return <div className={containerClass} />;
     }
 

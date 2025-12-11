@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import Input from "@/components/ui/input";
 import { Info, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
-import useToast from "@/hooks/useToast";
 import {
   Select,
   SelectContent,
@@ -12,6 +11,8 @@ import {
 } from "@/components/ui/select";
 import { useCreateEmployee } from "@/hooks/api/useCreateEmployee";
 import { useUser } from "@/context/user";
+import { useNextStep } from "@/hooks/api/useNextStep";
+import { toast } from "sonner";
 
 type Collaborator = { id: string; name: string; email: string; role: string };
 
@@ -30,18 +31,14 @@ function isEmailValid(email: string) {
 
 export default function Step4({ onSkip }: { onSkip?: () => void } = {}) {
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
-  const { showToast } = useToast();
-  const { userData } = useUser();
+  const { userData, refreshUser } = useUser();
+  refreshUser();
+
   const [isSending, setIsSending] = useState(false);
   const [sent, setSent] = useState(false);
 
   const { mutate: createEmployee } = useCreateEmployee({
     onSuccessFn: () => {
-      showToast({
-        label: "Funcionário criado",
-        message: "Funcionário adicionado com sucesso.",
-        type: "success",
-      });
     },
   });
 
@@ -85,14 +82,12 @@ export default function Step4({ onSkip }: { onSkip?: () => void } = {}) {
       (c) => c.name.trim() && isEmailValid(c.email) && c.role.trim()
     );
 
+  const { mutate: nextStep } = useNextStep({});
+
   const sendInvites = async () => {
     if (!allFilled || isSending || sent) return;
     if (!userData?.membership?.company?.id) {
-      showToast({
-        label: "Erro",
-        message: "Empresa não encontrada. Faça login novamente.",
-        type: "error",
-      });
+      toast.error("Ocorreu um erro ao obter os dados da empresa. Tente novamente.");
       return;
     }
 
@@ -104,7 +99,7 @@ export default function Step4({ onSkip }: { onSkip?: () => void } = {}) {
         await new Promise<void>((resolve, reject) => {
           createEmployee(
             {
-              companyId: userData.membership.company.id,
+              companyId: userData?.membership.company.id,
               name: collaborator.name,
               email: collaborator.email,
               cargo: collaborator.role,
@@ -123,25 +118,19 @@ export default function Step4({ onSkip }: { onSkip?: () => void } = {}) {
       }
 
       setSent(true);
-      showToast({
-        label: "Convites enviados",
-        message: `${successCount} funcionário(s) adicionado(s) com sucesso.`,
-        type: "success",
-      });
+      toast.success(`${successCount} funcionário(s) adicionado(s) com sucesso.`);
     } catch (err) {
-      showToast({
-        label: "Erro ao enviar",
-        message: (err as Error).message,
-        type: "error",
-      });
+      toast.error((err as Error).message);
     } finally {
       setIsSending(false);
+      handleSkip();
     }
   };
 
   const handleSkip = () => {
     if (onSkip) return onSkip();
-    showToast({ label: "Etapa pulada", message: "Você pulou o envio de convites.", type: 'info' });
+    nextStep();
+    toast("Você pulou esta etapa do onboarding.");
   };
 
   return (
