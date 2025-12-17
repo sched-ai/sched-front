@@ -33,6 +33,8 @@ interface IProps
   multiline?: boolean;
   tooltipMessage?: string;
   isRequired?: boolean;
+  placeholderWhite?: boolean;
+  noFocusColor?: boolean;
 }
 
 export const Input = forwardRef<unknown, IProps>((props, ref) => {
@@ -57,9 +59,10 @@ export const Input = forwardRef<unknown, IProps>((props, ref) => {
   const styles = {
     wrapper: "flex flex-col relative h-full",
     input: {
-      base: "w-full transition-all h-10 border border-secondary-l px-4 py-6 font-normal bg-white/12 text-body-lg text-paragraph-high transition durantion-200 outline-none hover:text-[#141736] focus:text-[#141736] text-secondary-l rounded-[10px] border-[#7079839e] border-2 hover:border-[#141736] focus:border-[#0d1c58]",
-      placeholder:
-        "placeholder:text-body-lg placeholder:text-gray-300 placeholder:font-normal font-thin",
+      base: "w-full transition-all h-10 border border-secondary-l px-4 py-6 font-normal bg-white/12 text-body-lg text-paragraph-high transition durantion-200 outline-none text-secondary-l rounded-[10px] border-[#7079839e] border-2 hover:border-[#141736] focus:border-[#0d1c58]",
+      interactions: "hover:text-[#141736] focus:text-[#141736]",
+      placeholder: "placeholder:text-body-lg placeholder:text-gray-300 placeholder:font-normal font-thin",
+      placeholderWhite: "placeholder:text-body-lg placeholder:text-white/50 placeholder:font-normal font-thin",
       filled: "",
       disabled:
         "cursor-not-allowed !bg-[#0505051A] !text-secondary-l !border-[#0505051A]",
@@ -93,7 +96,12 @@ export const Input = forwardRef<unknown, IProps>((props, ref) => {
     disabled,
     type: "text",
     mask: mask || "",
-    className: classNames(styles.input.base, styles.input.placeholder, {
+    className: classNames(
+      styles.input.base,
+      !props.noFocusColor && styles.input.interactions,
+      props.placeholderWhite ? styles.input.placeholderWhite : styles.input.placeholder,
+      className,
+      {
       [styles.input.disabled]: disabled,
       [styles.input.invalid]: error !== undefined,
       [styles.input.filled]: props.value !== "",
@@ -106,7 +114,12 @@ export const Input = forwardRef<unknown, IProps>((props, ref) => {
     ref,
     type,
     disabled,
-    className: classNames(styles.input.base, {
+    className: classNames(
+      styles.input.base,
+      !props.noFocusColor && styles.input.interactions,
+      props.placeholderWhite ? styles.input.placeholderWhite : styles.input.placeholder,
+      className,
+      {
       [styles.input.disabled]: disabled,
       [styles.input.invalid]: error !== undefined,
       [styles.input.filled]: props.value !== "",

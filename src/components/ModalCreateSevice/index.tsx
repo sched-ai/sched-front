@@ -197,7 +197,9 @@ export const ModalCreateService = (props: IProps) => {
         <div className="relative z-10 p-6">
           <div className="flex items-start justify-between mb-3">
             <div>
-              <DialogTitle className="text-xl text-white font-semibold">Adicionar Feature</DialogTitle>
+              <DialogTitle className="text-xl text-white font-semibold">
+                {activeTab === "servico" ? "Adicionar Serviço" : "Adicionar Pacote"}
+              </DialogTitle>
               <DialogDescription className="text-sm text-white/70">Preencha o formulário para criar um novo serviço/pacote</DialogDescription>
             </div>
             <button
@@ -211,19 +213,20 @@ export const ModalCreateService = (props: IProps) => {
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="bg-white/5 border border-white/10 rounded-full p-1 inline-flex gap-2 mb-4">
-              <TabsTrigger value="servico" className="data-[state=active]:bg-white data-[state=active]:text-[#141736] px-4 py-2 rounded-full">Serviço</TabsTrigger>
-              <TabsTrigger value="pacote" className="data-[state=active]:bg-white data-[state=active]:text-white px-4 py-2 rounded-full">Pacote</TabsTrigger>
+              <TabsTrigger value="servico" className="data-[state=active]:bg-white text-white data-[state=active]:text-[#18181B] px-6 py-3.5 rounded-full">Serviço</TabsTrigger>
+              <TabsTrigger value="pacote" className="data-[state=active]:bg-white text-white data-[state=active]:text-[#18181B] px-6 py-3.5 rounded-full">Pacote</TabsTrigger>
             </TabsList>
 
             <TabsContent value="servico" className="text-white">
               <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                <Input id="nome" type="text" placeholder="Nome do Serviço" value={nome} onChange={(e) => setNome(e.target.value)} />
+                <Label className="text-white text-sm">Nome do Serviço</Label>
+                <Input id="nome" type="text" placeholder="Nome do Serviço" value={nome} onChange={(e) => setNome(e.target.value)} placeholderWhite noFocusColor className="text-white bg-transparent border-white/80 rounded-[10px]" />
 
                 <div className="flex gap-3">
                   <div className="flex-1">
-                    <Label className="text-sm text-white/90">Categoria</Label>
+                    <Label className="text-sm text-white">Categoria</Label>
                     <Select onValueChange={() => {}}>
-                      <SelectTrigger className="w-full !h-[48px] border-[#A2A6BB66]">
+                      <SelectTrigger className="w-full !h-[48px] border-white text-white bg-transparent rounded-[10px] data-[placeholder]:text-white/50">
                         <SelectValue placeholder="Estética Facial, Corporal..." />
                       </SelectTrigger>
                       <SelectContent>
@@ -233,9 +236,9 @@ export const ModalCreateService = (props: IProps) => {
                   </div>
 
                   <div className="w-40">
-                    <Label className="text-sm text-white/90">Responsável</Label>
+                    <Label className="text-sm text-white">Responsável</Label>
                     <Select value={responsavel} onValueChange={(e) => setResponsavel(e === "__none" ? "" : e)}>
-                      <SelectTrigger className="w-full !h-[48px] border-[#A2A6BB66]">
+                      <SelectTrigger className="w-full !h-[48px] border-white/80 text-white bg-transparent rounded-[10px] data-[placeholder]:text-white/50">
                         <SelectValue placeholder="Selecione" />
                       </SelectTrigger>
                       <SelectContent>
@@ -247,18 +250,18 @@ export const ModalCreateService = (props: IProps) => {
 
                 <div className="flex gap-3 items-center">
                   <div className="flex-1">
-                    <Label className="text-sm text-white/90">Valor (R$)</Label>
-                    <Input id="price" type="text" placeholder="R$ 0,00" value={price} onChange={(e) => setPrice(formatBRL(e.target.value))} />
+                    <Label className="text-sm text-white">Valor (R$)</Label>
+                    <Input id="price" type="text" placeholder="R$ 0,00" value={price} onChange={(e) => setPrice(formatBRL(e.target.value))} placeholderWhite noFocusColor className="text-white bg-transparent border-white/80 rounded-[10px]" />
                   </div>
                   <div className="w-40">
-                    <Label className="text-sm text-white/90">Duração</Label>
-                    <Input id="duration" type="time" value={duration} onChange={(e) => setDuration(e.target.value)} />
+                    <Label className="text-sm text-white">Duração</Label>
+                    <Input id="duration" type="time" value={duration} onChange={(e) => setDuration(e.target.value)} placeholderWhite noFocusColor className="text-white bg-transparent border-white/80 rounded-[10px]" />
                   </div>
                 </div>
 
                 <div>
-                  <Label className="text-sm text-white/90">Descrição do serviço</Label>
-                  <textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} className="w-full mt-2 p-3 rounded-lg bg-white/5 text-white min-h-[120px] placeholder-white/50" placeholder="Descrição do serviço" />
+                  <Label className="text-sm text-white">Descrição do serviço</Label>
+                  <textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} className="w-full mt-2 p-3 rounded-lg bg-transparent text-white min-h-[120px] placeholder-white/50 border-white/80 focus:text-white" placeholder="Descrição do serviço" />
                 </div>
 
                 <div className="flex justify-end gap-4 mt-2">
@@ -269,13 +272,14 @@ export const ModalCreateService = (props: IProps) => {
 
             <TabsContent value="pacote" className="text-white">
               <form onSubmit={(e) => { e.preventDefault();}} className="flex flex-col gap-4">
-                <Input id="nomePacote" type="text" placeholder="Nome do Pacote" value={nome} onChange={(e) => setNome(e.target.value)} />
+                <Label className="text-white text-sm">Nome do Pacote</Label>
+                <Input id="nomePacote" type="text" placeholder="Nome do Pacote" value={nome} onChange={(e) => setNome(e.target.value)} placeholderWhite noFocusColor className="text-white bg-transparent border-white/80 rounded-[10px]" />
 
                 <div className="flex gap-3 items-end">
                   <div className="flex-1">
-                    <Label className="text-sm text-white/90">Selecionar serviço</Label>
+                    <Label className="text-sm text-white">Selecionar serviço</Label>
                     <Select>
-                      <SelectTrigger className="w-full !h-[48px]">
+                      <SelectTrigger className="w-full !h-[48px] border-white/80 text-white bg-transparent rounded-[10px] data-[placeholder]:text-white/50">
                         <SelectValue placeholder="Selecionar serviço" />
                       </SelectTrigger>
                       <SelectContent>
@@ -284,38 +288,38 @@ export const ModalCreateService = (props: IProps) => {
                     </Select>
                   </div>
                   <div className="w-36">
-                    <Label className="text-sm text-white/90">Quantidade</Label>
-                    <input type="number" min={1} defaultValue={1} className="w-full p-2 rounded-lg bg-white/5 text-white" />
+                    <Label className="text-sm text-white">Quantidade</Label>
+                    <input type="number" min={1} defaultValue={1} className="w-full p-2 rounded-lg bg-transparent text-white placeholder-white/50 border-white/80" />
                   </div>
                 </div>
 
                 <div>
-                  <button type="button" className="px-3 py-1 rounded bg-white/10 text-white">+ Adicionar</button>
+                  <button type="button" className="px-3 py-1 rounded bg-white text-[#18181B] text-xs rounded-[10px]">+ Adicionar</button>
                 </div>
 
                 <div className="flex gap-3">
                   <div className="flex-1">
-                    <Label className="text-sm text-white/90">Valor Cheio (R$)</Label>
-                    <Input type="text" placeholder="R$ 0,00" value={price} onChange={(e) => setPrice(formatBRL(e.target.value))} />
+                    <Label className="text-sm text-white">Valor Cheio (R$)</Label>
+                    <Input type="text" placeholder="R$ 0,00" value={price} onChange={(e) => setPrice(formatBRL(e.target.value))} placeholderWhite noFocusColor className="text-white bg-transparent border-white/80 placeholder-white rounded-[10px]" />
                   </div>
                   <div className="w-40">
-                    <Label className="text-sm text-white/90">Desconto</Label>
-                    <Input type="text" placeholder="%" />
+                    <Label className="text-sm text-white">Desconto</Label>
+                    <Input type="text" placeholder="%" placeholderWhite noFocusColor className="text-white bg-transparent border-white/80 rounded-[10px]" />
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <Switch checked={repeatEnabled} onCheckedChange={(v) => setRepeatEnabled(Boolean(v))} />
-                  <span className="text-white/90">Repetir</span>
+                  <span className="text-white">Repetir</span>
                 </div>
 
                 <div>
-                  <Label className="text-sm text-white/90">Descrição do pacote</Label>
-                  <textarea className="w-full mt-2 p-3 rounded-lg bg-white/5 text-white min-h-[120px]" placeholder="Descrição do pacote" />
+                  <Label className="text-sm text-white">Descrição do pacote</Label>
+                  <textarea className="w-full mt-2 p-3 rounded-lg bg-transparent text-white min-h-[120px] placeholder-white border border-white" placeholder="Descrição do pacote" />
                 </div>
 
                 <div className="flex justify-end gap-4 mt-2">
-                  <Button type="submit" className="bg-white text-[#141736] rounded-[10px]">Salvar</Button>
+                  <Button type="submit" className="bg-white text-[#18181B] rounded-[10px]">Salvar</Button>
                 </div>
               </form>
             </TabsContent>
