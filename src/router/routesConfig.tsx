@@ -4,6 +4,7 @@ import { SignUp } from '../pages/SignUp'
 import { Onboarding } from '../pages/Onboarding'
 import { Home } from '../pages/Home'
 import { Atendimentos } from '@/pages/Atendimentos'
+import PatientDetails from '@/pages/Atendimentos/PatientDetails'
 import { Error } from '@/pages/Error'
 import { Servicos } from '@/pages/Servicos'
 
@@ -42,6 +43,12 @@ export const routesConfig: RouteConfig[] = [
   {
     path: "/appointment",
     element: <Atendimentos />,
+    template: true,
+    authRoute: true
+  },
+  {
+    path: "/appointment/:id",
+    element: <PatientDetails />,
     template: true,
     authRoute: true
   },

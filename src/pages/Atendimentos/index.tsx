@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +38,7 @@ export const Atendimentos = () => {
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [itensPorPagina, setItensPorPagina] = useState(5);
+  const navigate = useNavigate();
 
   const atendimentos: Atendimento[] = [
     {
@@ -402,6 +404,7 @@ export const Atendimentos = () => {
                       variant="ghost"
                       size="sm"
                       className="bg-[#141736] hover:bg-[#282d64] text-white hover:text-white font-medium"
+                      onClick={() => navigate(`/appointment/${atendimento.id}`, { state: { atendimento } })}
                     >
                       Ver
                       <ArrowRight className="w-4 h-4 ml-2" />

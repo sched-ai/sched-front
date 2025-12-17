@@ -46,12 +46,19 @@ export const ModalCreateService = (props: IProps) => {
   const isEditMode = !!service;
 
   
-  const [nome, setNome] = useState("");
-  const [descricao, setDescricao] = useState("");
-  const [price, setPrice] = useState("");
-  const [duration, setDuration] = useState("00:00");
+  // Service form state
+  const [serviceNome, setServiceNome] = useState("");
+  const [serviceDescricao, setServiceDescricao] = useState("");
+  const [servicePrice, setServicePrice] = useState("");
+  const [serviceDuration, setServiceDuration] = useState("00:00");
   const [responsavel, setResponsavel] = useState("");
   const [departamento, setDepartamento] = useState("");
+
+  // Package form state (separate so switching tabs doesn't copy values)
+  const [packageNome, setPackageNome] = useState("");
+  const [packageDescricao, setPackageDescricao] = useState("");
+  const [packagePrice, setPackagePrice] = useState("");
+  const [packageDiscount, setPackageDiscount] = useState("");
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<string>("servico");
   const [repeatEnabled, setRepeatEnabled] = useState(false);
@@ -60,9 +67,9 @@ export const ModalCreateService = (props: IProps) => {
   useEffect(() => {
     if (isModalOpen) {
       if (service) {
-        setNome(service.name || "");
-        setDescricao(service.description || "");
-        setPrice(
+        setServiceNome(service.name || "");
+        setServiceDescricao(service.description || "");
+        setServicePrice(
           service.price !== undefined && service.price !== null
             ? new Intl.NumberFormat("pt-BR", {
                 style: "currency",
@@ -72,7 +79,7 @@ export const ModalCreateService = (props: IProps) => {
         );
         setResponsavel(service.professional?.id || "");
         setDepartamento(service.department || "");
-        setDuration(
+        setServiceDuration(
           service.duration !== undefined && service.duration !== null
             ? minutesToHHMM(Number(service.duration))
             : ""
@@ -124,12 +131,18 @@ export const ModalCreateService = (props: IProps) => {
 
   const resetForm = () => {
     setHasResponsavel("nao");
-    setNome("");
-    setDescricao("");
-    setPrice("");
-    setDuration("00:00");
+    // reset service form
+    setServiceNome("");
+    setServiceDescricao("");
+    setServicePrice("");
+    setServiceDuration("00:00");
     setResponsavel("");
     setDepartamento("");
+    // reset package form
+    setPackageNome("");
+    setPackageDescricao("");
+    setPackagePrice("");
+    setPackageDiscount("");
   };
 
   const formatBRL = (value: string) => {
@@ -153,15 +166,15 @@ export const ModalCreateService = (props: IProps) => {
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    const durationInMinutes = hhmmToMinutes(duration as string);
+    const durationInMinutes = hhmmToMinutes(serviceDuration as string);
 
     const servicePayload = {
-      name: nome,
-      description: descricao,
+      name: serviceNome,
+      description: serviceDescricao,
       type: "SERVICE" as ItemType,
       professionalId: responsavel || null,
       department: departamento || null,
-      price: parseBRL(price),
+      price: parseBRL(servicePrice),
       duration: durationInMinutes,
     };
 
@@ -220,7 +233,7 @@ export const ModalCreateService = (props: IProps) => {
             <TabsContent value="servico" className="text-white">
               <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                 <Label className="text-white text-sm">Nome do Serviço</Label>
-                <Input id="nome" type="text" placeholder="Nome do Serviço" value={nome} onChange={(e) => setNome(e.target.value)} placeholderWhite noFocusColor className="text-white bg-transparent border-white/80 rounded-[10px]" />
+                <Input id="nome" type="text" placeholder="Nome do Serviço" value={serviceNome} onChange={(e) => setServiceNome(e.target.value)} placeholderWhite noFocusColor className="text-white bg-transparent border-white/80 rounded-[10px]" />
 
                 <div className="flex gap-3">
                   <div className="flex-1">
@@ -251,21 +264,21 @@ export const ModalCreateService = (props: IProps) => {
                 <div className="flex gap-3 items-center">
                   <div className="flex-1">
                     <Label className="text-sm text-white">Valor (R$)</Label>
-                    <Input id="price" type="text" placeholder="R$ 0,00" value={price} onChange={(e) => setPrice(formatBRL(e.target.value))} placeholderWhite noFocusColor className="text-white bg-transparent border-white/80 rounded-[10px]" />
+                    <Input id="price" type="text" placeholder="R$ 0,00" value={servicePrice} onChange={(e) => setServicePrice(formatBRL(e.target.value))} placeholderWhite noFocusColor className="text-white bg-transparent border-white/80 rounded-[10px]" />
                   </div>
                   <div className="w-40">
                     <Label className="text-sm text-white">Duração</Label>
-                    <Input id="duration" type="time" value={duration} onChange={(e) => setDuration(e.target.value)} placeholderWhite noFocusColor className="text-white bg-transparent border-white/80 rounded-[10px]" />
+                    <Input id="duration" type="time" value={serviceDuration} onChange={(e) => setServiceDuration(e.target.value)} placeholderWhite noFocusColor className="text-white bg-transparent border-white/80 rounded-[10px]" />
                   </div>
                 </div>
 
                 <div>
                   <Label className="text-sm text-white">Descrição do serviço</Label>
-                  <textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} className="w-full mt-2 p-3 rounded-lg bg-transparent text-white min-h-[120px] placeholder-white/50 border-white/80 focus:text-white" placeholder="Descrição do serviço" />
+                  <textarea value={serviceDescricao} onChange={(e) => setServiceDescricao(e.target.value)} className="w-full mt-2 p-3 rounded-lg bg-transparent text-white min-h-[120px] placeholder-white/50 border-white/80 focus:text-white" placeholder="Descrição do serviço" />
                 </div>
 
                 <div className="flex justify-end gap-4 mt-2">
-                  <Button type="submit" className="bg-white text-[#141736] px-4 py-2 rounded">Salvar</Button>
+                  <Button type="submit" className="bg-white text-[#141736] px-4 py-2 rounded-[10px]">Salvar</Button>
                 </div>
               </form>
             </TabsContent>
@@ -273,7 +286,7 @@ export const ModalCreateService = (props: IProps) => {
             <TabsContent value="pacote" className="text-white">
               <form onSubmit={(e) => { e.preventDefault();}} className="flex flex-col gap-4">
                 <Label className="text-white text-sm">Nome do Pacote</Label>
-                <Input id="nomePacote" type="text" placeholder="Nome do Pacote" value={nome} onChange={(e) => setNome(e.target.value)} placeholderWhite noFocusColor className="text-white bg-transparent border-white/80 rounded-[10px]" />
+                <Input id="nomePacote" type="text" placeholder="Nome do Pacote" value={packageNome} onChange={(e) => setPackageNome(e.target.value)} placeholderWhite noFocusColor className="text-white bg-transparent border-white/80 rounded-[10px]" />
 
                 <div className="flex gap-3 items-end">
                   <div className="flex-1">
@@ -300,11 +313,11 @@ export const ModalCreateService = (props: IProps) => {
                 <div className="flex gap-3">
                   <div className="flex-1">
                     <Label className="text-sm text-white">Valor Cheio (R$)</Label>
-                    <Input type="text" placeholder="R$ 0,00" value={price} onChange={(e) => setPrice(formatBRL(e.target.value))} placeholderWhite noFocusColor className="text-white bg-transparent border-white/80 placeholder-white rounded-[10px]" />
+                    <Input type="text" placeholder="R$ 0,00" value={packagePrice} onChange={(e) => setPackagePrice(formatBRL(e.target.value))} placeholderWhite noFocusColor className="text-white bg-transparent border-white/80 placeholder-white rounded-[10px]" />
                   </div>
                   <div className="w-40">
                     <Label className="text-sm text-white">Desconto</Label>
-                    <Input type="text" placeholder="%" placeholderWhite noFocusColor className="text-white bg-transparent border-white/80 rounded-[10px]" />
+                    <Input type="text" placeholder="%" value={packageDiscount} onChange={(e) => setPackageDiscount(e.target.value)} placeholderWhite noFocusColor className="text-white bg-transparent border-white/80 rounded-[10px]" />
                   </div>
                 </div>
 
@@ -315,11 +328,11 @@ export const ModalCreateService = (props: IProps) => {
 
                 <div>
                   <Label className="text-sm text-white">Descrição do pacote</Label>
-                  <textarea className="w-full mt-2 p-3 rounded-lg bg-transparent text-white min-h-[120px] placeholder-white border border-white" placeholder="Descrição do pacote" />
+                  <textarea value={packageDescricao} onChange={(e) => setPackageDescricao(e.target.value)} className="w-full mt-2 p-3 rounded-lg bg-transparent text-white min-h-[120px] placeholder-white border border-white" placeholder="Descrição do pacote" />
                 </div>
 
                 <div className="flex justify-end gap-4 mt-2">
-                  <Button type="submit" className="bg-white text-[#18181B] rounded-[10px]">Salvar</Button>
+                  <Button type="submit" className="bg-white text-[#141736] px-4 py-2 rounded-[10px]">Salvar</Button>
                 </div>
               </form>
             </TabsContent>

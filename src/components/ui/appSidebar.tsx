@@ -8,12 +8,13 @@ import {
   useSidebar,
 } from "../../components/ui/sidebar";
 import { NavItem } from "../NavItem";
-import { BriefcaseBusiness, CalendarFold, LogOutIcon, NotepadText } from "lucide-react";
+import { BriefcaseBusiness, CalendarFold, LogOut, NotepadText, ArrowLeft, Users, Phone, Mail, MapPin, Cake, CreditCard } from "lucide-react";
 import logoFull from "@/assets/logoFull.png";
 import logo from "@/assets/logo.png";
 import { logout } from "@/services/storage";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useUser } from "@/context/user";
+// icons imported above
 
 export function AppSidebar() {
   const { state } = useSidebar();
@@ -21,6 +22,8 @@ export function AppSidebar() {
   const sidebarLogo = isSidebarOpen ? logoFull : logo;
   const navigate = useNavigate();
   const { userData, userLoading } = useUser();
+  const location = useLocation();
+  const isPatientDetails = /^\/appointment\/[^/]+$/.test(location.pathname);
 
   return (
     <Sidebar
@@ -38,49 +41,92 @@ export function AppSidebar() {
           <img src={sidebarLogo} />
         </SidebarHeader>
         <SidebarContent className="flex flex-col justify-between h-full">
-          <div>
-            <SidebarGroup>
-            {userLoading ? (
-              <div className="px-4 pt-6 space-y-2">
-                <div className="h-4 bg-gray-600 rounded w-3/4 animate-pulse"></div>
-                <div className="h-5 bg-gray-500 rounded w-1/2 animate-pulse"></div>
+          {isPatientDetails ? (
+            <div className="p-4">
+              <div className="mb-4">
+                <button
+                  onClick={() => navigate(-1)}
+                  className="flex items-center gap-2 text-white p-2 rounded shadow-sm hover:cursor-pointer"
+                  aria-label="Voltar"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span className="text-sm">Voltar</span>
+                </button>
               </div>
-            ) : (isSidebarOpen) && (
-              <>
-                <p className='text-white pt-6 px-4 truncate'>Bem Vindo(a),</p>
-                <p className="text-white px-4 font-semibold truncate">{userData?.name?.trim().split(/\s+/)[0]}</p>
-              </>
-            )}
-          </SidebarGroup>
-            <SidebarGroup title="Agenda" className="p-0 pt-10 gap-2">
-              <NavItem
-                title="Agenda"
-                icon={CalendarFold}
-                iconSize={isSidebarOpen ? 24 : 28}
-                href="/"
-                isSidebarOpen={isSidebarOpen}
-              />
+
+              <div className="bg-[#E9EDF1] rounded-lg p-4">
+                <div className="flex items-start gap-4">
+                  <div className="w-14 h-14 rounded-full bg-[#121535] flex items-center justify-center">
+                    <Users className="w-7 h-7 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-lg font-semibold text-[#121535]">{(location.state && (location.state as any).atendimento?.paciente) || (location.state && (location.state as any).paciente) || 'Paciente'}</div>
+                    <div className="mt-3 space-y-3 text-[#121535] text-sm">
+                      {((location.state && (location.state as any).atendimento?.cpf) || (location.state && (location.state as any).cpf)) && (
+                        <div className="flex items-center gap-3"><CreditCard className="w-5 h-5" /> <span>{(location.state as any).atendimento?.cpf || (location.state as any).cpf}</span></div>
+                      )}
+                      {((location.state && (location.state as any).atendimento?.phone) || (location.state && (location.state as any).phone) || (location.state && (location.state as any).atendimento?.telefone)) && (
+                        <div className="flex items-center gap-3"><Phone className="w-5 h-5" /> <span>{(location.state as any).atendimento?.phone || (location.state as any).phone || (location.state as any).atendimento?.telefone}</span></div>
+                      )}
+                      {((location.state && (location.state as any).atendimento?.email) || (location.state && (location.state as any).email)) && (
+                        <div className="flex items-center gap-3"><Mail className="w-5 h-5" /> <span>{(location.state as any).atendimento?.email || (location.state as any).email}</span></div>
+                      )}
+                      {((location.state && (location.state as any).atendimento?.address) || (location.state && (location.state as any).address)) && (
+                        <div className="flex items-center gap-3"><MapPin className="w-5 h-5" /> <span>{(location.state as any).atendimento?.address || (location.state as any).address}</span></div>
+                      )}
+                      {((location.state && (location.state as any).atendimento?.birth) || (location.state && (location.state as any).birth)) && (
+                        <div className="flex items-center gap-3"><Cake className="w-5 h-5" /> <span>{(location.state as any).atendimento?.birth || (location.state as any).birth}</span></div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <SidebarGroup>
+              {userLoading ? (
+                <div className="px-4 pt-6 space-y-2">
+                  <div className="h-4 bg-gray-600 rounded w-3/4 animate-pulse"></div>
+                  <div className="h-5 bg-gray-500 rounded w-1/2 animate-pulse"></div>
+                </div>
+              ) : (isSidebarOpen) && (
+                <>
+                  <p className='text-white pt-6 px-4 truncate'>Bem Vindo(a),</p>
+                  <p className="text-white px-4 font-semibold truncate">{userData?.name?.trim().split(/\s+/)[0]}</p>
+                </>
+              )}
             </SidebarGroup>
-            <SidebarGroup title="Atendimentos" className="p-0 gap-2">
-              <NavItem
-                title="Atendimentos"
-                icon={NotepadText}
-                iconSize={isSidebarOpen ? 24 : 28}
-                href="/appointment"
-                isSidebarOpen={isSidebarOpen}
-              />
-            </SidebarGroup>
-            <SidebarGroup title="Serviços" className="p-0 gap-2">
-              <NavItem
-                title="Serviços e Pacotes"
-                icon={BriefcaseBusiness}
-                iconSize={isSidebarOpen ? 24 : 28}
-                href="/services"
-                isSidebarOpen={isSidebarOpen}
-              />
-            </SidebarGroup>
-          </div>
-          <SidebarGroup title="Logout" className="p-0 gap-2">
+              <SidebarGroup title="Agenda" className="p-0 pt-10 gap-2">
+                <NavItem
+                  title="Agenda"
+                  icon={CalendarFold}
+                  iconSize={isSidebarOpen ? 24 : 28}
+                  href="/"
+                  isSidebarOpen={isSidebarOpen}
+                />
+              </SidebarGroup>
+              <SidebarGroup title="Atendimentos" className="p-0 gap-2">
+                <NavItem
+                  title="Atendimentos"
+                  icon={NotepadText}
+                  iconSize={isSidebarOpen ? 24 : 28}
+                  href="/appointment"
+                  isSidebarOpen={isSidebarOpen}
+                />
+              </SidebarGroup>
+              <SidebarGroup title="Serviços" className="p-0 gap-2">
+                <NavItem
+                  title="Serviços e Pacotes"
+                  icon={BriefcaseBusiness}
+                  iconSize={isSidebarOpen ? 24 : 28}
+                  href="/services"
+                  isSidebarOpen={isSidebarOpen}
+                />
+              </SidebarGroup>
+            </div>
+          )}
+            <SidebarGroup title="Logout" className="p-0 gap-2">
             <button
               className="flex items-center font-medium gap-3 text-red-500 p-3 border-l-4 rounded-none justify-start hover:text-white border-transparent cursor-pointer hover:bg-[#0177FB]/10 pl-6"
               onClick={() => {
@@ -88,7 +134,7 @@ export function AppSidebar() {
                 navigate("/signin");
               }}
             >
-              <LogOutIcon />
+              <LogOut />
               <span className={`${isSidebarOpen ? "" : "hidden"}`}>Sair</span>
             </button>
           </SidebarGroup>
