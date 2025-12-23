@@ -8,7 +8,7 @@ export const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "shadow-xs cursor-pointer bg-black text-white rounded-lg font-semibold lg:text-lg hover:bg-gray-800 transition-colors",
+          "shadow-xs cursor-pointer bg-black text-white rounded-lg font-semibold lg:text-md hover:bg-gray-800 transition-colors",
         seccondary:
           "shadow-xs cursor-pointer bg-white text-black lg:text-lg hover:bg-slate-200 hover:text-black p-4 font-semibold",
         destructive:

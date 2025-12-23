@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Users, Clock } from "lucide-react";
+import {Eye, EyeClosed} from "lucide-react";
 
 function formatTime(totalSeconds: number) {
   const h = Math.floor(totalSeconds / 3600)
@@ -70,15 +71,8 @@ export const PatientDetails: React.FC = () => {
         time: patient.hora || "09:00",
         summary: "Exame e anamnese. Recomendações iniciais.",
         notes: "",
-      },
-      {
-        id: "2",
-        title: "Retorno",
-        date: patient.data || "2025-12-10",
-        time: "10:30",
-        summary: "Avaliação de progresso e ajuste de tratamento.",
-        notes: "",
-      },
+        }
+      
     ];
 
   const [cards, setCards] = useState<CardType[]>(initialCards);
@@ -130,12 +124,39 @@ export const PatientDetails: React.FC = () => {
               </div>
             </div>
             <div>
-              <Button className="bg-[#121535] text-white" onClick={() => setShowHistory((s) => !s)}>
-                {showHistory ? "Ocultar histórico" : "Ver histórico"}
+              <Button
+                size="sm"
+                className="bg-[#121535] text-white px-3 py-2 w-[170px] relative overflow-hidden flex items-center justify-center"
+                onClick={() => setShowHistory((s) => !s)}
+              >
+                <span className="w-4 h-4 mr-2 flex-shrink-0 flex items-center justify-center">
+                  {showHistory ? <EyeClosed className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </span>
+
+                <span className="relative w-full h-5">
+                  <span
+                    className={
+                      "absolute left-0 right-0 top-0 bottom-0 flex items-center justify-center transition-opacity duration-200 ease-in-out " +
+                      (showHistory ? "opacity-100" : "opacity-0")
+                    }
+                  >
+                    Ocultar Histórico
+                  </span>
+
+                  <span
+                    className={
+                      "absolute left-0 right-0 top-0 bottom-0 flex items-center justify-center transition-opacity duration-200 ease-in-out " +
+                      (showHistory ? "opacity-0" : "opacity-100")
+                    }
+                  >
+                    Ver Histórico
+                  </span>
+                </span>
               </Button>
             </div>
           </div>
         </div>
+        
 
         {showHistory && (
           <div className="mb-6">
