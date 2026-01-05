@@ -61,8 +61,8 @@ export const Input = forwardRef<unknown, IProps>((props, ref) => {
     input: {
       base: "w-full transition-all h-10 border border-secondary-l px-4 py-6 font-normal bg-white/12 text-body-lg text-paragraph-high transition durantion-200 outline-none text-secondary-l rounded-[10px] border-[#7079839e] border-2 hover:border-[#141736] focus:border-[#0d1c58]",
       interactions: "hover:text-[#141736] focus:text-[#141736]",
-      placeholder: "placeholder:text-body-lg placeholder:text-gray-300 placeholder:font-normal font-thin",
-      placeholderWhite: "placeholder:text-body-lg placeholder:text-white/50 placeholder:font-normal font-thin",
+      placeholder: "placeholder:text-body-lg placeholder:text-gray-300 placeholder:font-normal font-normal",
+      placeholderWhite: "placeholder:text-body-lg placeholder:text-white/50 placeholder:font-normal font-normal",
       filled: "",
       disabled:
         "cursor-not-allowed !bg-[#0505051A] !text-secondary-l !border-[#0505051A]",

@@ -84,7 +84,7 @@ export const Servicos = () => {
   const EmptyState = () => (
     <main
       className="flex items-center justify-center text-center p-8"
-      style={{ minHeight: "calc(100vh - 80px)" }}
+      style={{ minHeight: "calc(100vh - 300px)" }}
     >
       <div>
         <Package className="mx-auto h-24 w-24" />
@@ -93,7 +93,6 @@ export const Servicos = () => {
         </h2>
         <p className="mt-2 text-base text-gray-500">
           Você ainda não possui nenhum serviço ou pacote. <br />
-          Clique no botão abaixo para adicionar o primeiro.
         </p>
       </div>
     </main>
