@@ -1,21 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Users, Clock } from "lucide-react";
+import { Users } from "lucide-react";
 import {Eye, EyeClosed} from "lucide-react";
 
-function formatTime(totalSeconds: number) {
-  const h = Math.floor(totalSeconds / 3600)
-    .toString()
-    .padStart(2, "0");
-  const m = Math.floor((totalSeconds % 3600) / 60)
-    .toString()
-    .padStart(2, "0");
-  const s = Math.floor(totalSeconds % 60)
-    .toString()
-    .padStart(2, "0");
-  return `${h}:${m}:${s}`;
-}
+// function formatTime(totalSeconds: number) {
+//   const h = Math.floor(totalSeconds / 3600)
+//     .toString()
+//     .padStart(2, "0");
+//   const m = Math.floor((totalSeconds % 3600) / 60)
+//     .toString()
+//     .padStart(2, "0");
+//   const s = Math.floor(totalSeconds % 60)
+//     .toString()
+//     .padStart(2, "0");
+//   return `${h}:${m}:${s}`;
+// }
 
 export const PatientDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -49,7 +49,9 @@ export const PatientDetails: React.FC = () => {
 
   const [timerSeconds, setTimerSeconds] = useState(30 * 60); // default 30 minutes
   const [running, setRunning] = useState(false);
-  const [initialSeconds, setInitialSeconds] = useState(timerSeconds);
+  // TODO- REMOVER VARIAVEIS UNUSED OU CORRIGIR USO INDEVIDO
+  setRunning(false);
+  // const [initialSeconds, setInitialSeconds] = useState(timerSeconds);
   const [showHistory, setShowHistory] = useState(false);
   
   type CardType = {
@@ -99,15 +101,15 @@ export const PatientDetails: React.FC = () => {
     };
   }, [running, timerSeconds]);
 
-  const handleStart = () => {
-    setInitialSeconds(timerSeconds);
-    setRunning(true);
-  };
+  // const handleStart = () => {
+  //   setInitialSeconds(timerSeconds);
+  //   setRunning(true);
+  // };
 
-  const handleReset = () => {
-    setRunning(false);
-    setTimerSeconds(initialSeconds);
-  };
+  // const handleReset = () => {
+  //   setRunning(false);
+  //   setTimerSeconds(initialSeconds);
+  // };
 
   return (
     <div className="w-full flex flex-col h-full">
