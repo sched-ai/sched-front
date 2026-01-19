@@ -231,7 +231,7 @@ export const Atendimentos = () => {
           <div className="shadow-custom bg-white rounded-lg p-6 border-l-4 border-[#141736]">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[#141736] text-sm">Total de Agendamentos</p>
+                <p className="text-[#141736] text-sm">Total de Atendimentos</p>
                 <p className="text-3xl font-bold text-[#141736]">
                   {estatisticas.total}
                 </p>
