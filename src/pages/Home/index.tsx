@@ -3,7 +3,7 @@ import { WeeklyCalendar, type EventType } from "@/components/WeeklyCalendar";
 import { useState } from "react";
 import { format, addWeeks, subWeeks } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { FormModal } from "@/components/FormModal";
+import { ScheduleModal } from "@/components/ScheduleModal";
 import { ListFilter, Plus } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useGetTimeBlocks } from "@/hooks/api/useGetTimeBlocks";
@@ -145,7 +145,7 @@ export const Home = () => {
           />
         </div>
       </div>
-      <FormModal
+      <ScheduleModal
         isOpen={isModalOpen}
         selectedDateTime={selectedDateTime}
         selectedEvent={selectedEvent}
