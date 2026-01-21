@@ -3,7 +3,16 @@ import { Label } from "../ui/label";
 import { Button } from "../ui/button";
 import { DatePicker } from "../DatePicker";
 import type { Dispatch, SetStateAction } from "react";
-
+import { useEffect } from "react";
+import { useUser } from "@/context/user";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { useGetAllServices } from "@/hooks/api/useGetAllServices";
 interface IProps {
   title: string | undefined;
   setTitle: Dispatch<SetStateAction<string | undefined>>;
@@ -36,12 +45,30 @@ export const AppoimentContent = ({
   setLocation,
   service,
   setService,
-  onClose
+  onClose,
 }: IProps) => {
+  const { userData, userLoading } = useUser();
+    const { data: services } = useGetAllServices();
+
+  const rawWorkplaces = userData?.membership.company.workplaces;
+  const workplaces = Array.isArray(rawWorkplaces)
+    ? rawWorkplaces
+    : rawWorkplaces
+      ? [rawWorkplaces]
+      : [];
+
+  useEffect(() => {
+    if (!location && workplaces.length > 0) {
+      setLocation(String(workplaces[0].id));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location, workplaces]);
+
   const handleCreateConsultation = (e: React.FormEvent) => {
     e.preventDefault();
     // Implement the logic to create a consultation here
   };
+
   return (
     <form onSubmit={handleCreateConsultation}>
       <div className="relative mt-7">
@@ -110,24 +137,51 @@ export const AppoimentContent = ({
           <div className="flex gap-4 items-center">
             <div className="w-full flex flex-col gap-2">
               <Label className="text-white">Local de atendimento</Label>
-              <input
-                id="localAtendimento"
-                type="text"
-                className="h-12 w-full px-3 rounded-lg bg-white/5 text-white placeholder:text-white/80 border border-transparent focus:border-blue-600"
+
+              <Select
                 value={location}
-                onChange={(e) => setLocation(e.target.value)}
-              />
+                onValueChange={(val: string) => setLocation(val)}
+              >
+                <SelectTrigger className="w-full !h-[48px] border-blue-600/70 text-white bg-transparent rounded-[10px] data-[placeholder]:text-white/50 cursor-pointer hover:bg-white/5">
+                  <SelectValue placeholder="Selecionar local" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[180px]">
+                  {workplaces.map((workplace) => (
+                    <>
+                      <SelectItem
+                        key={workplace.id}
+                        value={String(workplace.id)}
+                      >
+                        {workplace.nickname}
+                      </SelectItem>
+                    </>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="w-full flex flex-col gap-2">
               <Label className="text-white">Serviço</Label>
-              <input
-                id="servico"
-                type="text"
-                className="h-12 w-full px-3 rounded-lg bg-white/5 text-white placeholder:text-white/80 border border-transparent focus:border-blue-600"
+              <Select
                 value={service}
-                onChange={(e) => setService(e.target.value)}
-              />
+                onValueChange={(val: string) => setService(val)}
+              >
+                <SelectTrigger className="w-full !h-[48px] border-blue-600/70 text-white bg-transparent rounded-[10px] data-[placeholder]:text-white/50 cursor-pointer hover:bg-white/5">
+                  <SelectValue placeholder="Selecionar local" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[180px]">
+                  {services?.map((service) => (
+                    <>
+                      <SelectItem
+                        key={service.id}
+                        value={String(service.id)}
+                      >
+                        {service.name}
+                      </SelectItem>
+                    </>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
