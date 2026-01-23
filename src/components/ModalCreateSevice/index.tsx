@@ -30,6 +30,7 @@ interface IProps {
 
 type ItemType = "SERVICE" | "PACKAGE";
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function minutesToHHMM(totalMinutes: number) {
   if (!Number.isFinite(totalMinutes)) return "";
   if (totalMinutes === 0) return "00:00";
@@ -307,7 +308,7 @@ export const ModalCreateService = (props: IProps) => {
                 </div>
 
                 <div>
-                  <button type="button" className="px-3 py-1 rounded bg-white text-[#18181B] text-xs rounded-[10px]">+ Adicionar</button>
+                  <button type="button" className="px-3 py-1 bg-white text-[#18181B] text-xs rounded-[10px]">+ Adicionar</button>
                 </div>
 
                 <div className="flex gap-3">

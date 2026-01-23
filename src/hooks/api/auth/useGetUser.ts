@@ -14,6 +14,20 @@ export interface IMembership {
     id: string;
     name: string;
     companyType: 'EMPRESA' | 'AUTONOMO'; 
+    workplaces: {
+      address: string;
+      city: string;
+      complement: string | null;
+      id: string;
+      nickname: string;
+      number: string;
+      scheduleEntries: { 
+        day: string;
+        startMinute: number;
+        endMinute: number;
+      }[];
+      state: string;
+    };
   };
   role: {
     name: string;
