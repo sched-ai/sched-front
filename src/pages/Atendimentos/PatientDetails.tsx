@@ -1,8 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Users } from "lucide-react";
-import {Eye, EyeClosed} from "lucide-react";
+import { Users, Eye, EyeClosed, Clock } from "lucide-react";
+
+function formatTime(totalSeconds: number) {
+  const h = Math.floor(totalSeconds / 3600)
+    .toString()
+    .padStart(2, "0");
+  const m = Math.floor((totalSeconds % 3600) / 60)
+    .toString()
+    .padStart(2, "0");
+  const s = Math.floor(totalSeconds % 60)
+    .toString()
+    .padStart(2, "0");
+  return `${h}:${m}:${s}`;
+}
 
 // function formatTime(totalSeconds: number) {
 //   const h = Math.floor(totalSeconds / 3600)
@@ -20,7 +32,6 @@ import {Eye, EyeClosed} from "lucide-react";
 export const PatientDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
-  // try to get atendimento/patient from navigation state
   const navData: any = (location && (location.state as any)) || null;
   const atendimentoState = navData?.atendimento || navData;
 
@@ -40,19 +51,32 @@ export const PatientDetails: React.FC = () => {
     status: atendimentoState?.status || "",
     tipoConsulta: atendimentoState?.tipoConsulta || atendimentoState?.tipoConsulta || "",
   }));
+  const atendimentoPrevRef = useRef<string | any>(null);
 
   useEffect(() => {
-    if (atendimentoState) {
-      setPatient((p: any) => ({ ...p, ...atendimentoState }));
+    if (!atendimentoState) return;
+    try {
+      const serialized = JSON.stringify(atendimentoState);
+      if (atendimentoPrevRef.current !== serialized) {
+        atendimentoPrevRef.current = serialized;
+        setPatient((p: any) => ({ ...p, ...atendimentoState }));
+      }
+    } catch (err) {
+      if (atendimentoPrevRef.current !== atendimentoState) {
+        atendimentoPrevRef.current = atendimentoState as any;
+        setPatient((p: any) => ({ ...p, ...atendimentoState }));
+      }
     }
   }, [atendimentoState]);
 
   const [timerSeconds, setTimerSeconds] = useState(30 * 60); // default 30 minutes
   const [running, setRunning] = useState(false);
-  // TODO- REMOVER VARIAVEIS UNUSED OU CORRIGIR USO INDEVIDO
-  setRunning(false);
-  // const [initialSeconds, setInitialSeconds] = useState(timerSeconds);
+  // timer editing / initial value
+  const [initialSeconds, setInitialSeconds] = useState(timerSeconds);
   const [showHistory, setShowHistory] = useState(false);
+  const [editingTime, setEditingTime] = useState(false);
+  const [timeInput, setTimeInput] = useState(() => formatTime(timerSeconds));
+  
   
   type CardType = {
     id: string;
@@ -100,6 +124,37 @@ export const PatientDetails: React.FC = () => {
       if (timer) window.clearInterval(timer);
     };
   }, [running, timerSeconds]);
+
+  // stop running when reaches zero
+  useEffect(() => {
+    if (timerSeconds === 0 && running) setRunning(false);
+    setTimeInput(formatTime(timerSeconds));
+  }, [timerSeconds]);
+
+  const parseTimeInput = (val: string) => {
+    const clean = val.trim();
+    // hh:mm:ss
+    const parts = clean.split(":").map((p) => p.trim());
+    let seconds = 0;
+    if (parts.length === 3) {
+      const [hh, mm, ss] = parts.map((p) => parseInt(p || "0", 10));
+      if (!isNaN(hh) && !isNaN(mm) && !isNaN(ss)) seconds = hh * 3600 + mm * 60 + ss;
+    } else if (parts.length === 2) {
+      const [mm, ss] = parts.map((p) => parseInt(p || "0", 10));
+      if (!isNaN(mm) && !isNaN(ss)) seconds = mm * 60 + ss;
+    } else {
+      const minutes = parseInt(clean, 10);
+      if (!isNaN(minutes)) seconds = minutes * 60;
+    }
+    return Math.max(0, seconds);
+  };
+
+  const applyTimeInput = () => {
+    const seconds = parseTimeInput(timeInput);
+    setTimerSeconds(seconds);
+    setInitialSeconds(seconds);
+    setEditingTime(false);
+  };
 
   // const handleStart = () => {
   //   setInitialSeconds(timerSeconds);
@@ -158,6 +213,8 @@ export const PatientDetails: React.FC = () => {
             </div>
           </div>
         </div>
+
+        
         
 
         {showHistory && (

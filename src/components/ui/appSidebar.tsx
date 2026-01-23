@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -8,13 +9,99 @@ import {
   useSidebar,
 } from "../../components/ui/sidebar";
 import { NavItem } from "../NavItem";
-import { BriefcaseBusiness, CalendarFold, LogOut, NotepadText, ArrowLeft, Users, Phone, Mail, MapPin, Cake, CreditCard } from "lucide-react";
+import { BriefcaseBusiness, CalendarFold, LogOut, NotepadText, ArrowLeft, Users, Phone, Mail, MapPin, Cake, CreditCard, Clock } from "lucide-react";
 import logoFull from "@/assets/logoFull.png";
 import logo from "@/assets/logo.png";
 import { logout } from "@/services/storage";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useUser } from "@/context/user";
 // icons imported above
+
+function formatTime(totalSeconds: number) {
+  const h = Math.floor(totalSeconds / 3600)
+    .toString()
+    .padStart(2, "0");
+  const m = Math.floor((totalSeconds % 3600) / 60)
+    .toString()
+    .padStart(2, "0");
+  const s = Math.floor(totalSeconds % 60)
+    .toString()
+    .padStart(2, "0");
+  return `${h}:${m}:${s}`;
+}
+
+function PatientTimer() {
+  const [timerSeconds, setTimerSeconds] = useState(30 * 60);
+  const [running, setRunning] = useState(false);
+  const [editingTime, setEditingTime] = useState(false);
+  const [timeInput, setTimeInput] = useState(() => formatTime(30 * 60));
+
+  useEffect(() => {
+    let timer: number | undefined;
+    if (running && timerSeconds > 0) {
+      timer = window.setInterval(() => setTimerSeconds((s) => Math.max(0, s - 1)), 1000);
+    }
+    return () => { if (timer) window.clearInterval(timer); };
+  }, [running, timerSeconds]);
+
+  useEffect(() => {
+    if (timerSeconds === 0 && running) setRunning(false);
+    setTimeInput(formatTime(timerSeconds));
+  }, [timerSeconds]);
+
+  const parseTimeInput = (val: string) => {
+    const clean = val.trim();
+    const parts = clean.split(":").map((p) => p.trim());
+    let seconds = 0;
+    if (parts.length === 3) {
+      const [hh, mm, ss] = parts.map((p) => parseInt(p || "0", 10));
+      if (!isNaN(hh) && !isNaN(mm) && !isNaN(ss)) seconds = hh * 3600 + mm * 60 + ss;
+    } else if (parts.length === 2) {
+      const [mm, ss] = parts.map((p) => parseInt(p || "0", 10));
+      if (!isNaN(mm) && !isNaN(ss)) seconds = mm * 60 + ss;
+    } else {
+      const minutes = parseInt(clean, 10);
+      if (!isNaN(minutes)) seconds = minutes * 60;
+    }
+    return Math.max(0, seconds);
+  };
+
+  const applyTimeInput = () => {
+    const seconds = parseTimeInput(timeInput);
+    setTimerSeconds(seconds);
+    setEditingTime(false);
+  };
+
+  return (
+    <div className="flex flex-col items-start gap-3">
+      <div className="bg-white text-[#0b3b8c] rounded-lg shadow-custom px-4 py-3 flex items-center justify-between w-full max-w-[220px]">
+        <div className="text-2xl font-mono cursor-pointer" onClick={() => setEditingTime(true)}>
+          {editingTime ? (
+            <input
+              autoFocus
+              value={timeInput}
+              onChange={(e) => setTimeInput(e.target.value)}
+              onBlur={applyTimeInput}
+              onKeyDown={(e) => { if (e.key === "Enter") applyTimeInput(); }}
+              className="w-32 bg-white text-[#0b3b8c] text-2xl font-mono outline-none"
+            />
+          ) : (
+            <span>{formatTime(timerSeconds)}</span>
+          )}
+        </div>
+        <div className="ml-3 text-slate-500"><Clock className="w-5 h-5" /></div>
+      </div>
+
+      <button
+        onClick={() => setRunning(true)}
+        className="bg-white text-[#0b3b8c] border border-[#e2e8f0] px-3 py-2 rounded-md shadow-sm flex items-center gap-2 w-full max-w-[220px] cursor-pointer"
+      >
+        <span className="w-3 h-3 bg-[#0b3b8c] rounded-full inline-block mr-1" />
+        Iniciar Atendimento
+      </button>
+    </div>
+  );
+}
 
 export function AppSidebar() {
   const { state } = useSidebar();
@@ -80,6 +167,12 @@ export function AppSidebar() {
                     </div>
                   </div>
                 </div>
+              </div>
+
+              {/* Timer (below patient card) */}
+              <div className="mt-4">
+                <div className="text-sm text-[#6b7280] mb-2">Duração da consulta</div>
+                <PatientTimer />
               </div>
             </div>
           ) : (
