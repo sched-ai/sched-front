@@ -8,6 +8,8 @@ export interface IOnboardingBody {
     type: 'AUTONOMO' | 'EMPRESA';
     professionalName?: string;
     fieldOfWork?: string;
+		howFound?: string;
+		phone?: string;
     professionalLicense?: string;
     companyName?: string;
     companyDocument?: string;
@@ -96,6 +98,8 @@ export const useOnboarding = ({ onSuccessFn }: IUseMutationParams) => {
 					professionalLicense: body.professionalLicense,
 					companyName: body.companyName,
 					companyDocument: body.companyDocument,
+					phone: body.phone,
+					howFound: body.howFound,
 					offersHomeVisit: !!body.offersHomeVisit,
 					offersOnline: !!body.offersOnline,
 					locations: mappedLocations.map(l => ({
