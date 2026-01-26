@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -127,6 +127,26 @@ export const Pacientes = () => {
     if (paginaAtual > 1) setPaginaAtual(paginaAtual - 1);
   };
 
+  // Tooltip state for showing full text near the cursor
+  const [tooltip, setTooltip] = useState({
+    visible: false,
+    text: "",
+    x: 0,
+    y: 0,
+  });
+
+  const handleMouseEnter = (e: React.MouseEvent, text: string) => {
+    const padding = 12;
+    setTooltip({ visible: true, text, x: e.clientX + padding, y: e.clientY + padding });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    const padding = 12;
+    setTooltip((t) => (t.visible ? { ...t, x: e.clientX + padding, y: e.clientY + padding } : t));
+  };
+
+  const handleMouseLeave = () => setTooltip({ visible: false, text: "", x: 0, y: 0 });
+
   return (
     <div className="w-full flex flex-col h-full">
       <header className="border-b border-b-[#DADCE0] h-full max-h-[80px] p-4">
@@ -200,7 +220,14 @@ export const Pacientes = () => {
               >
                 <div className={`grid grid-cols-2 lg:grid-cols-7 gap-4 items-center p-6 border border-slate-200 min-w-0 ${index === pacientesPaginados.length - 1  ? 'rounded-b-lg' : ''}`}>
                   <div className="lg:col-span-1">
-                    <p className="text-slate-800 text-sm font-medium truncate">{p.nome}</p>
+                    <p
+                      className="text-slate-800 text-sm font-medium truncate"
+                      onMouseEnter={(e) => handleMouseEnter(e, p.nome)}
+                      onMouseMove={handleMouseMove}
+                      onMouseLeave={handleMouseLeave}
+                    >
+                      {p.nome}
+                    </p>
                   </div>
 
                   <div className="lg:col-span-1">
@@ -212,7 +239,14 @@ export const Pacientes = () => {
                   </div>
 
                   <div className="lg:col-span-1">
-                    <p className="text-slate-600 text-sm truncate">{p.email || '-'}</p>
+                    <p
+                      className="text-slate-600 text-sm truncate"
+                      onMouseEnter={(e) => handleMouseEnter(e, p.email || '-')}
+                      onMouseMove={handleMouseMove}
+                      onMouseLeave={handleMouseLeave}
+                    >
+                      {p.email || '-'}
+                    </p>
                   </div>
 
                   <div className="lg:col-span-1">
@@ -303,6 +337,15 @@ export const Pacientes = () => {
                   <ChevronRight className="w-4 h-4" />
                 </Button>
               </div>
+            </div>
+          )}
+          {/* Tooltip element shown near cursor when hovering truncated text */}
+          {tooltip.visible && (
+            <div
+              className="fixed z-50 max-w-xs bg-black text-white text-sm px-2 py-1 rounded shadow-lg pointer-events-none"
+              style={{ left: tooltip.x, top: tooltip.y }}
+            >
+              {tooltip.text}
             </div>
           )}
         </div>
