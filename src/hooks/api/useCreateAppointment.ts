@@ -27,6 +27,7 @@ export const useCreateAppointment = ({ onSuccessFn }: IUseMutationParams) => {
     
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["appointment"] });
+      queryClient.invalidateQueries({ queryKey: ["calendar"] });
       if (onSuccessFn) {
         onSuccessFn()
       }

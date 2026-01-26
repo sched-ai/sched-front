@@ -1,3 +1,4 @@
+/* eslint-disable no-constant-binary-expression */
 import { Button } from "../ui/button";
 import { DatePicker } from "../DatePicker";
 import { Switch } from "../ui/switch";
@@ -42,7 +43,6 @@ export const BlockContent = ({
   repeatEnabled,
   setRepeatEnabled,
   weekDays,
-  setWeekDays,
   endOption,
   setEndOption,
   endDate,
@@ -89,13 +89,37 @@ export const BlockContent = ({
     const selectedDays: DayOfWeek[] = weekDays
       .map((isSelected, index) => (isSelected ? indexToDayOfWeek(index) : null))
       .filter((day): day is DayOfWeek => day !== null);
+    
+      console.log("Selected Days for Recurrence disabled:", selectedDays);
+
+    if (!formattedDate) return;
+
+    const [yearStr, monthStr, dayStr] = formattedDate.split("-");
+
+    const [startHStr = "0", startMStr = "0"] = (startHour || "00:00").split(":");
+    const [endHStr = "0", endMStr = "0"] = (endHour || "00:00").split(":");
+
+    const startDateUtc = new Date(Date.UTC(
+      Number(yearStr),
+      Number(monthStr) - 1,
+      Number(dayStr),
+      Number(startHStr) ?? 0,
+      Number(startMStr) ?? 0,
+    ));
+
+    const endDateUtc = new Date(Date.UTC(
+      Number(yearStr),
+      Number(monthStr) - 1,
+      Number(dayStr),
+      Number(endHStr) ?? 0,
+      Number(endMStr) ?? 0,
+    ));
 
     createTimeBlock({
-      startDate: new Date(`${formattedDate}T${startHour}:00`),
-      endDate: new Date(`${formattedDate}T${endHour}:00`),
+      startDate: startDateUtc,
+      endDate: endDateUtc,
       reason: title,
-      isRecurring: repeatEnabled,
-      recurringDays: selectedDays,
+      isInfiniteRecurring: Boolean(repeatEnabled && endOption === "never"),
       recurringUntilDate:
         endOption === "onDate" && endDate ? convertDateFormat(endDate) : null,
       recurringOccurrences:
@@ -171,7 +195,7 @@ export const BlockContent = ({
         </div>
         {repeatEnabled && (
           <div>
-            <div className=" w-full">
+            {/* <div className=" w-full">
               <label className="text-sm text-white/90">Repetir em</label>
               <div className="flex justify-around mt-2">
                 {["D", "S", "T", "Q", "Q", "S", "S"].map((label, idx) => {
@@ -200,7 +224,7 @@ export const BlockContent = ({
                   );
                 })}
               </div>
-            </div>
+            </div> */}
 
             <div className="mt-4">
               <label className="text-sm text-white/90">Encerra em</label>

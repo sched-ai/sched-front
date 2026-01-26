@@ -17,6 +17,7 @@ export type EventType = {
 	id: number | string;
 	title: string;
 	day: string;
+	dayNumber?: number;
 	start: string;
 	end: string;
 	month: string;
@@ -32,9 +33,9 @@ interface WeeklyCalendarProps {
 	filterType?: 'all' | 'consulta' | 'bloqueio';
 }
 
-function getDayIndex(day: string) {
-	return weekDays.indexOf(day);
-}
+// function getDayIndex(day: string) {
+// 	return weekDays.indexOf(day);
+// }
 
 function getHourPosition(time: string) {
 	const [hours, minutes] = time.split(":").map(Number);
@@ -69,26 +70,52 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
     }
   }, [currentDate]);
 
-	const currentMonth = format(currentDate, 'MM');
-	const currentYear = Number(format(currentDate, "yyyy"))
-	
-	// Primeiro filtra por mês e ano, depois por tipo
-	let filteredEvents = events.filter(event => event.month === currentMonth && event.year === currentYear);
-	
-	// Aplica filtro por tipo se não for 'all'
+	// Filtra eventos para a semana exibida (não apenas por mês/ano)
+	const filteredEventsByWeek = events.filter((event) => {
+		const eventMonthNum = typeof event.month === 'string' ? Number(event.month) : event.month;
+		const eventYearNum = Number(event.year);
+
+		if (typeof event.dayNumber === 'number') {
+			return weekDates.some((d) =>
+				d.getDate() === event.dayNumber &&
+				d.getMonth() + 1 === eventMonthNum &&
+				d.getFullYear() === eventYearNum,
+			);
+		}
+		return weekDates.some((d) =>
+			d.getMonth() + 1 === eventMonthNum &&
+			d.getFullYear() === eventYearNum &&
+			weekDays[d.getDay()] === event.day,
+		);
+	});
+
+	let filteredEvents = filteredEventsByWeek;
 	if (filterType !== 'all') {
-		filteredEvents = filteredEvents.filter(event => event.type === filterType);
+		filteredEvents = filteredEvents.filter((event) => event.type === filterType);
 	}
 
 	const eventMap = filteredEvents.map((event) => {
-		const dayIdx = getDayIndex(event.day);
+		const eventMonthNum = typeof event.month === 'string' ? Number(event.month) : event.month;
+		const eventYearNum = Number(event.year);
+
+		const dayIdx = typeof event.dayNumber === 'number'
+			? weekDates.findIndex((d) =>
+				d.getDate() === event.dayNumber &&
+				d.getMonth() + 1 === eventMonthNum &&
+				d.getFullYear() === eventYearNum,
+			)
+			: weekDates.findIndex((d) =>
+				d.getMonth() + 1 === eventMonthNum &&
+				d.getFullYear() === eventYearNum &&
+				weekDays[d.getDay()] === event.day,
+			);
 		const startPos = getHourPosition(event.start);
 		const endPos = getHourPosition(event.end);
-		return { 
-			...event, 
-			dayIdx, 
-			startPos, 
-			endPos 
+		return {
+			...event,
+			dayIdx,
+			startPos,
+			endPos,
 		};
 	});
 
