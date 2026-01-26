@@ -7,6 +7,7 @@ import { Atendimentos } from '@/pages/Atendimentos'
 import PatientDetails from '@/pages/Atendimentos/PatientDetails'
 import { Error } from '@/pages/Error'
 import { Servicos } from '@/pages/Servicos'
+import Pacientes from '@/pages/Pacientes'
 
 export interface RouteConfig {
   path: string
@@ -43,6 +44,12 @@ export const routesConfig: RouteConfig[] = [
   {
     path: "/appointment",
     element: <Atendimentos />,
+    template: true,
+    authRoute: true
+  },
+  {
+    path: "/patients",
+    element: <Pacientes />,
     template: true,
     authRoute: true
   },
