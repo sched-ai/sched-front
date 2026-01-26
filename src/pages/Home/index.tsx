@@ -5,13 +5,22 @@ import { format, addWeeks, subWeeks } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ScheduleModal } from "@/components/ScheduleModal";
 import { ListFilter, Plus } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useGetTimeBlocks } from "@/hooks/api/useGetTimeBlocks";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import useGetCalendar from "@/hooks/api/useGetCalendar";
+import { Spinner } from "@/components/ui/spinner";
 
 export const Home = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [filterType, setFilterType] = useState<'all' | 'consulta' | 'bloqueio'>('all');
+  const [filterType, setFilterType] = useState<"all" | "consulta" | "bloqueio">(
+    "all",
+  );
 
   const handlePreviousWeek = () => {
     setCurrentDate((prev) => subWeeks(prev, 1));
@@ -33,11 +42,13 @@ export const Home = () => {
   } | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<EventType | null>(null);
 
-  const { data: timeBlocks = [], isFetching } = useGetTimeBlocks({ referenceDate: currentDate });
+  const { data: calendar = [], isLoading } = useGetCalendar({
+    referenceDate: currentDate,
+  });
 
   const handleDateClick = (
     date: { day: number; month: number; year: number },
-    hour: string
+    hour: string,
   ) => {
     setSelectedDateTime({ ...date, hour });
     setIsModalOpen(true);
@@ -51,21 +62,29 @@ export const Home = () => {
 
   const handleEventClick = (event: EventType) => {
     setSelectedEvent(event);
-    
+
     const weekStart = new Date(currentDate);
     weekStart.setDate(currentDate.getDate() - currentDate.getDay());
-    
-    const dayNames = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+
+    const dayNames = [
+      "Domingo",
+      "Segunda",
+      "Terça",
+      "Quarta",
+      "Quinta",
+      "Sexta",
+      "Sábado",
+    ];
     const dayIndex = dayNames.indexOf(event.day);
-    
+
     const eventDate = new Date(weekStart);
     eventDate.setDate(weekStart.getDate() + dayIndex);
-    
+
     setSelectedDateTime({
       day: eventDate.getDate(),
       month: eventDate.getMonth() + 1,
       year: eventDate.getFullYear(),
-      hour: event.start
+      hour: event.start,
     });
     setIsModalOpen(true);
   };
@@ -107,15 +126,22 @@ export const Home = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-
-            <Button className="h-[48px] !text-[16px] font-normal bg-[#141736] hover:bg-blue-950" onClick={() => {
-              setSelectedEvent(null);
-              setSelectedDateTime(null);
-              setIsModalOpen(true);
-            }}>
+            <Button
+              className="h-[48px] !text-[16px] font-normal bg-[#141736] hover:bg-blue-950"
+              onClick={() => {
+                setSelectedEvent(null);
+                setSelectedDateTime(null);
+                setIsModalOpen(true);
+              }}
+            >
               <Plus /> Novo Agendamento
             </Button>
-            <Select value={filterType} onValueChange={(value: 'all' | 'consulta' | 'bloqueio') => setFilterType(value)}>
+            <Select
+              value={filterType}
+              onValueChange={(value: "all" | "consulta" | "bloqueio") =>
+                setFilterType(value)
+              }
+            >
               <SelectTrigger className="w-[155px] !h-[48px] cursor-pointer !text-[16px] font-normal text-[#141736] hover:bg-blue-50 border-[#141736] [&>svg]:text-white">
                 <div className="flex items-center gap-2">
                   <ListFilter className="w-4 h-4 text-[#141736]" />
@@ -123,9 +149,15 @@ export const Home = () => {
                 </div>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all" className="text-[16px]">Ver todos</SelectItem>
-                <SelectItem value="consulta" className="text-[16px]">Consultas</SelectItem>
-                <SelectItem value="bloqueio" className="text-[16px]">Bloqueios</SelectItem>
+                <SelectItem value="all" className="text-[16px]">
+                  Ver todos
+                </SelectItem>
+                <SelectItem value="consulta" className="text-[16px]">
+                  Consultas
+                </SelectItem>
+                <SelectItem value="bloqueio" className="text-[16px]">
+                  Bloqueios
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -133,16 +165,19 @@ export const Home = () => {
       </header>
       <div className="flex">
         <div className="relative w-full">
-          {isFetching && (
-            <div className="absolute top-2 right-4 text-xs text-gray-500">Carregando bloqueios...</div>
+          {isLoading ? (
+            <div className="flex justify-center items-center h-[400px]">
+              <Spinner className="text-primary" />
+            </div>
+          ) : (
+            <WeeklyCalendar
+              events={calendar}
+              currentDate={currentDate}
+              onDateClick={handleDateClick}
+              onEventClick={handleEventClick}
+              filterType={filterType}
+            />
           )}
-          <WeeklyCalendar
-            events={timeBlocks}
-            currentDate={currentDate}
-            onDateClick={handleDateClick}
-            onEventClick={handleEventClick}
-            filterType={filterType}
-          />
         </div>
       </div>
       <ScheduleModal

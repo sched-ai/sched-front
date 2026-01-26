@@ -15,8 +15,7 @@ export interface ICreateTimeBlockPayload {
   startDate: string | Date;
   endDate: string | Date;
   reason?: string;
-  isRecurring?: boolean;
-  recurringDays?: DayOfWeek[];
+  isInfiniteRecurring?: boolean;
   recurringUntilDate?: string | Date | null;
   recurringOccurrences?: number | null;
 }
@@ -36,6 +35,7 @@ export const useCreateTimeBlock = ({ onSuccessFn }: IUseMutationParams) => {
 
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["time-blocks"] });
+      queryClient.invalidateQueries({ queryKey: ["calendar"] });
       if (onSuccessFn) {
         onSuccessFn(data);
       }
