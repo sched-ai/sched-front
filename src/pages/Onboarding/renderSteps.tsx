@@ -235,6 +235,9 @@ export const RenderStep = ({
   >("fixo");
   const [fixedStart, setFixedStart] = useState("09:00");
   const [fixedEnd, setFixedEnd] = useState("18:00");
+  const [referrer, setReferrer] = useState("");  
+  const [referrerOther, setReferrerOther] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [fixedDays, setFixedDays] = useState<DayKey[]>([
     "segunda",
     "terça",
@@ -384,6 +387,8 @@ export const RenderStep = ({
       fieldOfWork: userType === "autonomo" ? area : companyArea,
       professionalLicense: userType === "autonomo" ? professionalId : undefined,
       companyName: userType === "empresa" ? companyName : undefined,
+      howFound: referrer === "outro" ? referrerOther : referrer,
+      phone: phoneNumber,
       companyDocument:
         userType === "empresa" ? cnpj.replace(/\D/g, "") : undefined,
       offersHomeVisit: attendHome,
@@ -498,6 +503,12 @@ export const RenderStep = ({
           companyArea={companyArea}
           setCompanyArea={setCompanyArea}
           prevStep={prevStep}
+          referrer={referrer}
+          setReferrer={setReferrer}
+          referrerOther={referrerOther}
+          setReferrerOther={setReferrerOther}
+          phoneNumber={phoneNumber}
+          setPhoneNumber={setPhoneNumber}
         />
       );
     }

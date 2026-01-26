@@ -1,0 +1,39 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import useAPI from "./useAPI";
+import type { IUseMutationParams } from "@/types";
+
+export interface ICreateServicePayload {
+  professionalId?: string;
+  clientId?: string | null;
+  clientName?: string | null;
+  serviceId?: string | null;
+  workplaceId?: string | null;
+  startDate: string; // ISO 8601
+  duration?: number;
+}
+
+export const useCreateAppointment = ({ onSuccessFn }: IUseMutationParams) => {
+  const queryClient = useQueryClient();
+  
+  const { post } = useAPI<ICreateServicePayload>();
+
+  return useMutation({
+    mutationFn: (serviceData: ICreateServicePayload) => 
+      post({
+        endpoint: "appointment",
+        body: serviceData,
+        label: "Criação de Agendamento",
+      }),
+    
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["appointment"] });
+      if (onSuccessFn) {
+        onSuccessFn()
+      }
+    },
+
+    onError: (error) => {
+      console.error("Erro ao criar o serviço:", error);
+    },
+  });
+};

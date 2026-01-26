@@ -7,12 +7,18 @@ import { useEffect } from "react";
 import { useUser } from "@/context/user";
 import {
   Select,
-  SelectContent,
+  SelectContent,  
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useGetAllServices } from "@/hooks/api/useGetAllServices";
+import { useCreateAppointment } from "@/hooks/api/useCreateAppointment";
 interface IProps {
   title: string | undefined;
   setTitle: Dispatch<SetStateAction<string | undefined>>;
@@ -48,7 +54,14 @@ export const AppoimentContent = ({
   onClose,
 }: IProps) => {
   const { userData, userLoading } = useUser();
-    const { data: services } = useGetAllServices();
+  const { data: services } = useGetAllServices();
+  const { mutate: createAppointment } = useCreateAppointment({
+      onSuccessFn: () => {
+        if (onClose) {
+          onClose();
+        }
+      },
+    });  
 
   const rawWorkplaces = userData?.membership.company.workplaces;
   const workplaces = Array.isArray(rawWorkplaces)
@@ -66,7 +79,35 @@ export const AppoimentContent = ({
 
   const handleCreateConsultation = (e: React.FormEvent) => {
     e.preventDefault();
-    // Implement the logic to create a consultation here
+    if (!userData) return;
+    if (!selectedDateTime) return;
+
+    const { day, month, year } = selectedDateTime;
+    if (!day || !month || !year) return;
+
+    const [startH, startM] = startHour.split(":").map((s) => Number(s));
+    const startDate = new Date(Number(year), Number(month) - 1, Number(day), startH ?? 0, startM ?? 0);
+
+    let duration: number | undefined = undefined;
+    if (endHour) {
+      const [endH, endM] = endHour.split(":").map((s) => Number(s));
+      const endDate = new Date(Number(year), Number(month) - 1, Number(day), endH ?? 0, endM ?? 0);
+      const diffMs = endDate.getTime() - startDate.getTime();
+      if (diffMs > 0) {
+        duration = Math.floor(diffMs / 60000); // minutes
+      }
+    }
+
+    const payload = {
+      clientId: null,
+      clientName: title ?? null,
+      serviceId: service ?? null,
+      workplaceId: location ?? null,
+      startDate: startDate.toISOString(),
+      duration,
+    };
+
+    createAppointment(payload);
   };
 
   return (
@@ -141,6 +182,7 @@ export const AppoimentContent = ({
               <Select
                 value={location}
                 onValueChange={(val: string) => setLocation(val)}
+                disabled={userLoading || workplaces.length === 0}
               >
                 <SelectTrigger className="w-full !h-[48px] border-blue-600/70 text-white bg-transparent rounded-[10px] data-[placeholder]:text-white/50 cursor-pointer hover:bg-white/5">
                   <SelectValue placeholder="Selecionar local" />
@@ -165,10 +207,22 @@ export const AppoimentContent = ({
               <Select
                 value={service}
                 onValueChange={(val: string) => setService(val)}
+                disabled={services?.length === 0 || !services}
               >
-                <SelectTrigger className="w-full !h-[48px] border-blue-600/70 text-white bg-transparent rounded-[10px] data-[placeholder]:text-white/50 cursor-pointer hover:bg-white/5">
-                  <SelectValue placeholder="Selecionar local" />
-                </SelectTrigger>
+                {(!services || services.length === 0) ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SelectTrigger className="w-full !h-[48px] border-blue-600/70 text-white bg-transparent rounded-[10px] data-[placeholder]:text-white/50 cursor-pointer hover:bg-white/5">
+                        <SelectValue placeholder="Selecionar serviço" />
+                      </SelectTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent sideOffset={6}>Nenhum serviço encontrado</TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <SelectTrigger className="w-full !h-[48px] border-blue-600/70 text-white bg-transparent rounded-[10px] data-[placeholder]:text-white/50 cursor-pointer hover:bg-white/5">
+                    <SelectValue placeholder="Selecionar serviço" />
+                  </SelectTrigger>
+                )}
                 <SelectContent className="max-h-[180px]">
                   {services?.map((service) => (
                     <>

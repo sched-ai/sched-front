@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import CustomRadioInput from "@/components/CustomRadioInput";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,12 @@ interface Step1Props {
   step?: number;
   setStep?: (step: number | ((prev: number) => number)) => void;
   prevStep?: () => void;
+  referrer: string;
+  setReferrer: (v: string) => void;
+  referrerOther: string;
+  setReferrerOther: (v: string) => void;
+  phoneNumber: string;
+  setPhoneNumber: (v: string) => void;
 }
 
 export default function Step1({
@@ -45,14 +51,19 @@ export default function Step1({
   step,
   setStep,
   prevStep,
+  referrer,
+  setReferrer,
+  referrerOther,
+  setReferrerOther,
+  phoneNumber,
+  setPhoneNumber,
 }: Step1Props) {
   const goPrev = () => {
     if (prevStep) return prevStep();
     if (setStep) return setStep((p) => p - 1);
     return;
   };
-  const [referrer, setReferrer] = useState("");
-  const [referrerOther, setReferrerOther] = useState("");
+  
 
   useEffect(() => {
     if (referrer === "outro") {
@@ -185,7 +196,19 @@ export default function Step1({
               </div>
             </>
           )}
-          <div className="w-full h-full">
+          
+            <div className="w-full">
+                <Input
+                  type="text"
+                  label="Número de telefone (Whatsapp)"
+                  id="phoneNumber"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  placeholder="Ex: (11) 91234-5678"
+                  required
+                />
+              </div>
+            <div className="w-full">
             <label className="block mb-2 font-medium text-[16px] text-[#384455]">Onde você nos conheceu?</label>
             <Select value={referrer} onValueChange={(v) => setReferrer(v)}>
               <SelectTrigger className="w-full h-10 px-4 py-6 rounded-[10px]">
@@ -198,7 +221,7 @@ export default function Step1({
                 <SelectItem value="outro">Outro</SelectItem>
               </SelectContent>
             </Select>
-          </div>
+            </div>
           {referrer === "outro" && (
             <div className="w-full">
               <Input
