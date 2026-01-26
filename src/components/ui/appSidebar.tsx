@@ -199,12 +199,19 @@ export function AppSidebar() {
                   isSidebarOpen={isSidebarOpen}
                 />
               </SidebarGroup>
-              <SidebarGroup title="Atendimentos" className="p-0 gap-2">
+              <SidebarGroup title="Atendimentos" className="p-0">
                 <NavItem
                   title="Atendimentos"
                   icon={NotepadText}
                   iconSize={isSidebarOpen ? 24 : 28}
                   href="/appointment"
+                  isSidebarOpen={isSidebarOpen}
+                />
+                <NavItem
+                  title="Pacientes"
+                  icon={Users}
+                  iconSize={isSidebarOpen ? 24 : 28}
+                  href="/patients"
                   isSidebarOpen={isSidebarOpen}
                 />
               </SidebarGroup>
