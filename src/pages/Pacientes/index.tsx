@@ -162,12 +162,12 @@ export const Pacientes = () => {
             </Select>
 
             <Button className="bg-[#121535] text-white px-8 py-2" onClick={() => {}}>
-              + Adiconar paciente
+              + Adicionar paciente
             </Button>
           </div>
 
           <div className="border bg-[#141736] text-white rounded-t-lg py-2">
-            <div className="grid grid-cols-2 lg:grid-cols-7 gap-4 items-center px-6 py-3">
+            <div className="grid grid-cols-2 lg:grid-cols-7 gap-4 items-center px-6 py-3 min-w-0">
               <div className="lg:col-span-1">
                 <h3 className="font-semibold text-sm uppercase">Nome</h3>
               </div>
@@ -198,31 +198,31 @@ export const Pacientes = () => {
                 key={p.id}
                 className={`${index % 2 === 0 ? 'bg-white' : 'bg-slate-50'} hover:bg-slate-100 transition-colors duration-200`}
               >
-                <div className={`grid grid-cols-2 lg:grid-cols-7 gap-4 items-center p-6 border border-slate-200 ${index === pacientesPaginados.length - 1  ? 'rounded-b-lg' : ''}`}>
+                <div className={`grid grid-cols-2 lg:grid-cols-7 gap-4 items-center p-6 border border-slate-200 min-w-0 ${index === pacientesPaginados.length - 1  ? 'rounded-b-lg' : ''}`}>
                   <div className="lg:col-span-1">
-                    <p className="text-slate-800 text-sm font-medium">{p.nome}</p>
+                    <p className="text-slate-800 text-sm font-medium truncate">{p.nome}</p>
                   </div>
 
                   <div className="lg:col-span-1">
-                    <p className="text-slate-600 text-sm">{p.cpf}</p>
+                    <p className="text-slate-600 text-sm truncate">{p.cpf}</p>
                   </div>
 
                   <div className="lg:col-span-1">
-                    <p className="text-slate-600 text-sm">{p.telefone}</p>
+                    <p className="text-slate-600 text-sm truncate">{p.telefone}</p>
                   </div>
 
                   <div className="lg:col-span-1">
-                    <p className="text-slate-600 text-sm">{p.email || '-'}</p>
+                    <p className="text-slate-600 text-sm truncate">{p.email || '-'}</p>
                   </div>
 
                   <div className="lg:col-span-1">
-                    <p className="text-slate-600 text-sm">{p.cadastro}</p>
+                    <p className="text-slate-600 text-sm truncate">{p.cadastro}</p>
                   </div>
 
                   <div className="lg:col-span-1">
                     <div className="flex items-center gap-2">
                       <div className={`w-2.5 h-2.5 rounded-full ${getStatusColor(p.status)}`} />
-                      <span className="text-slate-700 text-sm">{p.status}</span>
+                      <span className="text-slate-700 text-sm truncate">{p.status}</span>
                     </div>
                   </div>
 
