@@ -30,6 +30,12 @@ export const routesConfig: RouteConfig[] = [
     authRoute: false
   },
   {
+    path: "/newUser",
+    element: <SignUp />,
+    template: false,
+    authRoute: false
+  },
+  {
     path: "/onboarding",
     element: <Onboarding />,
     template: false,
