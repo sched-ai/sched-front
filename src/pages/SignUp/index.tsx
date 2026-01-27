@@ -55,7 +55,7 @@ export const SignUp = () => {
                 variant="seccondary"
                 className="w-full"
                 onClick={() => {
-                  window.location.href = "/";
+                  navigate("/signin");
                 }}
               >
                 LOGIN

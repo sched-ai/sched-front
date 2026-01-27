@@ -43,7 +43,7 @@ export const SignIn = () => {
             variant="seccondary"
             className="flex lg:hidden"
             onClick={() => {
-              window.location.href = "/signup";
+                navigate("/signup");
             }}
           >
             Cadastre-se
@@ -61,7 +61,7 @@ export const SignIn = () => {
               variant="seccondary"
               className="w-full max-w-[394px]"
               onClick={() => {
-                window.location.href = "/signup";
+                navigate("/signup");
               }}
             >
               CADASTRE-SE
@@ -146,7 +146,7 @@ export const SignIn = () => {
                   variant="link"
                   className="text-[#6cacff]"
                   onClick={() => {
-                    window.location.href = "/signup";
+                    navigate("/signup");
                   }}
                 >
                   Cadastre-se
