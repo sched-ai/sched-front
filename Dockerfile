@@ -1,15 +1,8 @@
-# multi-stage Dockerfile for a Vite + React + TypeScript app
-
 # 1) Install dependencies
 FROM node:18-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
-# Use npm ci when lockfile exists, otherwise fall back to npm install
-RUN if [ -f package-lock.json ]; then \
-			npm ci --silent; \
-		else \
-			npm install --silent; \
-		fi
+RUN if [ -f package-lock.json ]; then npm ci --silent; else npm install --silent; fi
 
 # 2) Build
 FROM node:18-alpine AS builder
@@ -17,7 +10,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Accept Vite env build args and expose them as ENV so `npm run build` sees them
+# Build Arguments (Vite precisa disso no momento do build)
 ARG VITE_APP_API_URL
 ARG VITE_APP_API_CABLE_URL
 ARG VITE_APP_MS_TAGS_URL
@@ -28,9 +21,15 @@ ENV VITE_APP_MS_TAGS_URL=${VITE_APP_MS_TAGS_URL}
 RUN npm run build --silent
 
 # 3) Production image
-FROM nginx:stable-alpine AS production
+FROM nginx:alpine AS production
+
+# Copia o build do React
 COPY --from=builder /app/dist /usr/share/nginx/html
-# Copy custom nginx config to enable SPA fallback
-COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+
+# A CORREÇÃO: Remove a config padrão e copia a sua personalizada
+RUN rm /etc/nginx/conf.d/default.conf
+# Estou assumindo que você criará o arquivo 'nginx.conf' na raiz do projeto
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
