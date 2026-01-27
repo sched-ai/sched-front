@@ -134,7 +134,7 @@ export const Home = () => {
                 setIsModalOpen(true);
               }}
             >
-              <Plus /> Novo Agendamento
+              <Plus /> Agendar
             </Button>
             <Select
               value={filterType}

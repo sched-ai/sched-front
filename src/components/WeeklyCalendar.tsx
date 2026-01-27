@@ -157,7 +157,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 										} ${isToday ? "bg-blue-100 text-blue-600" : ""}`}
 									>
 										<p className="text-sm">{day}</p>
-										<p className={`text-lg ${isToday ? "font-bold bg-blue-600 text-white w-fit rounded-full px-2 text-center" : ""}`}>
+										<p className={`text-lg ${isToday ? "font-bold bg-blue-600 text-white rounded-full h-7 w-7 text-center" : ""}`}>
 											{format(currentDayDate, "d")}
 										</p>
 									</div>
@@ -201,16 +201,21 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 												const cellHeight = 80;
 												const top = ev.startPos.totalPosition * cellHeight;
 												const height = (ev.endPos.totalPosition - ev.startPos.totalPosition) * cellHeight;
+												const bgColor = ev.type === "consulta"
+													? "#60a5fa"
+													: dayIdx >= 5
+														? "#60a5fa"
+														: "#050a35";
 												return (
 													<div
 														key={ev.id}
-														className="absolute w-full rounded bg-blue-500 text-white px-2 py-1 text-xs shadow-md hover:scale-105 cursor-pointer hover:animate-pulse transition-all"
+														className="absolute w-full rounded border border-white text-white px-2 py-1 text-xs shadow-md hover:scale-105 cursor-pointer hover:animate-pulse transition-all"
 														style={{
 															top: `${top}px`,
 															height: `${height}px`,
 															minHeight: `${Math.max(height, 20)}px`,
 															zIndex: 20,
-															backgroundColor: dayIdx >= 5 ? "#60a5fa" : "#050a35",
+															backgroundColor: bgColor,
 														}}
 														onClick={(e) => handleEventClick(ev, e)}
 													>

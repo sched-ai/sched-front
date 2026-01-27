@@ -62,7 +62,7 @@ const DraggableModalContent = ({
       <div
         {...attributes}
         {...listeners}
-        className="absolute top-0 right-0 left-0 h-8 pl-2 cursor-move flex items-center justify-start bg-blue-600 rounded-t-lg z-10 transition-colors"
+        className="absolute top-0 right-0 left-0 h-8 pl-2 cursor-move flex items-center justify-start bg-white/15 rounded-t-lg z-10 transition-colors"
         style={{ userSelect: "none" }}
       >
         <GripHorizontal size={20} className="text-white/70" />

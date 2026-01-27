@@ -137,7 +137,7 @@ export const SignIn = () => {
               <Button
                 type="submit"
                 variant="secondary"
-                className="w-full font-semibold bg-blue-600 text-white hover:bg-white hover:text-[#141736] transition-colors"
+                className="w-full font-semibold bg-blue-600 text-white hover:bg-white hover:text-black transition-colors"
               >
                 ENTRAR
               </Button>
@@ -147,7 +147,7 @@ export const SignIn = () => {
                 <Button
                   variant="link"
                   type="button"            
-                  className="text-[#6cacff]"
+                  className="text-[#6cacff] bg-transparent"
                   onClick={() => {
                     navigate("/signup");
                   }}
