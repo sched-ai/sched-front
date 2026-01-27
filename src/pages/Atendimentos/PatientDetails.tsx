@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Users, Eye, EyeClosed, clock } from "lucide-react";
+import { Users, Eye, EyeClosed } from "lucide-react";
 
 function formatTime(totalSeconds: number) {
   const h = Math.floor(totalSeconds / 3600)
