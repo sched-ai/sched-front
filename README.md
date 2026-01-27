@@ -4,9 +4,6 @@ This template provides a minimal setup to get React working in Vite with HMR and
 
 Currently, two official plugins are available:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
@@ -39,6 +36,20 @@ export default tseslint.config([
 ])
 ```
 
+## Docker
+
+Build the production image and run a container that serves the Vite build with Nginx:
+
+```bash
+docker build -t sched-app .
+docker run --rm -p 80:80 sched-app
+```
+
+The app will be available at http://localhost/ (port 80).
+
+Notes:
+- The Dockerfile uses a multi-stage build: installs deps, builds with `npm run build` and serves `dist/` with Nginx.
+- If you need to run in development mode with HMR, run `npm run dev` locally (binding volumes and ports inside a container is possible but not included here).
 You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
 ```js
