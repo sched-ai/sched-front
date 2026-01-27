@@ -4,14 +4,28 @@
 FROM node:18-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
-RUN npm ci --silent
+# Use npm ci when lockfile exists, otherwise fall back to npm install
+RUN if [ -f package-lock.json ]; then \
+			npm ci --silent; \
+		else \
+			npm install --silent; \
+		fi
 
 # 2) Build
 FROM node:18-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npm run build
+
+# Accept Vite env build args and expose them as ENV so `npm run build` sees them
+ARG VITE_APP_API_URL
+ARG VITE_APP_API_CABLE_URL
+ARG VITE_APP_MS_TAGS_URL
+ENV VITE_APP_API_URL=${VITE_APP_API_URL}
+ENV VITE_APP_API_CABLE_URL=${VITE_APP_API_CABLE_URL}
+ENV VITE_APP_MS_TAGS_URL=${VITE_APP_MS_TAGS_URL}
+
+RUN npm run build --silent
 
 # 3) Production image
 FROM nginx:stable-alpine AS production
