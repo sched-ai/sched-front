@@ -30,5 +30,7 @@ RUN npm run build --silent
 # 3) Production image
 FROM nginx:stable-alpine AS production
 COPY --from=builder /app/dist /usr/share/nginx/html
+# Copy custom nginx config to enable SPA fallback
+COPY nginx/default.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
