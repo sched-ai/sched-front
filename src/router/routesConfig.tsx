@@ -31,7 +31,7 @@ export const routesConfig: RouteConfig[] = [
   },
   {
     path: "/newUser",
-    element: <SignUp />,
+    element: <>TESTE</>,
     template: false,
     authRoute: false
   },
