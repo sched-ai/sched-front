@@ -78,3 +78,19 @@ export default tseslint.config([
   },
 ])
 ```
+
+## Git hooks: impedir commits quando o build falha
+
+Este repositório está configurado para impedir commits quando o comando `npm run build` falha. Para ativar os hooks (Husky) no seu ambiente local, execute na raiz do projeto:
+
+```powershell
+npm install
+npm run prepare
+```
+
+Após isso, os hooks Git estarão instalados e o hook `pre-commit` irá executar `npm run build` antes de permitir o commit. Se preferir rodar o check somente no push (em vez do commit), mova o conteúdo de `.husky/pre-commit` para `.husky/pre-push`.
+
+Arquivos relevantes:
+- [package.json](package.json)
+- [.husky/pre-commit](.husky/pre-commit)
+
