@@ -42,6 +42,7 @@ export const SignIn = () => {
           <Button
             variant="seccondary"
             className="flex lg:hidden"
+            type="button"
             onClick={() => {
                 navigate("/signup");
             }}
@@ -60,6 +61,7 @@ export const SignIn = () => {
             <Button
               variant="seccondary"
               className="w-full max-w-[394px]"
+              type="button"
               onClick={() => {
                 navigate("/signup");
               }}
@@ -144,6 +146,7 @@ export const SignIn = () => {
                 <span className="text-white font-light">Novo por aqui? </span>
                 <Button
                   variant="link"
+                  type="button"            
                   className="text-[#6cacff]"
                   onClick={() => {
                     navigate("/signup");
