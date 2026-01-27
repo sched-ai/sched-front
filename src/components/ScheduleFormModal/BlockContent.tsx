@@ -235,6 +235,7 @@ export const BlockContent = ({
                     name="endOption"
                     checked={endOption === "never"}
                     onChange={() => setEndOption("never")}
+                    className="accent-blue-600"
                   />
                   <span className="ml-2 text-white">Nunca</span>
                 </label>
@@ -245,6 +246,7 @@ export const BlockContent = ({
                     name="endOption"
                     checked={endOption === "onDate"}
                     onChange={() => setEndOption("onDate")}
+                    className="accent-blue-600"
                   />
                   <span className="ml-2 text-white">Em:</span>
                   <DatePicker
@@ -259,6 +261,7 @@ export const BlockContent = ({
                     name="endOption"
                     checked={endOption === "afterOccurrences"}
                     onChange={() => setEndOption("afterOccurrences")}
+                    className="accent-blue-600"
                   />
                   <span className="ml-2 text-white">Após:</span>
                   <input

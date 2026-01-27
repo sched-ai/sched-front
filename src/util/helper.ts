@@ -11,6 +11,10 @@ export const findIndex = (list: any[], element: any, reference: string) => {
 	return list.indexOf(list.find((e) => e[reference] === element[reference]));
 };
 
+export function capitalizeFirst(str: string) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 export const groupBy = <T extends Record<string, any>>(
 	object: T[] = [],
 	field: keyof T = ''

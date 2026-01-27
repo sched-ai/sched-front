@@ -3,7 +3,7 @@ import { WeeklyCalendar, type EventType } from "@/components/WeeklyCalendar";
 import { useState } from "react";
 import { format, addWeeks, subWeeks } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ScheduleModal } from "@/components/ScheduleModal";
+import { ScheduleFormModal } from "@/components/ScheduleFormModal";
 import { ListFilter, Plus } from "lucide-react";
 import {
   Select,
@@ -14,10 +14,12 @@ import {
 } from "@/components/ui/select";
 import useGetCalendar from "@/hooks/api/useGetCalendar";
 import { Spinner } from "@/components/ui/spinner";
+import { ScheduleViewModal } from "@/components/ScheduleViewModal";
+import { capitalizeFirst } from "@/util/helper";
 
 export const Home = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isScheduleFormOpen, setIsScheduleFormOpen] = useState(false);
   const [filterType, setFilterType] = useState<"all" | "consulta" | "bloqueio">(
     "all",
   );
@@ -34,13 +36,23 @@ export const Home = () => {
     const now = new Date();
     setCurrentDate(new Date(now));
   };
-  const [selectedDateTime, setSelectedDateTime] = useState<{
+  const [scheduleFormSelectedDateTime, setScheduleFormSelectedDateTime] = useState<{
     day: number;
     month: number;
     year: number;
     hour: string;
   } | null>(null);
-  const [selectedEvent, setSelectedEvent] = useState<EventType | null>(null);
+
+  const [isScheduleViewOpen, setIsScheduleViewOpen] = useState(false);
+  const [scheduleViewDetails, setScheduleViewDetails] = useState<{
+    title: string;
+    localDateTime?: Date | null;
+    start?: string;
+    end?: string;
+    services?: string[];
+    workplaceName?: string;
+    type?: 'consulta' | 'bloqueio';
+  } | null>(null);
 
   const { data: calendar = [], isLoading } = useGetCalendar({
     referenceDate: currentDate,
@@ -50,19 +62,22 @@ export const Home = () => {
     date: { day: number; month: number; year: number },
     hour: string,
   ) => {
-    setSelectedDateTime({ ...date, hour });
-    setIsModalOpen(true);
+    setScheduleFormSelectedDateTime({ ...date, hour });
+    setIsScheduleFormOpen(true);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedEvent(null);
-    setSelectedDateTime(null);
+  const handleCloseFormModal = () => {
+    setIsScheduleFormOpen(false);
+    setScheduleFormSelectedDateTime(null);
+  };
+
+  const handleCloseViewModal = () => {
+    setIsScheduleViewOpen(false);
+    setScheduleViewDetails(null);
   };
 
   const handleEventClick = (event: EventType) => {
-    setSelectedEvent(event);
-
+    // Calcula a data do evento dentro da semana atual
     const weekStart = new Date(currentDate);
     weekStart.setDate(currentDate.getDate() - currentDate.getDay());
 
@@ -80,18 +95,35 @@ export const Home = () => {
     const eventDate = new Date(weekStart);
     eventDate.setDate(weekStart.getDate() + dayIndex);
 
-    setSelectedDateTime({
-      day: eventDate.getDate(),
-      month: eventDate.getMonth() + 1,
-      year: eventDate.getFullYear(),
-      hour: event.start,
-    });
-    setIsModalOpen(true);
+    const [startH = "0", startM = "0"] = (event.start || "00:00").split(":");
+    const localDateTime = new Date(
+      eventDate.getFullYear(),
+      eventDate.getMonth(),
+      eventDate.getDate(),
+      Number(startH),
+      Number(startM),
+    );
+
+
+    console.log('Event clicked:', event);
+
+    setScheduleViewDetails({
+      title: event.title,
+      localDateTime,
+      start: event.start,
+      end: event.end,
+      services: (event as EventType).services ?? [],
+      workplaceName: (event as EventType).workplaceName,
+      type: (event as EventType).type,
+    }); 
+    setIsScheduleViewOpen(true);
   };
 
-  function capitalizeFirst(str: string) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  }
+  const scheduleViewModalProps = {
+    isOpen: isScheduleViewOpen,
+    onClose: handleCloseViewModal,
+    details: scheduleViewDetails,
+  };
 
   return (
     <div className="w-full flex flex-col">
@@ -105,7 +137,7 @@ export const Home = () => {
             >
               HOJE
             </Button>
-            <h1 className="w-[300px]">
+            <h1 className="w-[290px]">
               {`${capitalizeFirst(format(currentDate, "MMMM", { locale: ptBR }))} de ${format(currentDate, "yyyy", { locale: ptBR })}`}
             </h1>
             <div className="flex">
@@ -129,9 +161,10 @@ export const Home = () => {
             <Button
               className="h-[48px] !text-[16px] font-normal bg-[#141736] hover:bg-blue-950"
               onClick={() => {
-                setSelectedEvent(null);
-                setSelectedDateTime(null);
-                setIsModalOpen(true);
+                setIsScheduleViewOpen(false);
+                setScheduleViewDetails(null);
+                setScheduleFormSelectedDateTime(null);
+                setIsScheduleFormOpen(true);
               }}
             >
               <Plus /> Agendar
@@ -180,12 +213,12 @@ export const Home = () => {
           )}
         </div>
       </div>
-      <ScheduleModal
-        isOpen={isModalOpen}
-        selectedDateTime={selectedDateTime}
-        selectedEvent={selectedEvent}
-        onClose={handleCloseModal}
+      <ScheduleFormModal
+        isOpen={isScheduleFormOpen}
+        selectedDateTime={scheduleFormSelectedDateTime}
+        onClose={handleCloseFormModal}
       />
+      <ScheduleViewModal {...scheduleViewModalProps} />
     </div>
   );
 };

@@ -74,7 +74,7 @@ const DraggableModalContent = ({
   );
 };
 
-export const ScheduleModal = ({
+export const ScheduleFormModal = ({
   isOpen = false,
   selectedDateTime = null,
   selectedEvent = null,
@@ -212,6 +212,7 @@ export const ScheduleModal = ({
     occurrences,
     setEndDate,
     setOccurrences,
+    onClose
   };
 
   const appointmentProps = {
@@ -243,12 +244,12 @@ export const ScheduleModal = ({
           <div className="flex-row justify-between flex items-start mb-4">
             <div>
               <div className="text-white font-medium text-xl">
-                {selectedEvent ? "Editar Agendamento" : "Novo Agendamento"}
+                {selectedEvent ? "Editar Consulta" : "Nova Consulta"}
               </div>
               <div className="text-[14px] text-[#A4A4A4]">
                 {selectedEvent
-                  ? "Edite as informações do agendamento selecionado."
-                  : "Preencha o formulário para criar um novo agendamento."}
+                  ? "Edite as informações da consulta selecionada."
+                  : "Preencha o formulário para criar uma nova consulta."}
               </div>
             </div>
             <Button
