@@ -22,7 +22,7 @@ export const useCreateAppointment = ({ onSuccessFn }: IUseMutationParams) => {
       post({
         endpoint: "appointment",
         body: serviceData,
-        label: "Criação de Agendamento",
+        label: "Criação de Consulta",
       }),
     
     onSuccess: () => {

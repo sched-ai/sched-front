@@ -130,20 +130,20 @@ export const ScheduleFormModal = ({
         setStartHour(selectedEvent.start);
         setEndHour(selectedEvent.end);
         setActiveTab(selectedEvent.type || "consulta");
-        setLocation("");
+        setLocation(selectedEvent.workplaceId || "");
         setService("");
         setRepeatEnabled(false);
         setWeekDays([false, false, false, false, false, false, false]);
         setEndOption("never");
         setOccurrences(1);
         if (
-          typeof (selectedEvent).day !== "undefined" &&
-          typeof (selectedEvent).month !== "undefined" &&
-          typeof (selectedEvent).year !== "undefined"
+          (typeof selectedEvent.day !== "undefined" || typeof selectedEvent.dayNumber !== "undefined") &&
+          typeof selectedEvent.month !== "undefined" &&
+          typeof selectedEvent.year !== "undefined"
         ) {
-          const d = Number((selectedEvent).day);
-          const m = Number((selectedEvent).month);
-          const y = Number((selectedEvent).year);
+          const d = typeof selectedEvent.dayNumber === 'number' ? selectedEvent.dayNumber : Number(selectedEvent.day);
+          const m = Number(selectedEvent.month);
+          const y = Number(selectedEvent.year);
           if (!Number.isNaN(d) && !Number.isNaN(m) && !Number.isNaN(y)) {
             setEndDate(`${String(d).padStart(2, "0")}/${String(m).padStart(2, "0")}/${y}`);
           } else {
@@ -194,10 +194,17 @@ export const ScheduleFormModal = ({
 
   if (!isOpen) return null;
 
+  const effectiveSelectedDateTime = selectedDateTime || (selectedEvent && (typeof selectedEvent.dayNumber === 'number' || !Number.isNaN(Number(selectedEvent.day))) ? {
+    day: typeof selectedEvent.dayNumber === 'number' ? selectedEvent.dayNumber : Number(selectedEvent.day),
+    month: Number(selectedEvent.month),
+    year: Number(selectedEvent.year),
+    hour: selectedEvent.start
+  } : null);
+
   const blockProps = {
     title,
     setTitle,
-    selectedDateTime,
+    selectedDateTime: effectiveSelectedDateTime,
     startHour,
     setStartHour,
     endHour,
@@ -212,13 +219,14 @@ export const ScheduleFormModal = ({
     occurrences,
     setEndDate,
     setOccurrences,
-    onClose
+    onClose,
+    timeBlockId: selectedEvent?.type === 'bloqueio' ? String(selectedEvent.id) : undefined
   };
 
   const appointmentProps = {
     title,
     setTitle,
-    selectedDateTime,
+    selectedDateTime: effectiveSelectedDateTime,
     startHour,
     setStartHour,
     endHour,
@@ -228,7 +236,7 @@ export const ScheduleFormModal = ({
     service,
     setService,
     onClose,
-    
+    appointmentId: selectedEvent?.type === 'consulta' ? String(selectedEvent.id) : undefined
   };
 
   return (
@@ -270,7 +278,7 @@ export const ScheduleFormModal = ({
                 value="consulta"
                 className="data-[state=active]:text-[#141736] data-[state=inactive]:text-background cursor-pointer h-[38px]"
               >
-                Agendamento
+                Consulta
               </TabsTrigger>
               <TabsTrigger
                 value="bloqueio"

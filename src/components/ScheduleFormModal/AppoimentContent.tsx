@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/tooltip";
 import { useGetAllServices } from "@/hooks/api/useGetAllServices";
 import { useCreateAppointment } from "@/hooks/api/useCreateAppointment";
+import { useUpdateAppointment } from "@/hooks/api/useUpdateAppointment";
+
 interface IProps {
   title: string | undefined;
   setTitle: Dispatch<SetStateAction<string | undefined>>;
@@ -37,6 +39,7 @@ interface IProps {
   service: string;
   setService: Dispatch<SetStateAction<string>>;
   onClose?: () => void;
+  appointmentId?: string;
 }
 
 export const AppoimentContent = ({
@@ -52,6 +55,7 @@ export const AppoimentContent = ({
   service,
   setService,
   onClose,
+  appointmentId
 }: IProps) => {
   const { userData, userLoading } = useUser();
   const { data: services } = useGetAllServices();
@@ -61,7 +65,15 @@ export const AppoimentContent = ({
           onClose();
         }
       },
-    });  
+    });
+
+  const { mutate: updateAppointment } = useUpdateAppointment({
+    onSuccessFn: () => {
+      if (onClose) {
+        onClose();
+      }
+    },
+  });
 
   const rawWorkplaces = userData?.membership.company.workplaces;
   const workplaces = Array.isArray(rawWorkplaces)
@@ -100,14 +112,22 @@ export const AppoimentContent = ({
 
     const payload = {
       clientId: null,
-      clientName: title ?? null,
-      serviceId: service ?? null,
-      workplaceId: location ?? null,
+      clientName: title || null,
+      serviceId: service || null,
+      workplaceId: location || null,
       startDate: startDate.toISOString(),
       duration,
     };
 
-    createAppointment(payload);
+    console.log("handleCreateConsultation", { appointmentId, payload });
+
+    if (appointmentId) {
+      console.log("Updating appointment...");
+      updateAppointment({ id: appointmentId, payload });
+    } else {
+      console.log("Creating appointment...");
+      createAppointment(payload);
+    }
   };
 
   return (

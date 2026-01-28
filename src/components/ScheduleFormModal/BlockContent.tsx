@@ -5,6 +5,7 @@ import { Switch } from "../ui/switch";
 import { ClockPlus } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import { useCreateTimeBlock, type DayOfWeek } from "@/hooks/api/useCreateTimeBlock";
+import { useUpdateTimeBlock } from "@/hooks/api/useUpdateTimeBlock";
 
 interface IProps {
   title: string | undefined;
@@ -30,6 +31,7 @@ interface IProps {
   occurrences: number | undefined;
   setOccurrences: (val: number | undefined) => void;
   onClose?: () => void;
+  timeBlockId?: string;
 }
 
 export const BlockContent = ({
@@ -49,9 +51,16 @@ export const BlockContent = ({
   occurrences,
   setEndDate,
   setOccurrences,
-  onClose
+  onClose,
+  timeBlockId
 }: IProps) => {
   const { mutate: createTimeBlock } = useCreateTimeBlock({
+    onSuccessFn: () => {
+      if (onClose) onClose();
+    },
+  });
+
+  const { mutate: updateTimeBlock } = useUpdateTimeBlock({
     onSuccessFn: () => {
       if (onClose) onClose();
     },
@@ -115,7 +124,7 @@ export const BlockContent = ({
       Number(endMStr) ?? 0,
     ));
 
-    createTimeBlock({
+    const payload = {
       startDate: startDateUtc,
       endDate: endDateUtc,
       reason: title,
@@ -124,7 +133,13 @@ export const BlockContent = ({
         endOption === "onDate" && endDate ? convertDateFormat(endDate) : null,
       recurringOccurrences:
         endOption === "afterOccurrences" ? occurrences : null,
-    });
+    };
+
+    if (timeBlockId) {
+      updateTimeBlock({ id: timeBlockId, payload });
+    } else {
+      createTimeBlock(payload);
+    }
   };
   return (
     <form>

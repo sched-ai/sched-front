@@ -1,15 +1,9 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { capitalizeFirst } from "@/util/helper";
-import { CalendarDays, Clock, Layers, Pencil, Trash2, MapPin } from "lucide-react";
+import { CalendarDays, Clock, Layers, Pencil, Trash2, MapPin, X } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 interface Details {
   title: string;
@@ -27,16 +21,35 @@ interface IProps {
   onEdit?: () => void;
   onDelete?: () => void;
   details: Details | null;
+  position?: { top: number; left: number } | null;
 }
 
-export const ScheduleViewModal = ({ 
-  isOpen, 
-  onClose, 
-  details, 
-  onEdit, 
-  onDelete 
+export const ScheduleViewModal = ({
+  isOpen,
+  onClose,
+  details,
+  onEdit,
+  onDelete,
+  position
 }: IProps) => {
-  if (!details) return null;
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      setTimeout(() => document.addEventListener("mousedown", handleClickOutside), 0);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen, onClose]);
+
+  if (!details || !isOpen || !position) return null;
 
   const formattedDate = details.localDateTime
     ? details.localDateTime.toLocaleDateString("pt-BR", {
@@ -49,23 +62,54 @@ export const ScheduleViewModal = ({
   const formattedYear = details.localDateTime?.getFullYear();
   const isBlock = details.type === 'bloqueio';
 
-
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] bg-[#121535] border-slate-700 text-slate-100 p-0 overflow-hidden gap-0">
-        
-        <DialogHeader className="p-6 pb-2">
+    <div 
+        ref={ref}
+        className="fixed z-50 w-[400px] bg-[#121535] border border-slate-700 text-slate-100 rounded-lg shadow-xl animate-in fade-in zoom-in-95 duration-200 overflow-hidden flex flex-col"
+        style={{ top: position.top, left: position.left }}
+    >
+      <div className="p-6 pb-2">
           <div className="flex items-start justify-between">
-            <div>
-              <DialogTitle className="text-2xl font-bold tracking-tight text-white">
+            <div className="space-y-1">
+              <h2 className="text-2xl font-bold tracking-tight text-white pr-4 leading-none">
                 {capitalizeFirst(details.title)}
-              </DialogTitle>
-              <p className="text-slate-400 text-sm mt-1">
-                {isBlock ? "Detalhes do bloqueio" : "Detalhes do agendamento"}
+              </h2>
+              <p className="text-slate-400 text-sm">
+                {isBlock ? "Detalhes do bloqueio" : "Detalhes da consulta"}
               </p>
             </div>
+
+            <div className="flex items-center gap-1 -mt-1 ml-auto">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={onEdit}
+                className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-700/50 transition-colors"
+                title="Editar"
+              >
+                <Pencil className="w-4 h-4" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={onDelete}
+                className="h-8 w-8 text-slate-400 hover:text-red-400 hover:bg-red-950/30 transition-colors"
+                title="Excluir"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={onClose}
+                className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-700/50 transition-colors"
+                title="Fechar"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
-        </DialogHeader>
+      </div>
 
         <div className="p-6 pt-2 space-y-6">
           
@@ -117,7 +161,7 @@ export const ScheduleViewModal = ({
           </div>
 
           {details.type === 'consulta' && (
-            <div className="space-y-3">
+            <div className="space-y-3 pb-4">
               <div className="flex items-center gap-2 text-slate-300">
                 <Layers className="w-4 h-4" />
                 <h4 className="text-sm font-semibold uppercase tracking-wider">
@@ -145,28 +189,6 @@ export const ScheduleViewModal = ({
             </div>
           )}
         </div>
-
-        <DialogFooter className="bg-[#0f112a] p-4 flex flex-row items-center justify-between border-t border-slate-800">
-          <Button 
-            variant="ghost" 
-            onClick={onDelete}
-            className="text-red-400 hover:text-red-300 hover:bg-red-950/30 gap-2"
-          >
-            <Trash2 className="w-4 h-4" />
-            Excluir
-          </Button>
-
-          <Button 
-            variant="secondary"
-            onClick={onEdit}
-            className="gap-2 bg-slate-700 hover:bg-slate-600 text-white border-none"
-          >
-            <Pencil className="w-4 h-4" />
-            Editar
-          </Button>
-        </DialogFooter>
-
-      </DialogContent>
-    </Dialog>
+    </div>
   );
 };

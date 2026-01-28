@@ -32,13 +32,9 @@ interface WeeklyCalendarProps {
 	events: EventType[];
 	currentDate: Date;
 	onDateClick?: (date: { day: number; month: number; year: number }, hour: string) => void;
-	onEventClick?: (event: EventType) => void;
+	onEventClick?: (event: EventType, rect: DOMRect) => void;
 	filterType?: 'all' | 'consulta' | 'bloqueio';
 }
-
-// function getDayIndex(day: string) {
-// 	return weekDays.indexOf(day);
-// }
 
 function getHourPosition(time: string) {
 	const [hours, minutes] = time.split(":").map(Number);
@@ -167,10 +163,10 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 		}
 	};
 
-	const handleEventClick = (event: EventType, e: React.MouseEvent) => {
+	const handleEventClick = (event: EventType, e: React.MouseEvent<HTMLDivElement>) => {
 		e.stopPropagation(); // Previne que o clique na célula seja acionado
 		if (onEventClick) {
-			onEventClick(event);
+			onEventClick(event, e.currentTarget.getBoundingClientRect());
 		}
 	};
 

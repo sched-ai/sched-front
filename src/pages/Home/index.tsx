@@ -53,6 +53,11 @@ export const Home = () => {
     workplaceName?: string;
     type?: 'consulta' | 'bloqueio';
   } | null>(null);
+  
+  const [selectedEvent, setSelectedEvent] = useState<EventType | null>(null);
+  const [viewModalPosition, setViewModalPosition] = useState<{ top: number; left: number } | null>(null);
+  
+
 
   const { data: calendar = [], isLoading } = useGetCalendar({
     referenceDate: currentDate,
@@ -63,20 +68,30 @@ export const Home = () => {
     hour: string,
   ) => {
     setScheduleFormSelectedDateTime({ ...date, hour });
+    setSelectedEvent(null);
     setIsScheduleFormOpen(true);
   };
 
   const handleCloseFormModal = () => {
     setIsScheduleFormOpen(false);
     setScheduleFormSelectedDateTime(null);
+    setSelectedEvent(null);
   };
 
   const handleCloseViewModal = () => {
     setIsScheduleViewOpen(false);
     setScheduleViewDetails(null);
+    setSelectedEvent(null);
+    setViewModalPosition(null);
   };
 
-  const handleEventClick = (event: EventType) => {
+  const handleEditEvent = () => {
+    setIsScheduleViewOpen(false);
+    setIsScheduleFormOpen(true);
+    setViewModalPosition(null);
+  };
+
+  const handleEventClick = (event: EventType, rect: DOMRect) => {
     // Calcula a data do evento dentro da semana atual
     const weekStart = new Date(currentDate);
     weekStart.setDate(currentDate.getDate() - currentDate.getDay());
@@ -116,6 +131,37 @@ export const Home = () => {
       workplaceName: (event as EventType).workplaceName,
       type: (event as EventType).type,
     }); 
+
+    setSelectedEvent(event);
+    
+    // Position Logic
+    const targetRect = rect || {
+        top: window.innerHeight / 2 - 200,
+        left: window.innerWidth / 2 - 200,
+        right: window.innerWidth / 2 + 200,
+        bottom: window.innerHeight / 2 + 200,
+        width: 400,
+        height: 400,
+        x: 0,
+        y: 0,
+        toJSON: () => {}
+    } as DOMRect;
+
+    if (!rect) console.warn("handleEventClick: rect is missing, using fallback");
+
+    let left = targetRect.right + 12;
+    let top = targetRect.top;
+
+    if (left + 425 > window.innerWidth) {
+       left = targetRect.left - 437; // 12px gap + 425px width
+    }
+    
+    if (top + 400 > window.innerHeight) {
+        top = window.innerHeight - 420;
+    }
+    if (top < 10) top = 10;
+
+    setViewModalPosition({ top, left });
     setIsScheduleViewOpen(true);
   };
 
@@ -123,6 +169,8 @@ export const Home = () => {
     isOpen: isScheduleViewOpen,
     onClose: handleCloseViewModal,
     details: scheduleViewDetails,
+    onEdit: handleEditEvent,
+    position: viewModalPosition,
   };
 
   return (
@@ -137,7 +185,7 @@ export const Home = () => {
             >
               HOJE
             </Button>
-            <h1 className="w-[290px]">
+            <h1 className="w-[235px] text-[24px]">
               {`${capitalizeFirst(format(currentDate, "MMMM", { locale: ptBR }))} de ${format(currentDate, "yyyy", { locale: ptBR })}`}
             </h1>
             <div className="flex">
@@ -216,6 +264,7 @@ export const Home = () => {
       <ScheduleFormModal
         isOpen={isScheduleFormOpen}
         selectedDateTime={scheduleFormSelectedDateTime}
+        selectedEvent={selectedEvent}
         onClose={handleCloseFormModal}
       />
       <ScheduleViewModal {...scheduleViewModalProps} />
