@@ -171,6 +171,7 @@ export const Home = () => {
     details: scheduleViewDetails,
     onEdit: handleEditEvent,
     position: viewModalPosition,
+    selectedEvent: selectedEvent
   };
 
   return (
