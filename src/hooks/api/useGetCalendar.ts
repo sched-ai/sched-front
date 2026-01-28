@@ -21,8 +21,10 @@ interface AppointmentAPI {
   id: string;
   startDate: string;
   endDate: string;
-  client?: { name?: string } | null;
+  clientName?: string | null;
   service?: { name?: string } | null;
+  workplaceId?: string | null;
+  workplaceName?: string | null;
 }
 
 interface ICalendar {
@@ -69,12 +71,14 @@ const toAppointmentEvent = (a: AppointmentAPI): EventType => {
   const dayIdx = start.getUTCDay();
 
   const titleParts: string[] = [];
-  if (a.client && a.client.name) titleParts.push(a.client.name);
+  if (a.clientName) titleParts.push(a.clientName);
   if (a.service && a.service.name) titleParts.push(`(${a.service.name})`);
 
   return {
     id: a.id,
-    title: titleParts.length ? titleParts.join(" ") : "Consulta",
+    title: titleParts.length ? titleParts.join(" ") : a.clientName || "Consulta",
+    workplaceId: a.workplaceId ?? undefined,
+    workplaceName: a.workplaceName ?? undefined,
     day: weekDaysPt[dayIdx],
     dayNumber: start.getUTCDate(),
     start: timeFromUTC(start),

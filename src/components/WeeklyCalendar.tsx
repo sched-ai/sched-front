@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { format, startOfWeek, addDays, isSameDay } from "date-fns";
 
 const weekDays = [
@@ -22,6 +22,9 @@ export type EventType = {
 	end: string;
 	month: string;
 	year: number;
+	workplaceId?: string;
+	workplaceName?: string;
+	services?: string[];
 	type?: 'consulta' | 'bloqueio';
 };
 
@@ -56,6 +59,13 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
   filterType = 'all'
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+	const leftColumnRef = useRef<HTMLDivElement>(null);
+	const [nowIndicator, setNowIndicator] = useState<{
+		top: number;
+		dayIdx: number;
+		left: number;
+	} | null>(null);
+	const CELL_HEIGHT = 80;
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
   
   const weekDates = Array.from({ length: 7 }, (_, index) => 
@@ -64,11 +74,35 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 
   useEffect(() => {
     if (scrollContainerRef.current) {
-      const cellHeight = 80;
-      const scrollPosition = 6 * cellHeight;
+			const scrollPosition = 6 * CELL_HEIGHT;
       scrollContainerRef.current.scrollTop = scrollPosition;
     }
   }, [currentDate]);
+
+	useEffect(() => {
+		let mounted = true;
+		const updateNow = () => {
+			const now = new Date();
+			const dayIdxNow = weekDates.findIndex((d) => isSameDay(d, now));
+			if (dayIdxNow === -1) {
+				if (mounted) setNowIndicator(null);
+				return;
+			}
+			const timeStr = format(now, "HH:mm");
+			const pos = getHourPosition(timeStr);
+			const left = leftColumnRef.current?.offsetWidth ?? 90;
+			if (mounted)
+				setNowIndicator({ top: pos.totalPosition * CELL_HEIGHT, dayIdx: dayIdxNow, left });
+		};
+
+		updateNow();
+		const id = setInterval(updateNow, 30 * 1000);
+		return () => {
+			mounted = false;
+			clearInterval(id);
+		};
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	// Filtra eventos para a semana exibida (não apenas por mês/ano)
 	const filteredEventsByWeek = events.filter((event) => {
@@ -157,7 +191,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 										} ${isToday ? "bg-blue-100 text-blue-600" : ""}`}
 									>
 										<p className="text-sm">{day}</p>
-										<p className={`text-lg ${isToday ? "font-bold bg-blue-600 text-white w-fit rounded-full px-2 text-center" : ""}`}>
+										<p className={`text-lg ${isToday ? "font-bold bg-blue-600 text-white rounded-full h-7 w-7 text-center" : ""}`}>
 											{format(currentDayDate, "d")}
 										</p>
 									</div>
@@ -169,17 +203,39 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 						ref={scrollContainerRef}
 						className="overflow-auto h-[calc(100vh-150px)] custom-scrollbar"
 					  >
-						<div className="flex">
+												<div className="flex relative">
 							<div className="flex flex-col max-w-[90px] pl-5 w-full">
-								{hours.map((hour) => (
-									<div
-										key={hour}
-										className="h-[80px] text-md text-right pr-2 flex items-center max-w-[50px]"
-									>
-										{hour}
-									</div>
-								))}
-							</div>
+																{/* coluna de horários (referência usada para posicionar a linha atual) */}
+																<div ref={leftColumnRef} className="w-full">
+																	{hours.map((hour) => (
+																		<div
+																			key={hour}
+																			className="h-[80px] text-md text-right pr-2 flex items-center max-w-[50px]"
+																		>
+																			{hour}
+																		</div>
+																	))}
+																</div>
+														</div>
+														{/* linha indicadora do horário atual */}
+														{nowIndicator && (
+															<div
+																className="absolute pointer-events-none"
+																style={{
+																	left: nowIndicator.left,
+																	top: `${nowIndicator.top}px`,
+																	width: `calc(100% - ${nowIndicator.left}px)`,
+																	zIndex: 40,
+																}}
+															>
+																<div style={{ position: "relative" }}>
+																	<div
+																		style={{ position: "absolute", left: -8, top: -6, width: 10, height: 10, borderRadius: 9999, backgroundColor: "#ef4444" }}
+																	/>
+																	<div style={{ height: 2, backgroundColor: "#ef4444", width: "100%" }} />
+																</div>
+															</div>
+														)}
 							<div className="grid grid-cols-7 w-full">
 								{weekDays.map((day, dayIdx) => (
 									<div
@@ -201,16 +257,21 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 												const cellHeight = 80;
 												const top = ev.startPos.totalPosition * cellHeight;
 												const height = (ev.endPos.totalPosition - ev.startPos.totalPosition) * cellHeight;
+												const bgColor = ev.type === "consulta"
+													? "#60a5fa"
+													: dayIdx >= 5
+														? "#60a5fa"
+														: "#050a35";
 												return (
 													<div
 														key={ev.id}
-														className="absolute w-full rounded bg-blue-500 text-white px-2 py-1 text-xs shadow-md hover:scale-105 cursor-pointer hover:animate-pulse transition-all"
+														className="absolute w-full rounded border border-white text-white px-2 py-1 text-xs shadow-md hover:scale-105 cursor-pointer hover:animate-pulse transition-all"
 														style={{
 															top: `${top}px`,
 															height: `${height}px`,
 															minHeight: `${Math.max(height, 20)}px`,
 															zIndex: 20,
-															backgroundColor: dayIdx >= 5 ? "#60a5fa" : "#050a35",
+															backgroundColor: bgColor,
 														}}
 														onClick={(e) => handleEventClick(ev, e)}
 													>
