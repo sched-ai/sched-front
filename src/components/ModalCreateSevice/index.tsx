@@ -194,7 +194,7 @@ export const ModalCreateService = (props: IProps) => {
   };
   return (
     <Dialog open={isModalOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="fixed left-1/2 top-1/2 z-50 w-[760px] max-w-[95%] overflow-hidden overflow-x-hidden -translate-x-1/2 -translate-y-1/2 px-0 rounded-2xl border border-[#1C3760] bg-[rgba(3,8,22,0.85)] shadow-2xl">
+      <DialogContent className="fixed left-1/2 top-1/2 z-50 w-[700px] max-w-[95%] overflow-hidden overflow-x-hidden -translate-x-1/2 -translate-y-1/2 px-0 rounded-2xl border border-[#1C3760] bg-[rgba(3,8,22,0.85)] shadow-2xl">
         <div
           className="absolute inset-0 -z-10"
           style={{
@@ -208,14 +208,15 @@ export const ModalCreateService = (props: IProps) => {
         />
         <div className="absolute inset-0 -z-10 bg-[rgba(8,18,40,0.55)]" />
 
-        <div className="relative z-10 p-6">
+        <div className="relative z-10 p-4">
           <div className="flex items-start justify-between mb-3">
             <div>
-              <DialogTitle className="text-xl text-white font-semibold">
+              <DialogTitle className="text-lg text-white font-semibold">
                 {activeTab === "servico" ? "Adicionar Serviço" : "Adicionar Pacote"}
               </DialogTitle>
               <DialogDescription className="text-sm text-white/70">Preencha o formulário para criar um novo serviço/pacote</DialogDescription>
             </div>
+
             <button
               aria-label="Fechar"
               onClick={() => handleOpenChange(false)}
@@ -226,21 +227,31 @@ export const ModalCreateService = (props: IProps) => {
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="bg-white/5 border border-white/10 rounded-full p-1 inline-flex gap-2 mb-4">
-              <TabsTrigger value="servico" className="data-[state=active]:bg-white text-white data-[state=active]:text-[#18181B] px-6 py-3.5 rounded-full">Serviço</TabsTrigger>
-              <TabsTrigger value="pacote" className="data-[state=active]:bg-white text-white data-[state=active]:text-[#18181B] px-6 py-3.5 rounded-full">Pacote</TabsTrigger>
+            <TabsList className="bg-white/5 border border-white h-[44px] mb-3">
+              <TabsTrigger
+                value="servico"
+                className="data-[state=active]:text-[#141736] data-[state=inactive]:text-background cursor-pointer h-[32px] px-2 text-sm"
+              >
+                Serviço
+              </TabsTrigger>
+              <TabsTrigger
+                value="pacote"
+                className="data-[state=active]:text-[#141736] data-[state=inactive]:text-background cursor-pointer h-[32px] px-2 text-sm"
+              >
+                Pacote
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="servico" className="text-white">
               <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                 <Label className="text-white text-sm">Nome do Serviço</Label>
-                <Input id="nome" type="text" placeholder="Nome do Serviço" value={serviceNome} onChange={(e) => setServiceNome(e.target.value)} placeholderWhite noFocusColor className="text-white bg-transparent border-white/80 rounded-[10px]" />
+                <Input id="nome" type="text" placeholder="Nome do Serviço" value={serviceNome} onChange={(e) => setServiceNome(e.target.value)} placeholderWhite noFocusColor className="!h-[36px] text-sm text-white bg-transparent border-white/80 rounded-[10px]" />
 
-                <div className="flex gap-3">
+                <div className="flex gap-3 mt-4">
                   <div className="flex-1">
-                    <Label className="text-sm text-white">Categoria</Label>
+                    <Label className="text-sm text-white mb-2">Categoria</Label>
                     <Select onValueChange={() => {}}>
-                      <SelectTrigger className="w-full !h-[48px] border-white text-white bg-transparent rounded-[10px] data-[placeholder]:text-white/50">
+                      <SelectTrigger className="w-full !h-[40px] border-white text-white bg-transparent rounded-[10px] data-[placeholder]:text-white/50 text-sm">
                         <SelectValue placeholder="Estética Facial, Corporal..." />
                       </SelectTrigger>
                       <SelectContent>
@@ -250,9 +261,9 @@ export const ModalCreateService = (props: IProps) => {
                   </div>
 
                   <div className="w-40">
-                    <Label className="text-sm text-white">Responsável</Label>
+                    <Label className="text-sm text-white mb-2">Responsável</Label>
                     <Select value={responsavel} onValueChange={(e) => setResponsavel(e === "__none" ? "" : e)}>
-                      <SelectTrigger className="w-full !h-[48px] border-white/80 text-white bg-transparent rounded-[10px] data-[placeholder]:text-white/50">
+                      <SelectTrigger className="w-full !h-[40px] border-white/80 text-white bg-transparent rounded-[10px] data-[placeholder]:text-white/50 text-sm">
                         <SelectValue placeholder="Selecione" />
                       </SelectTrigger>
                       <SelectContent>
@@ -264,22 +275,22 @@ export const ModalCreateService = (props: IProps) => {
 
                 <div className="flex gap-3 items-center">
                   <div className="flex-1">
-                    <Label className="text-sm text-white">Valor (R$)</Label>
-                    <Input id="price" type="text" placeholder="R$ 0,00" value={servicePrice} onChange={(e) => setServicePrice(formatBRL(e.target.value))} placeholderWhite noFocusColor className="text-white bg-transparent border-white/80 rounded-[10px]" />
+                    <Label className="text-sm text-white mb-2">Valor (R$)</Label>
+                    <Input id="price" type="text" placeholder="R$ 0,00" value={servicePrice} onChange={(e) => setServicePrice(formatBRL(e.target.value))} placeholderWhite noFocusColor className="!h-[40px] text-sm text-white bg-transparent border-white/80 rounded-[10px]" />
                   </div>
                   <div className="w-40">
-                    <Label className="text-sm text-white">Duração</Label>
-                    <Input id="duration" type="time" value={serviceDuration} onChange={(e) => setServiceDuration(e.target.value)} placeholderWhite noFocusColor className="text-white bg-transparent border-white/80 rounded-[10px]" />
+                    <Label className="text-sm text-white mb-2">Duração</Label>
+                    <Input id="duration" type="time" value={serviceDuration} onChange={(e) => setServiceDuration(e.target.value)} placeholderWhite noFocusColor className="!h-[40px] text-sm text-white bg-transparent border-white/80 rounded-[10px]" />
                   </div>
                 </div>
 
-                <div>
+                <div className="mt-5">
                   <Label className="text-sm text-white">Descrição do serviço</Label>
-                  <textarea value={serviceDescricao} onChange={(e) => setServiceDescricao(e.target.value)} className="w-full mt-2 p-3 rounded-lg bg-transparent text-white min-h-[120px] placeholder-white/50 border-white/80 focus:text-white" placeholder="Descrição do serviço" />
+                  <textarea value={serviceDescricao} onChange={(e) => setServiceDescricao(e.target.value)} className="w-full mt-2 p-4 rounded-lg bg-transparent text-white min-h-[80px] placeholder-white/50 border-white/80 focus:text-white text-sm" placeholder="Descrição do serviço" />
                 </div>
 
-                <div className="flex justify-end gap-4 mt-2">
-                  <Button type="submit" className="bg-white text-[#141736] px-4 py-2 rounded-[10px]">Salvar</Button>
+                <div className="flex justify-end gap-3 mt-2">
+                  <Button type="submit" className="bg-white text-[#141736] px-4 py-2 rounded-[10px] text-sm">Salvar</Button>
                 </div>
               </form>
             </TabsContent>
@@ -287,13 +298,13 @@ export const ModalCreateService = (props: IProps) => {
             <TabsContent value="pacote" className="text-white">
               <form onSubmit={(e) => { e.preventDefault();}} className="flex flex-col gap-4">
                 <Label className="text-white text-sm">Nome do Pacote</Label>
-                <Input id="nomePacote" type="text" placeholder="Nome do Pacote" value={packageNome} onChange={(e) => setPackageNome(e.target.value)} placeholderWhite noFocusColor className="text-white bg-transparent border-white/80 rounded-[10px]" />
+                <Input id="nomePacote" type="text" placeholder="Nome do Pacote" value={packageNome} onChange={(e) => setPackageNome(e.target.value)} placeholderWhite noFocusColor className="!h-[36px] text-sm text-white bg-transparent border-white/80 rounded-[10px]" />
 
                 <div className="flex gap-3 items-end">
                   <div className="flex-1">
                     <Label className="text-sm text-white">Selecionar serviço</Label>
                     <Select>
-                      <SelectTrigger className="w-full !h-[48px] border-white/80 text-white bg-transparent rounded-[10px] data-[placeholder]:text-white/50">
+                      <SelectTrigger className="w-full !h-[40px] border-white/80 text-white bg-transparent rounded-[10px] data-[placeholder]:text-white/50 text-sm">
                         <SelectValue placeholder="Selecionar serviço" />
                       </SelectTrigger>
                       <SelectContent>
@@ -303,7 +314,7 @@ export const ModalCreateService = (props: IProps) => {
                   </div>
                   <div className="w-36">
                     <Label className="text-sm text-white">Quantidade</Label>
-                    <input type="number" min={1} defaultValue={1} className="w-full p-2 rounded-lg bg-transparent text-white placeholder-white/50 border-white/80" />
+                    <input type="number" min={1} defaultValue={1} className="w-full p-2 rounded-lg bg-transparent text-white placeholder-white/50 border-white/80 text-sm" />
                   </div>
                 </div>
 
@@ -314,26 +325,26 @@ export const ModalCreateService = (props: IProps) => {
                 <div className="flex gap-3">
                   <div className="flex-1">
                     <Label className="text-sm text-white">Valor Cheio (R$)</Label>
-                    <Input type="text" placeholder="R$ 0,00" value={packagePrice} onChange={(e) => setPackagePrice(formatBRL(e.target.value))} placeholderWhite noFocusColor className="text-white bg-transparent border-white/80 placeholder-white rounded-[10px]" />
+                    <Input type="text" placeholder="R$ 0,00" value={packagePrice} onChange={(e) => setPackagePrice(formatBRL(e.target.value))} placeholderWhite noFocusColor className="!h-[40px] text-sm text-white bg-transparent border-white/80 placeholder-white rounded-[10px]" />
                   </div>
                   <div className="w-40">
                     <Label className="text-sm text-white">Desconto</Label>
-                    <Input type="text" placeholder="%" value={packageDiscount} onChange={(e) => setPackageDiscount(e.target.value)} placeholderWhite noFocusColor className="text-white bg-transparent border-white/80 rounded-[10px]" />
+                    <Input type="text" placeholder="%" value={packageDiscount} onChange={(e) => setPackageDiscount(e.target.value)} placeholderWhite noFocusColor className="!h-[40px] text-sm text-white bg-transparent border-white/80 rounded-[10px]" />
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <Switch checked={repeatEnabled} onCheckedChange={(v) => setRepeatEnabled(Boolean(v))} />
-                  <span className="text-white">Repetir</span>
+                  <span className="text-white text-sm">Repetir</span>
                 </div>
 
                 <div>
                   <Label className="text-sm text-white">Descrição do pacote</Label>
-                  <textarea value={packageDescricao} onChange={(e) => setPackageDescricao(e.target.value)} className="w-full mt-2 p-3 rounded-lg bg-transparent text-white min-h-[120px] placeholder-white border border-white" placeholder="Descrição do pacote" />
+                  <textarea value={packageDescricao} onChange={(e) => setPackageDescricao(e.target.value)} className="w-full mt-2 p-4 rounded-lg bg-transparent text-white min-h-[80px] placeholder-white border border-white text-sm" placeholder="Descrição do pacote" />
                 </div>
 
-                <div className="flex justify-end gap-4 mt-2">
-                  <Button type="submit" className="bg-white text-[#141736] px-4 py-2 rounded-[10px]">Salvar</Button>
+                <div className="flex justify-end gap-3 mt-2">
+                  <Button type="submit" className="bg-white text-[#141736] px-4 py-2 rounded-[10px] text-sm">Salvar</Button>
                 </div>
               </form>
             </TabsContent>
