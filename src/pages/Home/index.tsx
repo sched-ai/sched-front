@@ -56,6 +56,8 @@ export const Home = () => {
   
   const [selectedEvent, setSelectedEvent] = useState<EventType | null>(null);
   const [viewModalPosition, setViewModalPosition] = useState<{ top: number; left: number } | null>(null);
+  const [scheduleFormPosition, setScheduleFormPosition] = useState<{ x: number; y: number } | null>(null);
+
   
 
 
@@ -66,9 +68,29 @@ export const Home = () => {
   const handleDateClick = (
     date: { day: number; month: number; year: number },
     hour: string,
+    rect?: DOMRect
   ) => {
     setScheduleFormSelectedDateTime({ ...date, hour });
     setSelectedEvent(null);
+    
+    if (rect) {
+      let x = rect.right + 12;
+      let y = rect.top;
+
+      // Basic overflow check
+      if (x + 400 > window.innerWidth) {
+        x = rect.left - 412; // 400 width + 12 gap
+      }
+      if (y + 500 > window.innerHeight) {
+        y = window.innerHeight - 520;
+      }
+      if (y < 20) y = 20;
+      
+      setScheduleFormPosition({ x, y });
+    } else {
+      setScheduleFormPosition(null);
+    }
+
     setIsScheduleFormOpen(true);
   };
 
@@ -267,6 +289,7 @@ export const Home = () => {
         selectedDateTime={scheduleFormSelectedDateTime}
         selectedEvent={selectedEvent}
         onClose={handleCloseFormModal}
+        clickPosition={scheduleFormPosition}
       />
       <ScheduleViewModal {...scheduleViewModalProps} />
     </div>

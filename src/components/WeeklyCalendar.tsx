@@ -31,7 +31,7 @@ export type EventType = {
 interface WeeklyCalendarProps {
 	events: EventType[];
 	currentDate: Date;
-	onDateClick?: (date: { day: number; month: number; year: number }, hour: string) => void;
+	onDateClick?: (date: { day: number; month: number; year: number }, hour: string, rect?: DOMRect) => void;
 	onEventClick?: (event: EventType, rect: DOMRect) => void;
 	filterType?: 'all' | 'consulta' | 'bloqueio';
 }
@@ -149,16 +149,18 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 		};
 	});
 
-	const handleCellClick = (dayIdx: number, hour: string) => {
+	const handleCellClick = (dayIdx: number, hour: string, e: React.MouseEvent<HTMLDivElement>) => {
 		if (onDateClick) {
 			const dateObj = weekDates[dayIdx];
+			const rect = e.currentTarget.getBoundingClientRect();
 			onDateClick(
 				{
 					day: dateObj.getDate(),
 					month: dateObj.getMonth() + 1,
 					year: dateObj.getFullYear(),
 				},
-				hour
+				hour,
+				rect
 			);
 		}
 	};
@@ -244,7 +246,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 											<div
 												key={hour}
 												className="h-[80px] border-b border-gray-200 hover:bg-blue-50"
-												onClick={() => handleCellClick(dayIdx, hour)}
+												onClick={(e) => handleCellClick(dayIdx, hour, e)}
 											></div>
 										))}
 										{eventMap

@@ -2,7 +2,7 @@
 import { Button } from "../ui/button";
 import { DatePicker } from "../DatePicker";
 import { Switch } from "../ui/switch";
-import { ClockPlus } from "lucide-react";
+import { Clock, Repeat } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import { useCreateTimeBlock, type DayOfWeek } from "@/hooks/api/useCreateTimeBlock";
 import { useUpdateTimeBlock } from "@/hooks/api/useUpdateTimeBlock";
@@ -36,7 +36,6 @@ interface IProps {
 
 export const BlockContent = ({
   title,
-  setTitle,
   selectedDateTime,
   startHour,
   setStartHour,
@@ -54,17 +53,19 @@ export const BlockContent = ({
   onClose,
   timeBlockId
 }: IProps) => {
-  const { mutate: createTimeBlock } = useCreateTimeBlock({
+  const { mutate: createTimeBlock, isPending: isCreating } = useCreateTimeBlock({
     onSuccessFn: () => {
       if (onClose) onClose();
     },
   });
 
-  const { mutate: updateTimeBlock } = useUpdateTimeBlock({
+  const { mutate: updateTimeBlock, isPending: isUpdating } = useUpdateTimeBlock({
     onSuccessFn: () => {
       if (onClose) onClose();
     },
   });
+
+  const isPending = isCreating || isUpdating;
 
   const handleCreateTimeBlock = (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,176 +143,144 @@ export const BlockContent = ({
     }
   };
   return (
-    <form>
-      <div className="relative mt-7">
-        <input
-          id="tituloBloqueio"
-          name="tituloBloqueio"
-          type="text"
-          placeholder=" "
-          className="peer h-12 w-full border-2 px-2 bg-white/5 rounded-lg border-gray-300 placeholder-transparent focus:outline-none focus:border-blue-600 focus:border-2 text-white border-x-0 border-t-0 outline-0 border-b-[2px] !border-b-[#0177FB]"
-          value={title ?? ""}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-        <label
-          htmlFor="tituloBloqueio"
-          className="absolute left-0 -top-6 text-sm text-white transition-all 
-                    peer-placeholder-shown:left-3 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 
-                    peer-focus:-top-6 peer-focus:text-sm peer-focus:left-0"
-        >
-          Adicionar Título
-        </label>
-      </div>
-      <div className="flex flex-col gap-4">
-        <div className="flex gap-2 items-center text-[16px] mt-4">
-          <ClockPlus />
-          <span className="text-sm">Confirme a data e hora:</span>
+    <form className="flex flex-col gap-5">
+      {/* Date & Time Section */}
+      <div className="flex items-start gap-4">
+        <div className="mt-2.5">
+          <Clock className="text-gray-400" size={20} />
         </div>
-        <div className="flex gap-4 items-center justify-between">
-          <DatePicker
-            initialValue={
-              selectedDateTime &&
-              selectedDateTime.day &&
-              selectedDateTime.month &&
-              selectedDateTime.year
-                ? `${selectedDateTime.day
-                    .toString()
-                    .padStart(2, "0")}/${selectedDateTime.month
-                    .toString()
-                    .padStart(2, "0")}/${selectedDateTime.year}`
-                : undefined
-            }
-          />
-          <div className="flex items-center gap-3">
-            De
-            <input
-              id="inicio"
-              type="time"
-              className="border-white border p-2 py-3 h-full rounded-lg max-w-[100px] lightInput"
-              value={startHour}
-              onChange={(e) => setStartHour(e.target.value)}
+        <div className="flex-1 flex flex-col gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <DatePicker
+              initialValue={
+                selectedDateTime &&
+                selectedDateTime.day &&
+                selectedDateTime.month &&
+                selectedDateTime.year
+                  ? `${selectedDateTime.day
+                      .toString()
+                      .padStart(2, "0")}/${selectedDateTime.month
+                      .toString()
+                      .padStart(2, "0")}/${selectedDateTime.year}`
+                  : undefined
+              }
             />
-            Até
-            <input
-              type="time"
-              className="border-white border p-2 py-3 h-full rounded-lg max-w-[100px] lightInput"
-              value={endHour}
-              onChange={(e) => setEndHour(e.target.value)}
-            />
-          </div>
-        </div>
-        <div className="flex gap-2 items-center text-[16px]">
-          <Switch
-            checked={repeatEnabled}
-            onCheckedChange={(val) => setRepeatEnabled(Boolean(val))}
-            className="data-[state=checked]:bg-[#0177FB] data-[state=unchecked]:bg-[#5E5E5E]"
-          />{" "}
-          Repetir
-        </div>
-        {repeatEnabled && (
-          <div>
-            {/* <div className=" w-full">
-              <label className="text-sm text-white/90">Repetir em</label>
-              <div className="flex justify-around mt-2">
-                {["D", "S", "T", "Q", "Q", "S", "S"].map((label, idx) => {
-                  const selected = weekDays[idx];
-                  return (
-                    <button
-                      key={idx}
-                      type="button"
-                      aria-pressed={selected}
-                      onClick={() =>
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        setWeekDays((prev: any) => {
-                          const copy = [...prev];
-                          copy[idx] = !copy[idx];
-                          return copy;
-                        })
-                      }
-                      className={`w-10 h-10 rounded-full cursor-pointer flex items-center justify-center text-sm font-medium transition-colors ${
-                        selected
-                          ? "bg-[#0177FB] text-white"
-                          : "bg-white/10 text-white/80"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div> */}
-
-            <div className="mt-4">
-              <label className="text-sm text-white/90">Encerra em</label>
-              <div className="flex flex-col gap-2 mt-2">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="endOption"
-                    checked={endOption === "never"}
-                    onChange={() => setEndOption("never")}
-                    className="accent-blue-600"
-                  />
-                  <span className="ml-2 text-white">Nunca</span>
-                </label>
-
-                <label className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="endOption"
-                    checked={endOption === "onDate"}
-                    onChange={() => setEndOption("onDate")}
-                    className="accent-blue-600"
-                  />
-                  <span className="ml-2 text-white">Em:</span>
-                  <DatePicker
-                    initialValue={endDate}
-                    onChange={(val?: string) => setEndDate(val)}
-                  />
-                </label>
-
-                <label className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="endOption"
-                    checked={endOption === "afterOccurrences"}
-                    onChange={() => setEndOption("afterOccurrences")}
-                    className="accent-blue-600"
-                  />
-                  <span className="ml-2 text-white">Após:</span>
-                  <input
-                    type="number"
-                    value={occurrences ?? ""}
-                    min={1}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      if (!v) {
-                        setOccurrences(undefined);
-                        return;
-                      }
-                      const n = Number(v);
-                      if (Number.isNaN(n) || n <= 0) {
-                        setOccurrences(1);
-                      } else {
-                        setOccurrences(n);
-                      }
-                    }}
-                    disabled={endOption !== "afterOccurrences"}
-                    className="ml-2 border border-white text-white p-2 rounded w-20"
-                  />
-                  <span className="text-white ml-2">ocorrências</span>
-                </label>
-              </div>
+            <div className="flex items-center gap-2">
+              <input
+                id="inicio"
+                type="time"
+                style={{ colorScheme: "dark" }}
+                className="bg-transparent border-b border-gray-600 focus:border-blue-500 text-white p-1 w-24 text-center focus:outline-none"
+                value={startHour}
+                onChange={(e) => setStartHour(e.target.value)}
+              />
+              <span className="text-gray-400">-</span>
+              <input
+                type="time"
+                style={{ colorScheme: "dark" }}
+                className="bg-transparent border-b border-gray-600 focus:border-blue-500 text-white p-1 w-24 text-center focus:outline-none"
+                value={endHour}
+                onChange={(e) => setEndHour(e.target.value)}
+              />
             </div>
           </div>
-        )}
+        </div>
+      </div>
+
+      {/* Repeat Section */}
+      <div className="flex items-start gap-4">
+        <div className="mt-0.5">
+          <Repeat className={`transform transition-colors ${repeatEnabled ? "text-blue-500" : "text-gray-400"}`} size={20} />
+        </div>
+        <div className="flex-1 flex flex-col gap-4">
+          <div className="flex items-center gap-3">
+            <span className="text-white">Repetir</span>
+            <Switch
+              checked={repeatEnabled}
+              onCheckedChange={(val) => setRepeatEnabled(Boolean(val))}
+              className="data-[state=checked]:bg-blue-600 data-[state=unchecked]:bg-gray-600"
+            />
+          </div>
+
+          {repeatEnabled && (
+            <div className="pl-0 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="border-l-2 border-gray-700 pl-4 space-y-4">
+                 <div>
+                    <label className="text-sm text-gray-400 mb-2 block">Encerra</label>
+                    <div className="flex flex-col gap-3">
+                      <label className="flex items-center gap-2 cursor-pointer group">
+                        <input
+                          type="radio"
+                          name="endOption"
+                          checked={endOption === "never"}
+                          onChange={() => setEndOption("never")}
+                          className="accent-blue-600 w-4 h-4 cursor-pointer"
+                        />
+                        <span className="ml-2 text-white group-hover:text-blue-400 transition-colors">Nunca</span>
+                      </label>
+
+                      <label className="flex items-center gap-2 cursor-pointer group">
+                         <div className="flex items-center">
+                            <input
+                              type="radio"
+                              name="endOption"
+                              checked={endOption === "onDate"}
+                              onChange={() => setEndOption("onDate")}
+                              className="accent-blue-600 w-4 h-4 cursor-pointer"
+                            />
+                            <span className="ml-2 mr-2 text-white group-hover:text-blue-400 transition-colors">Em</span>
+                         </div>
+                        <DatePicker
+                          initialValue={endDate}
+                          onChange={(val?: string) => setEndDate(val)}
+                        />
+                      </label>
+
+                      <label className="flex items-center gap-2 cursor-pointer group">
+                        <div className="flex items-center">
+                            <input
+                              type="radio"
+                              name="endOption"
+                              checked={endOption === "afterOccurrences"}
+                              onChange={() => setEndOption("afterOccurrences")}
+                              className="accent-blue-600 w-4 h-4 cursor-pointer"
+                            />
+                            <span className="ml-2 mr-2 text-white group-hover:text-blue-400 transition-colors">Após</span>
+                        </div>
+                        <input
+                          type="number"
+                          value={occurrences ?? ""}
+                          min={1}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            if (!v) {
+                              setOccurrences(undefined);
+                              return;
+                            }
+                            const n = Number(v);
+                            setOccurrences(Number.isNaN(n) || n <= 0 ? 1 : n);
+                          }}
+                          disabled={endOption !== "afterOccurrences"}
+                          className="bg-transparent border-b border-gray-600 focus:border-blue-500 text-white w-12 text-center focus:outline-none disabled:opacity-50"
+                        />
+                        <span className="text-white text-sm">ocorrências</span>
+                      </label>
+                    </div>
+                 </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="flex justify-end mt-4">
         <Button
-          className="self-end !text-[16px] mt-4"
-          type="submit"
-          variant="seccondary"
+          type="button"
           onClick={handleCreateTimeBlock}
+          disabled={isPending}
+          className="bg-blue-600 hover:bg-blue-700 text-white rounded-md px-6 py-2 min-w-[100px]"
         >
-          Salvar
+          {isPending ? "Salvando..." : "Salvar"}
         </Button>
       </div>
     </form>

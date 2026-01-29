@@ -1,5 +1,5 @@
-import { ClockPlus, Notebook } from "lucide-react";
-import { Label } from "../ui/label";
+import { Clock, MapPin, Briefcase } from "lucide-react";
+// plain import removed
 import { Button } from "../ui/button";
 import { DatePicker } from "../DatePicker";
 import type { Dispatch, SetStateAction } from "react";
@@ -44,7 +44,6 @@ interface IProps {
 
 export const AppoimentContent = ({
   title,
-  setTitle,
   selectedDateTime,
   startHour,
   setStartHour,
@@ -59,7 +58,7 @@ export const AppoimentContent = ({
 }: IProps) => {
   const { userData, userLoading } = useUser();
   const { data: services } = useGetAllServices();
-  const { mutate: createAppointment } = useCreateAppointment({
+  const { mutate: createAppointment, isPending: isCreating } = useCreateAppointment({
       onSuccessFn: () => {
         if (onClose) {
           onClose();
@@ -67,13 +66,15 @@ export const AppoimentContent = ({
       },
     });
 
-  const { mutate: updateAppointment } = useUpdateAppointment({
+  const { mutate: updateAppointment, isPending: isUpdating } = useUpdateAppointment({
     onSuccessFn: () => {
       if (onClose) {
         onClose();
       }
     },
   });
+
+  const isPending = isCreating || isUpdating;
 
   const rawWorkplaces = userData?.membership.company.workplaces;
   const workplaces = Array.isArray(rawWorkplaces)
@@ -131,141 +132,119 @@ export const AppoimentContent = ({
   };
 
   return (
-    <form onSubmit={handleCreateConsultation}>
-      <div className="relative mt-7">
-        <input
-          id="tituloConsulta"
-          name="tituloConsulta"
-          type="text"
-          placeholder=" "
-          className="peer h-12 w-full border-2 px-2 bg-white/5 rounded-lg border-gray-300 placeholder-transparent focus:outline-none focus:border-blue-600 focus:border-2 text-white border-x-0 border-t-0 outline-0 border-b-[2px] !border-b-[#0177FB]"
-          value={title ?? ""}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-        <label
-          htmlFor="tituloConsulta"
-          className="absolute left-0 -top-6 text-sm text-white transition-all 
-                    peer-placeholder-shown:left-3 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 
-                    peer-focus:-top-6 peer-focus:text-sm peer-focus:left-0"
-        >
-          Adicionar Paciente
-        </label>
+    <form onSubmit={handleCreateConsultation} className="flex flex-col gap-5">
+      {/* Date & Time Section */}
+      <div className="flex items-start gap-4">
+        <div className="mt-2.5">
+          <Clock className="text-gray-400" size={20} />
+        </div>
+        <div className="flex-1 flex flex-col gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <DatePicker
+              initialValue={
+                selectedDateTime &&
+                selectedDateTime.day &&
+                selectedDateTime.month &&
+                selectedDateTime.year
+                  ? `${selectedDateTime.day
+                      .toString()
+                      .padStart(2, "0")}/${selectedDateTime.month
+                      .toString()
+                      .padStart(2, "0")}/${selectedDateTime.year}`
+                  : undefined
+              }
+            />
+            <div className="flex items-center gap-2">
+              <input
+                id="inicioConsulta"
+                type="time"
+                style={{ colorScheme: "dark" }}
+                className="bg-transparent border-b border-gray-600 focus:border-blue-500 text-white p-1 w-24 text-center focus:outline-none"
+                value={startHour}
+                onChange={(e) => setStartHour(e.target.value)}
+              />
+              <span className="text-gray-400">-</span>
+              <input
+                id="fimConsulta"
+                type="time"
+                style={{ colorScheme: "dark" }}
+                className="bg-transparent border-b border-gray-600 focus:border-blue-500 text-white p-1 w-24 text-center focus:outline-none"
+                value={endHour}
+                onChange={(e) => setEndHour(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
       </div>
-      <div className="flex flex-col gap-4">
-        <div className="flex gap-2 items-center text-[16px] mt-4">
-          <ClockPlus />
-          <span>Confirme a data e hora:</span>
-        </div>
-        <div className="flex gap-4 items-center">
-          <DatePicker
-            initialValue={
-              selectedDateTime &&
-              selectedDateTime.day &&
-              selectedDateTime.month &&
-              selectedDateTime.year
-                ? `${selectedDateTime.day
-                    .toString()
-                    .padStart(2, "0")}/${selectedDateTime.month
-                    .toString()
-                    .padStart(2, "0")}/${selectedDateTime.year}`
-                : undefined
-            }
-          />
-          <div className="flex items-center gap-3">
-            De
-            <input
-              id="inicioConsulta"
-              type="time"
-              className="border-white border p-2 py-3 h-full rounded-lg max-w-[100px] lightInput"
-              value={startHour}
-              onChange={(e) => setStartHour(e.target.value)}
-            />
-            Até
-            <input
-              id="fimConsulta"
-              type="time"
-              className="border-white border p-2 py-3 h-full rounded-lg max-w-[100px] lightInput"
-              value={endHour}
-              onChange={(e) => setEndHour(e.target.value)}
-            />
-          </div>
-        </div>
-        <div className="flex flex-col gap-4 w-full">
-          <div className="flex gap-2 items-center text-[16px] mt-5">
-            <Notebook />
-            <span>Informações do serviço:</span>
-          </div>
-          <div className="flex gap-4 items-center">
-            <div className="w-full flex flex-col gap-2">
-              <Label className="text-white">Local de atendimento</Label>
 
-              <Select
-                value={location}
-                onValueChange={(val: string) => setLocation(val)}
-                disabled={userLoading || workplaces.length === 0}
-              >
-                <SelectTrigger className="w-full !h-[48px] border-blue-600/70 text-white bg-transparent rounded-[10px] data-[placeholder]:text-white/50 cursor-pointer hover:bg-white/5">
-                  <SelectValue placeholder="Selecionar local" />
-                </SelectTrigger>
-                <SelectContent className="max-h-[180px]">
-                  {workplaces.map((workplace) => (
-                    <>
-                      <SelectItem
-                        key={workplace.id}
-                        value={String(workplace.id)}
-                      >
-                        {workplace.nickname}
-                      </SelectItem>
-                    </>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+      {/* Location Section */}
+      <div className="flex items-start gap-4">
+        <div className="mt-3">
+          <MapPin className="text-gray-400" size={20} />
+        </div>
+        <div className="flex-1">
+          <Select
+            value={location}
+            onValueChange={(val: string) => setLocation(val)}
+            disabled={userLoading || workplaces.length === 0}
+          >
+            <SelectTrigger className="w-full border-0 border-b border-gray-600 rounded-none px-0 bg-transparent text-white data-[placeholder]:text-gray-400 focus:ring-0 focus:border-blue-500 h-10">
+              <SelectValue placeholder="Adicionar local" />
+            </SelectTrigger>
+            <SelectContent className="max-h-[200px]">
+              {workplaces.map((workplace) => (
+                <SelectItem key={workplace.id} value={String(workplace.id)}>
+                  {workplace.nickname}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
 
-            <div className="w-full flex flex-col gap-2">
-              <Label className="text-white">Serviço</Label>
-              <Select
-                value={service}
-                onValueChange={(val: string) => setService(val)}
-                disabled={services?.length === 0 || !services}
-              >
-                {(!services || services.length === 0) ? (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <SelectTrigger className="w-full !h-[48px] border-blue-600/70 text-white bg-transparent rounded-[10px] data-[placeholder]:text-white/50 cursor-pointer hover:bg-white/5">
-                        <SelectValue placeholder="Selecionar serviço" />
-                      </SelectTrigger>
-                    </TooltipTrigger>
-                    <TooltipContent sideOffset={6}>Nenhum serviço encontrado</TooltipContent>
-                  </Tooltip>
-                ) : (
-                  <SelectTrigger className="w-full !h-[48px] border-blue-600/70 text-white bg-transparent rounded-[10px] data-[placeholder]:text-white/50 cursor-pointer hover:bg-white/5">
-                    <SelectValue placeholder="Selecionar serviço" />
+      {/* Service Section */}
+      <div className="flex items-start gap-4">
+        <div className="mt-3">
+          <Briefcase className="text-gray-400" size={20} />
+        </div>
+        <div className="flex-1">
+          <Select
+            value={service}
+            onValueChange={(val: string) => setService(val)}
+            disabled={services?.length === 0 || !services}
+          >
+            {(!services || services.length === 0) ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <SelectTrigger className="w-full border-0 border-b border-gray-600 rounded-none px-0 bg-transparent text-white data-[placeholder]:text-gray-400 focus:ring-0 focus:border-blue-500 h-10">
+                    <SelectValue placeholder="Adicionar serviço" />
                   </SelectTrigger>
-                )}
-                <SelectContent className="max-h-[180px]">
-                  {services?.map((service) => (
-                    <>
-                      <SelectItem
-                        key={service.id}
-                        value={String(service.id)}
-                      >
-                        {service.name}
-                      </SelectItem>
-                    </>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+                </TooltipTrigger>
+                <TooltipContent sideOffset={6}>Nenhum serviço encontrado</TooltipContent>
+              </Tooltip>
+            ) : (
+              <SelectTrigger className="w-full border-0 border-b border-gray-600 rounded-none px-0 bg-transparent text-white data-[placeholder]:text-gray-400 focus:ring-0 focus:border-blue-500 h-10">
+                <SelectValue placeholder="Adicionar serviço" />
+              </SelectTrigger>
+            )}
+            <SelectContent className="max-h-[200px]">
+              {services?.map((service) => (
+                <SelectItem key={service.id} value={String(service.id)}>
+                  {service.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
+      </div>
 
+      <div className="flex justify-end mt-4">
         <Button
-          className="self-end !text-[16px] mt-4"
           type="submit"
-          variant="seccondary"
+          disabled={isPending}
+          className="bg-blue-600 hover:bg-blue-700 text-white rounded-md px-6 py-2 min-w-[100px]"
         >
-          Salvar
+          {isPending ? "Salvando..." : "Salvar"}
         </Button>
       </div>
     </form>

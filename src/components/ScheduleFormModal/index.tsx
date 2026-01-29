@@ -1,5 +1,5 @@
 import { X, GripHorizontal } from "lucide-react";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Button } from "../ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DndContext, useDraggable } from "@dnd-kit/core";
@@ -8,6 +8,9 @@ import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 import type { EventType } from "@/components/WeeklyCalendar";
 import { BlockContent } from "./BlockContent";
 import { AppoimentContent } from "./AppoimentContent";
+
+const MODAL_WIDTH = 400;
+const MODAL_HEIGHT = 600; // Estimated height for initial centering
 
 interface FormModalProps {
   isOpen?: boolean;
@@ -19,6 +22,7 @@ interface FormModalProps {
   } | null;
   selectedEvent?: EventType | null;
   onClose?: () => void;
+  clickPosition?: { x: number; y: number } | null;
 }
 
 const DraggableModalContent = ({
@@ -32,17 +36,14 @@ const DraggableModalContent = ({
     id: "draggable-modal",
   });
 
-  const getInitialPosition = useCallback(() => {
-    const modalWidth = 400;
-    const modalHeight = 720;
-
+  const initialPosition = useMemo(() => {
     return {
-      x: (window.innerWidth - modalWidth) / 2,
-      y: (window.innerHeight - modalHeight) / 2,
+      x: (window.innerWidth - MODAL_WIDTH) / 2,
+      y: (window.innerHeight - MODAL_HEIGHT) / 2,
     };
   }, []);
 
-  const initialPosition = getInitialPosition();
+  // const initialPosition = getInitialPosition();
 
   const x = initialPosition.x + (transform?.x ?? 0) + position.x;
   const y = initialPosition.y + (transform?.y ?? 0) + position.y;
@@ -79,6 +80,7 @@ export const ScheduleFormModal = ({
   selectedDateTime = null,
   selectedEvent = null,
   onClose = () => {},
+  clickPosition
 }: FormModalProps) => {
   function getEndHour(startHour: string | undefined) {
     if (!startHour) return "";
@@ -179,10 +181,27 @@ export const ScheduleFormModal = ({
       resetAll();
     }
 
-    if (!isOpen) {
-      setPosition({ x: 0, y: 0 });
-    }
+
   }, [isOpen, selectedDateTime, selectedEvent]);
+
+  useEffect(() => {
+    if (clickPosition) {
+       // We want the final 'style.left' to be clickPosition.x
+       // The formula is: x = initialPosition.x + (transform?.x ?? 0) + position.x
+       // Assuming no transform initially:
+       // position.x = clickPosition.x - initialPosition.x
+       
+       const initialX = (window.innerWidth - MODAL_WIDTH) / 2;
+       const initialY = (window.innerHeight - MODAL_HEIGHT) / 2;
+       
+       setPosition({
+         x: clickPosition.x - initialX,
+         y: clickPosition.y - initialY
+       });
+    } else {
+       setPosition({ x: 0, y: 0 }); // 0 means use initial centered position
+    }
+  }, [clickPosition, isOpen]);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { delta } = event;
@@ -242,58 +261,67 @@ export const ScheduleFormModal = ({
   return (
     <DndContext onDragEnd={handleDragEnd} modifiers={[restrictToWindowEdges]}>
       <DraggableModalContent position={position}>
-        <div
-          className="relative flex flex-col w-full px-6"
-          style={{
-            minHeight: 400,
-            paddingTop: 32,
-          }}
-        >
-          <div className="flex-row justify-between flex items-start mb-4">
-            <div>
-              <div className="text-white font-medium text-xl">
-                {selectedEvent ? "Editar Consulta" : "Nova Consulta"}
-              </div>
-              <div className="text-[14px] text-[#A4A4A4]">
-                {selectedEvent
-                  ? "Edite as informações da consulta selecionada."
-                  : "Preencha o formulário para criar uma nova consulta."}
-              </div>
-            </div>
+        <div className="flex flex-col w-full">
+          {/* Header Actions (Close) - Grip is handled by wrapper */}
+          <div className="flex justify-end pr-2 pt-2">
             <Button
               variant="ghost"
-              className="bg-transparent !p-0 hover:bg-transparent h-fit"
+              className="bg-transparent hover:bg-white/10 h-8 w-8 rounded-full p-0 z-50"
               onClick={onClose}
             >
-              <X className="text-white cursor-pointer" size={20} />
+              <X className="text-gray-400 hover:text-white" size={20} />
             </Button>
           </div>
-          <Tabs
-            value={activeTab}
-            onValueChange={setActiveTab}
-            className="w-full"
-          >
-            <TabsList className="bg-white/5 border border-white h-[48px]">
-              <TabsTrigger
-                value="consulta"
-                className="data-[state=active]:text-[#141736] data-[state=inactive]:text-background cursor-pointer h-[38px]"
-              >
-                Consulta
-              </TabsTrigger>
-              <TabsTrigger
-                value="bloqueio"
-                className="data-[state=active]:text-[#141736] data-[state=inactive]:text-background cursor-pointer h-[38px]"
-              >
-                Bloqueio
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="bloqueio" className="text-white">
-             <BlockContent {...blockProps} />
-            </TabsContent>
-            <TabsContent value="consulta" className="text-white">
-              <AppoimentContent {...appointmentProps} />
-            </TabsContent>
-          </Tabs>
+
+          <div className="px-6 pb-6 pt-0 flex flex-col gap-4">
+             {/* Title Input moved down */}
+
+            {/* Tabs / Type Switcher */}
+            <Tabs
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="w-full"
+            >
+              <div className="flex items-center gap-2 mb-4">
+                <TabsList className="bg-transparent p-0 h-auto gap-2 border-0 w-full justify-start">
+                  <TabsTrigger
+                    value="consulta"
+                    className="rounded-md px-6 py-2 text-sm font-medium border border-[#2d3152] bg-[#1a1e45] text-gray-300 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:border-blue-600 hover:bg-blue-600/20 data-[state=active]:hover:bg-blue-700 transition-all cursor-pointer h-auto w-full"
+                  >
+                    Consulta
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="bloqueio"
+                    className="rounded-md px-6 py-2 text-sm font-medium border border-[#2d3152] bg-[#1a1e45] text-gray-300 data-[state=active]:bg-gray-700 data-[state=active]:text-gray-100 data-[state=active]:border-gray-500 hover:bg-gray-700/50 data-[state=active]:hover:bg-gray-600 transition-all cursor-pointer h-auto w-full"
+                  >
+                    Bloqueio
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+
+               {/* Title Input */}
+               <div className="w-full">
+               <input
+                type="text"
+                placeholder={activeTab === 'consulta' ? "Nome do paciente" : "Adicionar título"}
+                className="w-full bg-transparent border-0 border-b border-gray-600 text-2xl font-normal text-white placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-0 py-2 transition-colors"
+                value={title ?? ""}
+                onChange={(e) => setTitle(e.target.value)}
+                autoFocus
+              />
+               <p className="text-xs text-gray-400 mt-1">
+                 {activeTab === 'consulta' ? 'Adicione o nome do paciente para a consulta' : 'Defina um título para o bloqueio e agenda'}
+               </p>
+            </div>
+
+              <TabsContent value="bloqueio" className="mt-4">
+               <BlockContent {...blockProps} />
+              </TabsContent>
+              <TabsContent value="consulta" className="mt-4">
+                <AppoimentContent {...appointmentProps} />
+              </TabsContent>
+            </Tabs>
+          </div>
         </div>
       </DraggableModalContent>
     </DndContext>
