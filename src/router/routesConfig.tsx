@@ -8,6 +8,7 @@ import PatientDetails from '@/pages/Atendimentos/PatientDetails'
 import { Error } from '@/pages/Error'
 import { Servicos } from '@/pages/Servicos'
 import Pacientes from '@/pages/Pacientes'
+import LandingPage from '../pages/LandingPage'
 
 export interface RouteConfig {
   path: string
@@ -32,6 +33,12 @@ export const routesConfig: RouteConfig[] = [
   {
     path: "/newUser",
     element: <>TESTE</>,
+    template: false,
+    authRoute: false
+  },
+  {
+    path: "/landing",
+    element: <LandingPage />,
     template: false,
     authRoute: false
   },
