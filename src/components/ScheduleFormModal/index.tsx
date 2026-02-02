@@ -102,7 +102,12 @@ export const ScheduleFormModal = ({
   const [endOption, setEndOption] = useState<"never" | "onDate" | "afterOccurrences">("never");
   const [endDate, setEndDate] = useState<string | undefined>(undefined);
   const [occurrences, setOccurrences] = useState<number | undefined>(1);
-  
+
+  // Initialize with Today's date to avoid null state in "Agendar" flow
+  const [selectedDateState, setSelectedDateState] = useState<{ day: number, month: number, year: number } | null>(() => {
+      const now = new Date();
+      return { day: now.getDate(), month: now.getMonth() + 1, year: now.getFullYear() };
+  });
 
   useEffect(() => {
     const formatDate = (d: Date) => {
@@ -113,8 +118,17 @@ export const ScheduleFormModal = ({
     };
 
     const resetAll = (keepEndDate?: boolean) => {
-      setStartHour("");
-      setEndHour("");
+      // Default to current time for 'Agendar' flow
+      const now = new Date();
+      const h = now.getHours();
+      const m = now.getMinutes();
+      // Round to next 30 minutes or hour? Just use current time nicely formatted
+      const startStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+      const endH = h + 1 > 23 ? 23 : h + 1;
+      const endStr = `${String(endH).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+      
+      setStartHour(startStr);
+      setEndHour(endStr);
       setTitle("");
       setLocation("");
       setService("");
@@ -124,6 +138,8 @@ export const ScheduleFormModal = ({
       setEndOption("never");
       if (!keepEndDate) setEndDate(formatDate(new Date()));
       setOccurrences(1);
+      
+      setSelectedDateState({ day: now.getDate(), month: now.getMonth() + 1, year: now.getFullYear() });
     };
 
     if (isOpen) {
@@ -138,6 +154,8 @@ export const ScheduleFormModal = ({
         setWeekDays([false, false, false, false, false, false, false]);
         setEndOption("never");
         setOccurrences(1);
+        
+        // Date Logic for Event
         if (
           (typeof selectedEvent.day !== "undefined" || typeof selectedEvent.dayNumber !== "undefined") &&
           typeof selectedEvent.month !== "undefined" &&
@@ -146,14 +164,21 @@ export const ScheduleFormModal = ({
           const d = typeof selectedEvent.dayNumber === 'number' ? selectedEvent.dayNumber : Number(selectedEvent.day);
           const m = Number(selectedEvent.month);
           const y = Number(selectedEvent.year);
+          
           if (!Number.isNaN(d) && !Number.isNaN(m) && !Number.isNaN(y)) {
+            setSelectedDateState({ day: d, month: m, year: y });
             setEndDate(`${String(d).padStart(2, "0")}/${String(m).padStart(2, "0")}/${y}`);
           } else {
-            setEndDate(formatDate(new Date()));
+             const today = new Date();
+             setSelectedDateState({ day: today.getDate(), month: today.getMonth() + 1, year: today.getFullYear() });
+             setEndDate(formatDate(today)); 
           }
         } else {
-          setEndDate(formatDate(new Date()));
+           const today = new Date();
+           setSelectedDateState({ day: today.getDate(), month: today.getMonth() + 1, year: today.getFullYear() });
+           setEndDate(formatDate(today));
         }
+
       } else if (selectedDateTime) {
         setStartHour(selectedDateTime.hour);
         setEndHour(getEndHour(selectedDateTime.hour));
@@ -165,16 +190,26 @@ export const ScheduleFormModal = ({
         setWeekDays([false, false, false, false, false, false, false]);
         setEndOption("never");
         setOccurrences(1);
+        
+        // Date Logic for DateTime (Prop)
         if (
           typeof selectedDateTime.day !== "undefined" &&
           typeof selectedDateTime.month !== "undefined" &&
           typeof selectedDateTime.year !== "undefined"
         ) {
-          setEndDate(`${String(selectedDateTime.day).padStart(2, "0")}/${String(selectedDateTime.month).padStart(2, "0")}/${selectedDateTime.year}`);
+           setSelectedDateState({ 
+             day: selectedDateTime.day, 
+             month: selectedDateTime.month!, 
+             year: selectedDateTime.year! 
+           });
+           setEndDate(`${String(selectedDateTime.day).padStart(2, "0")}/${String(selectedDateTime.month).padStart(2, "0")}/${selectedDateTime.year}`);
         } else {
-          setEndDate(formatDate(new Date()));
+           const today = new Date();
+           setSelectedDateState({ day: today.getDate(), month: today.getMonth() + 1, year: today.getFullYear() });
+           setEndDate(formatDate(today));
         }
       } else {
+        // No event, no date (Add button scenario)
         resetAll();
       }
     } else {
@@ -213,17 +248,11 @@ export const ScheduleFormModal = ({
 
   if (!isOpen) return null;
 
-  const effectiveSelectedDateTime = selectedDateTime || (selectedEvent && (typeof selectedEvent.dayNumber === 'number' || !Number.isNaN(Number(selectedEvent.day))) ? {
-    day: typeof selectedEvent.dayNumber === 'number' ? selectedEvent.dayNumber : Number(selectedEvent.day),
-    month: Number(selectedEvent.month),
-    year: Number(selectedEvent.year),
-    hour: selectedEvent.start
-  } : null);
-
   const blockProps = {
     title,
     setTitle,
-    selectedDateTime: effectiveSelectedDateTime,
+    selectedDateTime: selectedDateState,
+    setSelectedDateTime: setSelectedDateState,
     startHour,
     setStartHour,
     endHour,
@@ -245,7 +274,8 @@ export const ScheduleFormModal = ({
   const appointmentProps = {
     title,
     setTitle,
-    selectedDateTime: effectiveSelectedDateTime,
+    selectedDateTime: selectedDateState,
+    setSelectedDateTime: setSelectedDateState,
     startHour,
     setStartHour,
     endHour,

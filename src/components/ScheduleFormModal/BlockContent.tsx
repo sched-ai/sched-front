@@ -12,10 +12,15 @@ interface IProps {
   setTitle: (val: string) => void;
   selectedDateTime: {
     day: number;
-    month?: number;
-    year?: number;
-    hour: string;
+    month: number;
+    year: number;
+    hour: string; // Keep hour for compatibility if needed, though we track startHour separately
+  } | {
+    day: number;
+    month: number;
+    year: number;
   } | null;
+  setSelectedDateTime: Dispatch<SetStateAction<{ day: number; month: number; year: number } | null>>;
   startHour: string;
   setStartHour: (val: string) => void;
   endHour: string;
@@ -37,6 +42,7 @@ interface IProps {
 export const BlockContent = ({
   title,
   selectedDateTime,
+  setSelectedDateTime,
   startHour,
   setStartHour,
   endHour,
@@ -89,7 +95,15 @@ export const BlockContent = ({
       return days[index];
     };
 
-    const formattedDate = convertDateFormat(endDate);
+    // Use selectedDateTime for the block start date if available
+    let blockDateStr = endDate; // Fallback? No, endDate is for recurrence end.
+    
+    // We need to construct the Start Date from selectedDateTime
+    if (selectedDateTime && selectedDateTime.day && selectedDateTime.month && selectedDateTime.year) {
+        blockDateStr = `${String(selectedDateTime.day).padStart(2,'0')}/${String(selectedDateTime.month).padStart(2,'0')}/${selectedDateTime.year}`;
+    }
+
+    const formattedDate = convertDateFormat(blockDateStr);
 
     if (!formattedDate || !startHour || !endHour) {
       console.error("Data ou hora inválida");
@@ -164,6 +178,13 @@ export const BlockContent = ({
                       .padStart(2, "0")}/${selectedDateTime.year}`
                   : undefined
               }
+              onChange={(val) => {
+                if (!val) return;
+                const [d, m, y] = val.split("/").map(Number);
+                if (!isNaN(d) && !isNaN(m) && !isNaN(y)) {
+                    setSelectedDateTime({ day: d, month: m, year: y });
+                }
+              }}
             />
             <div className="flex items-center gap-2">
               <input

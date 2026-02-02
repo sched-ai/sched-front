@@ -26,10 +26,10 @@ interface IProps {
   setTitle: Dispatch<SetStateAction<string | undefined>>;
   selectedDateTime: {
     day: number;
-    month?: number;
-    year?: number;
-    hour: string;
+    month: number;
+    year: number;
   } | null;
+  setSelectedDateTime: Dispatch<SetStateAction<{ day: number; month: number; year: number } | null>>;
   startHour: string;
   setStartHour: Dispatch<SetStateAction<string>>;
   endHour: string;
@@ -45,6 +45,7 @@ interface IProps {
 export const AppoimentContent = ({
   title,
   selectedDateTime,
+  setSelectedDateTime,
   startHour,
   setStartHour,
   endHour,
@@ -93,10 +94,16 @@ export const AppoimentContent = ({
   const handleCreateConsultation = (e: React.FormEvent) => {
     e.preventDefault();
     if (!userData) return;
-    if (!selectedDateTime) return;
+    if (!selectedDateTime) {
+        console.error("No selectedDateTime");
+        return;
+    }
 
     const { day, month, year } = selectedDateTime;
-    if (!day || !month || !year) return;
+    if (!day || !month || !year) {
+        console.error("Invalid date components", selectedDateTime);
+        return;
+    }
 
     const [startH, startM] = startHour.split(":").map((s) => Number(s));
     const startDate = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day), startH ?? 0, startM ?? 0));
@@ -153,6 +160,13 @@ export const AppoimentContent = ({
                       .padStart(2, "0")}/${selectedDateTime.year}`
                   : undefined
               }
+              onChange={(val) => {
+                if (!val) return;
+                const [d, m, y] = val.split("/").map(Number);
+                if (!isNaN(d) && !isNaN(m) && !isNaN(y)) {
+                    setSelectedDateTime({ day: d, month: m, year: y });
+                }
+              }}
             />
             <div className="flex items-center gap-2">
               <input
