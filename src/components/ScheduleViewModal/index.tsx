@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { capitalizeFirst } from "@/util/helper";
 import { CalendarDays, Clock, Layers, Pencil, Trash2, MapPin, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -81,7 +80,6 @@ export const ScheduleViewModal = ({
       })
     : "Data não informada";
 
-  const formattedYear = details.localDateTime?.getFullYear();
   const isBlock = details.type === 'bloqueio';
 
   return (
@@ -136,50 +134,32 @@ export const ScheduleViewModal = ({
 
           <div className="p-6 pt-2 space-y-6">
             
-            <div className="bg-[#1a1e45] rounded-xl p-4 flex flex-col gap-3 border border-slate-700/50">
-              <div className="flex items-center gap-3">
-                <div className="bg-blue-500/10 p-2 rounded-full">
-                  <CalendarDays className="w-5 h-5 text-blue-400" />
+            <div className="bg-[#1a1e45] rounded-xl p-3 flex flex-col gap-2 border border-slate-700/50">
+              <div className="flex flex-wrap items-center justify-between gap-y-2">
+                <div className="flex items-center gap-2">
+                  <CalendarDays className="w-4 h-4 text-blue-400" />
+                  <span className="text-sm font-medium text-slate-200 capitalize">
+                    {details.localDateTime?.toLocaleDateString("pt-BR", { weekday: 'short', day: 'numeric', month: 'long' }) ?? formattedDate}
+                  </span>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-slate-200 capitalize">
-                    {formattedDate}
-                  </p>
-                  <p className="text-xs text-slate-400">{formattedYear}</p>
-                </div>
+
+                {details.start && details.end && (
+                  <div className="flex items-center gap-2 pl-3 border-l border-slate-700/50">
+                    <Clock className="w-4 h-4 text-purple-400" />
+                    <span className="text-sm font-medium text-slate-200">
+                      {details.start} - {details.end}
+                    </span>
+                  </div>
+                )}
               </div>
 
-              <Separator className="bg-slate-700/50" />
-
-              {details.start && details.end && (
-                <div className="flex items-center gap-3">
-                  <div className="bg-purple-500/10 p-2 rounded-full">
-                    <Clock className="w-5 h-5 text-purple-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-slate-200">
-                      {details.start} - {details.end}
-                    </p>
-                    <p className="text-xs text-slate-400">Horário previsto</p>
-                  </div>
-                </div>
-              )}
-
               {details.workplaceName && (
-                <>
-                  <Separator className="bg-slate-700/50" />
-                  <div className="flex items-center gap-3">
-                    <div className="bg-emerald-500/10 p-2 rounded-full">
-                      <MapPin className="w-5 h-5 text-emerald-400" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-slate-200">
-                        {details.workplaceName  }
-                      </p>
-                      <p className="text-xs text-slate-400">Local de atendimento</p>
-                    </div>
-                  </div>
-                </>
+                <div className="flex items-center gap-2 pt-2 border-t border-slate-700/50 mt-1">
+                  <MapPin className="w-4 h-4 text-emerald-400" />
+                  <span className="text-sm text-slate-200">
+                    {details.workplaceName}
+                  </span>
+                </div>
               )}
             </div>
 

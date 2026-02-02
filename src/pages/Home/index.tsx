@@ -91,6 +91,7 @@ export const Home = () => {
       setScheduleFormPosition(null);
     }
 
+    setIsScheduleViewOpen(false);
     setIsScheduleFormOpen(true);
   };
 
@@ -184,6 +185,7 @@ export const Home = () => {
     if (top < 10) top = 10;
 
     setViewModalPosition({ top, left });
+    setIsScheduleFormOpen(false);
     setIsScheduleViewOpen(true);
   };
 
@@ -203,34 +205,34 @@ export const Home = () => {
           <div className="font-medium text-[#141736] flex items-center gap-4">
             <Button
               variant="outline"
-              className="text-[#141736] border-[#141736] p-4"
+              className="text-gray-700 font-medium border-gray-200 h-10 px-5 rounded-lg hover:bg-gray-50 hover:text-blue-600 hover:border-blue-100 transition-colors shadow-sm"
               onClick={handleToday}
             >
               HOJE
             </Button>
-            <h1 className="w-[235px] text-[24px]">
+            <h1 className="w-[260px] text-2xl font-semibold text-gray-800 tracking-tight">
               {`${capitalizeFirst(format(currentDate, "MMMM", { locale: ptBR }))} de ${format(currentDate, "yyyy", { locale: ptBR })}`}
             </h1>
-            <div className="flex">
+            <div className="flex gap-1">
               <Button
                 variant="ghost"
-                className="text-[#141736] p-4"
+                className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 w-10 h-10 rounded-full p-0"
                 onClick={handlePreviousWeek}
               >
                 &lt;
               </Button>
               <Button
                 variant="ghost"
-                className="text-[#141736] p-4"
+                className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 w-10 h-10 rounded-full p-0"
                 onClick={handleNextWeek}
               >
                 &gt;
               </Button>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Button
-              className="h-[48px] !text-[16px] font-normal bg-[#141736] hover:bg-blue-950"
+              className="h-[48px] !text-[15px] font-medium bg-gradient-to-r from-blue-700 to-blue-600 hover:from-blue-800 hover:to-blue-700 text-white shadow-lg shadow-blue-500/20 transition-all duration-300 hover:shadow-blue-500/30 rounded-xl px-6"
               onClick={() => {
                 setIsScheduleViewOpen(false);
                 setScheduleViewDetails(null);
@@ -238,7 +240,7 @@ export const Home = () => {
                 setIsScheduleFormOpen(true);
               }}
             >
-              <Plus /> Agendar
+              <Plus className="w-5 h-5 mr-1" /> Agendar
             </Button>
             <Select
               value={filterType}
@@ -246,20 +248,20 @@ export const Home = () => {
                 setFilterType(value)
               }
             >
-              <SelectTrigger className="w-[155px] !h-[48px] cursor-pointer !text-[16px] font-normal text-[#141736] hover:bg-blue-50 border-[#141736] [&>svg]:text-white">
-                <div className="flex items-center gap-2">
-                  <ListFilter className="w-4 h-4 text-[#141736]" />
+              <SelectTrigger className="w-[160px] !h-[48px] cursor-pointer !text-[14px] font-medium text-gray-700 bg-white hover:bg-gray-50 border-gray-200 rounded-xl shadow-sm transition-all focus:ring-2 focus:ring-blue-100">
+                <div className="flex items-center gap-2.5">
+                  <ListFilter className="w-4 h-4 text-gray-500" />
                   <SelectValue placeholder="Filtrar por" />
                 </div>
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all" className="text-[16px]">
+              <SelectContent className="rounded-xl shadow-xl border-gray-100">
+                <SelectItem value="all" className="text-[14px] py-3 cursor-pointer">
                   Ver todos
                 </SelectItem>
-                <SelectItem value="consulta" className="text-[16px]">
+                <SelectItem value="consulta" className="text-[14px] py-3 cursor-pointer">
                   Consultas
                 </SelectItem>
-                <SelectItem value="bloqueio" className="text-[16px]">
+                <SelectItem value="bloqueio" className="text-[14px] py-3 cursor-pointer">
                   Bloqueios
                 </SelectItem>
               </SelectContent>
