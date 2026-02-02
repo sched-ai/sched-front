@@ -13,14 +13,19 @@ import {
 } from "@/components/ui/popover"
 
 export function DatePicker({ initialValue, onChange }: { initialValue?: string; onChange?: (val?: string) => void }) {
-  const [open, setOpen] = React.useState(false)
-  const [date, setDate] = React.useState<Date | undefined>(() => {
-    if (!initialValue) return undefined;
-
-    const [d, m, y] = initialValue.split("/").map(Number);
+  const parseDate = (val?: string) => {
+    if (!val) return undefined;
+    const [d, m, y] = val.split("/").map(Number);
     if (!d || !m || !y) return undefined;
     return new Date(y, m - 1, d);
-  });
+  };
+
+  const [open, setOpen] = React.useState(false)
+  const [date, setDate] = React.useState<Date | undefined>(() => parseDate(initialValue));
+
+  React.useEffect(() => {
+    setDate(parseDate(initialValue));
+  }, [initialValue]);
 
   return (
     <div className="flex flex-col gap-3">
