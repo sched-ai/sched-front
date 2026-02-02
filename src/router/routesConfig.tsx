@@ -9,6 +9,7 @@ import { Error } from '@/pages/Error'
 import { Servicos } from '@/pages/Servicos'
 import Pacientes from '@/pages/Pacientes'
 import LandingPage from '../pages/LandingPage'
+import LegalPage from '../pages/LegalPage'
 
 export interface RouteConfig {
   path: string
@@ -83,5 +84,29 @@ export const routesConfig: RouteConfig[] = [
     element: <Error />,
     template: false,
     authRoute: true
+  },
+  {
+    path: "/politica-privacidade",
+    element: <LegalPage title="Política de Privacidade" />,
+    template: false,
+    authRoute: false
+  },
+  {
+    path: "/termos-uso",
+    element: <LegalPage title="Termos de condições de uso" />,
+    template: false,
+    authRoute: false
+  },
+  {
+    path: "/termos-medico",
+    element: <LegalPage title="Termos e Condições de uso (Médico)" />,
+    template: false,
+    authRoute: false
+  },
+  {
+    path: "/termos-paciente",
+    element: <LegalPage title="Termos e Condições de Uso (Paciente)" />,
+    template: false,
+    authRoute: false
   },
 ]

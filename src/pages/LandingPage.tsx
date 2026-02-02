@@ -402,7 +402,8 @@ export default function LandingPage() {
             {/* FOOTER */}
             <footer className="relative z-20 border-t border-white/5 bg-[#071032] pt-20 pb-10">
                 <div className="max-w-7xl mx-auto px-6">
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-10 mb-16">
+                    {/* Top Section: Logo & Social */}
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-10 mb-12">
                         <div className="flex flex-col items-center md:items-start gap-4">
                             <img src='/logo.svg' alt="Sched.ai" className="h-16 w-auto brightness-200 contrast-0 grayscale md:grayscale-0 md:brightness-100 md:contrast-100" />
                             <p className="text-white/70 text-sm max-w-[200px] text-center md:text-left">
@@ -421,6 +422,20 @@ export default function LandingPage() {
                                 </a>
                             ))}
                         </div>
+                    </div>
+
+                    {/* Middle Section: Links Columns */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-16 border-t border-white/5 pt-12">
+                        <div className="flex flex-col items-center md:items-start gap-4">
+                            <h4 className="font-bold text-white text-lg">Legal</h4>
+                            <nav className="flex flex-col gap-2 text-center md:text-left">
+                                <a href="/politica-privacidade" className="text-white/60 hover:text-sky-400 transition-colors text-sm">Política de Privacidade</a>
+                                <a href="/termos-uso" className="text-white/60 hover:text-sky-400 transition-colors text-sm">Termos de condições de uso</a>
+                                <a href="/termos-medico" className="text-white/60 hover:text-sky-400 transition-colors text-sm">Termos e Condições de uso (Médico)</a>
+                                <a href="/termos-paciente" className="text-white/60 hover:text-sky-400 transition-colors text-sm">Termos e Condições de Uso (Paciente)</a>
+                            </nav>
+                        </div>
+                        {/* Future columns can be added here */}
                     </div>
                 
                     <div className="border-t border-white/5 pt-8 text-center text-white/60 text-sm">
