@@ -1,11 +1,11 @@
 # 1) Install dependencies
-FROM node:18-alpine AS deps
+FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
-RUN if [ -f package-lock.json ]; then npm ci --silent; else npm install --silent; fi
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
 # 2) Build
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -18,7 +18,7 @@ ENV VITE_APP_API_URL=${VITE_APP_API_URL}
 ENV VITE_APP_API_CABLE_URL=${VITE_APP_API_CABLE_URL}
 ENV VITE_APP_MS_TAGS_URL=${VITE_APP_MS_TAGS_URL}
 
-RUN npm run build --silent
+RUN npm run build
 
 # 3) Production image
 FROM nginx:alpine AS production
