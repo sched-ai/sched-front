@@ -45,20 +45,44 @@ export const Atendimentos = () => {
 
   const debouncedPesquisa = useDebounce(pesquisa, 500);
 
-  const { data: appointments = [], isLoading } = useGetAllAppointments({
+  const { data: responseAny, isLoading } = useGetAllAppointments({
     status: filtroStatus,
     search: debouncedPesquisa,
+    page: paginaAtual,
+    limit: itensPorPagina,
   });
 
-  const calcularEstatisticas = (data: AppointmentAPI[]) => {
-    const total = data.length;
-    const concluidos = data.filter(a => ['concluido', 'finished', 'done'].includes(a.status?.toLowerCase())).length;
-    const agendados = data.filter(a => ['agendado', 'pending', 'scheduled', 'confirmed'].includes(a.status?.toLowerCase())).length;
-    const cancelados = data.filter(a => ['cancelado', 'cancelled'].includes(a.status?.toLowerCase())).length;
-    return { total, concluidos, agendados, cancelados };
-  };
+  // Handle both legacy (array) and new (object) API responses
+  let appointments: AppointmentAPI[] = [];
+  let meta = { total: 0, totalPages: 1, page: 1, limit: itensPorPagina };
+  let estatisticas = { total: 0, concluidos: 0, agendados: 0, cancelados: 0 };
 
-  const estatisticas = calcularEstatisticas(appointments);
+  if (Array.isArray(responseAny)) {
+    // Legacy mode: Server returned array of all items (no server-side pagination)
+    const allData = responseAny as AppointmentAPI[];
+    
+    // Client-side Stats
+    estatisticas = {
+        total: allData.length,
+        concluidos: allData.filter(a => ['concluido', 'finished', 'done'].includes(a.status?.toLowerCase())).length,
+        agendados: allData.filter(a => ['agendado', 'pending', 'scheduled', 'confirmed'].includes(a.status?.toLowerCase())).length,
+        cancelados: allData.filter(a => ['cancelado', 'cancelled'].includes(a.status?.toLowerCase())).length,
+    };
+
+    // Client-side Pagination
+    meta.total = allData.length;
+    meta.totalPages = Math.ceil(allData.length / itensPorPagina) || 1;
+    meta.page = paginaAtual;
+    
+    const startIndex = (paginaAtual - 1) * itensPorPagina;
+    appointments = allData.slice(startIndex, startIndex + itensPorPagina);
+
+  } else if (responseAny) {
+    // New mode: Server returning paginated data
+    appointments = responseAny.data || [];
+    meta = responseAny.meta || meta;
+    estatisticas = responseAny.stats || estatisticas;
+  }
 
   const getStatusColor = (status: string) => {
     const s = status?.toLowerCase() || "";
@@ -75,11 +99,6 @@ export const Atendimentos = () => {
     if (['cancelado', 'cancelled'].includes(s)) return "Cancelado";
     return status;
   };
-
-  const totalPaginas = Math.ceil(appointments.length / itensPorPagina) || 1;
-  const indiceInicial = (paginaAtual - 1) * itensPorPagina;
-  const indiceFinal = indiceInicial + itensPorPagina;
-  const atendimentosPaginados = appointments.slice(indiceInicial, indiceFinal);
 
   const handlePesquisaChange = (novaPesquisa: string) => {
     setPesquisa(novaPesquisa);
@@ -101,7 +120,7 @@ export const Atendimentos = () => {
   };
 
   const irParaProximaPagina = () => {
-    if (paginaAtual < totalPaginas) {
+    if (paginaAtual < meta.totalPages) {
       setPaginaAtual(paginaAtual + 1);
     }
   };
@@ -223,7 +242,7 @@ export const Atendimentos = () => {
                 <div className="text-center py-12">
                    <p className="text-gray-500 text-lg">Carregando...</p>
                 </div>
-            ) : atendimentosPaginados.map((atendimento, index) => {
+            ) : appointments.map((atendimento, index) => {
               const start = new Date(atendimento.startDate);
               return (
                 <div
@@ -232,7 +251,7 @@ export const Atendimentos = () => {
                     index % 2 === 0 ? 'bg-white' : 'bg-slate-50'
                     } hover:bg-slate-100 transition-colors duration-200`}
                 >
-                    <div className={`grid grid-cols-2 lg:grid-cols-5 gap-4 items-center p-6 border border-slate-200 ${index === atendimentosPaginados.length - 1  ? 'rounded-b-lg' : ''}`}>
+                    <div className={`grid grid-cols-2 lg:grid-cols-5 gap-4 items-center p-6 border border-slate-200 ${index === appointments.length - 1  ? 'rounded-b-lg' : ''}`}>
                     <div className="lg:col-span-1">
                         <p className="text-slate-800 text-sm font-medium">
                         {atendimento.clientName || atendimento.client?.name || 'Sem nome'}
@@ -285,7 +304,7 @@ export const Atendimentos = () => {
                 </div>
             )})}
 
-            {!isLoading && atendimentosPaginados.length === 0 && (
+            {!isLoading && appointments.length === 0 && (
               <div className="text-center py-12">
                 <p className="text-gray-500 text-lg">
                   Nenhuma consulta encontrada com os filtros aplicados.
@@ -294,7 +313,7 @@ export const Atendimentos = () => {
             )}
           </div>
 
-          {!isLoading && appointments.length > 0 && (
+          {!isLoading && meta.total > 0 && (
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 p-4 rounded-lg">
               <div className="flex items-center gap-4">
                 <span className="text-sm text-slate-600">
@@ -329,9 +348,8 @@ export const Atendimentos = () => {
                 </Button>
 
                 <div className="flex items-center gap-1">
-                  {/* Simplificado para mostrar apenas paginas proximas se forem muitas, mas mantendo logica anterior simplificada */}
-                  {Array.from({ length: totalPaginas }, (_, i) => i + 1)
-                    .slice(Math.max(0, paginaAtual - 3), Math.min(totalPaginas, paginaAtual + 2))
+                  {Array.from({ length: meta.totalPages }, (_, i) => i + 1)
+                    .slice(Math.max(0, paginaAtual - 3), Math.min(meta.totalPages, paginaAtual + 2))
                     .map(
                     (pagina) => (
                       <Button
@@ -355,7 +373,7 @@ export const Atendimentos = () => {
                   variant="outline"
                   size="sm"
                   onClick={irParaProximaPagina}
-                  disabled={paginaAtual === totalPaginas}
+                  disabled={paginaAtual === meta.totalPages}
                   className="flex items-center gap-1"
                 >
                   Próxima
