@@ -14,12 +14,10 @@ import {
   ArrowRight,
   ChevronLeft,
   ChevronRight,
-  X,
-  UserPlus,
 } from "lucide-react";
 import { useGetAllClients } from "@/hooks/api/useGetAllClients";
-import { useCreateClient } from "@/hooks/api/useCreateClient";
 import { format } from "date-fns";
+import { CreateClientModal } from "@/components/CreateClientModal";
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -34,59 +32,6 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
-// --- Modal Component (Standard Centered) ---
-const ModalOverlay = ({
-  children,
-  onClose
-}: {
-  children: React.ReactNode;
-  onClose: () => void;
-}) => {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-      <div
-        className="relative w-full max-w-md rounded-2xl border border-white/10 bg-[#121535] flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300 overflow-hidden"
-      >
-        <div className="flex justify-end pr-4 pt-4 relative z-10">
-            <Button
-              variant="ghost"
-              className="bg-transparent hover:bg-white/10 text-gray-400 hover:text-white h-8 w-8 rounded-full p-0 transition-all duration-200"
-              onClick={onClose}
-            >
-              <X size={20} />
-            </Button>
-        </div>
-        <div className="flex-1 overflow-y-auto px-8 pb-8 custom-scrollbar relative z-10">
-            {children}
-        </div>
-        
-        {/* Decorative background blur element */}
-        <div className="absolute top-0 left-0 w-full h-full bg-blue-500/5 pointer-events-none z-0" />
-        <div className="absolute -top-24 -left-24 w-48 h-48 bg-blue-500/20 rounded-full blur-3xl pointer-events-none z-0" />
-      </div>
-    </div>
-  );
-};
-
-// ... helpers ...
-
-// Simple masks
-const maskCPF = (v: string) => {
-  return v
-    .replace(/\D/g, "")
-    .replace(/(\d{3})(\d)/, "$1.$2")
-    .replace(/(\d{3})(\d)/, "$1.$2")
-    .replace(/(\d{3})(\d{1,2})/, "$1-$2")
-    .replace(/(-\d{2})\d+?$/, "$1");
-};
-
-const maskPhone = (v: string) => {
-  return v
-    .replace(/\D/g, "")
-    .replace(/(\d{2})(\d)/, "($1) $2")
-    .replace(/(\d{5})(\d)/, "$1-$2")
-    .replace(/(-\d{4})\d+?$/, "$1"); // 11 digits
-};
 
 export const Pacientes = () => {
   // ... existing list state ...
@@ -104,8 +49,6 @@ export const Pacientes = () => {
     limit: itensPorPagina,
   });
 
-  const { mutate: createClient, isPending: isCreating } = useCreateClient();
-
   const pacientes = response?.data || [];
   const meta = response?.meta || { total: 0, totalPages: 1, page: 1, limit: 10 };
 
@@ -121,59 +64,6 @@ export const Pacientes = () => {
   const handleMouseEnter = (e: React.MouseEvent, text: string) => { setTooltip({ visible: true, text, x: e.clientX + 12, y: e.clientY + 12 }); };
   const handleMouseMove = (e: React.MouseEvent) => { setTooltip((t) => (t.visible ? { ...t, x: e.clientX + 12, y: e.clientY + 12 } : t)); };
   const handleMouseLeave = () => setTooltip({ visible: false, text: "", x: 0, y: 0 });
-
-  // Form State
-  const [formData, setFormData] = useState({ name: "", cpf: "", phone: "", email: "" });
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
-
-  const resetForm = () => {
-      setFormData({ name: "", cpf: "", phone: "", email: "" });
-      setErrors({});
-  }
-
-  const handleInputChange = (field: string, value: string) => {
-      let val = value;
-      if (field === 'cpf') val = maskCPF(value);
-      if (field === 'phone') val = maskPhone(value);
-      setFormData(prev => ({ ...prev, [field]: val }));
-      // clear error when typing
-      if (errors[field]) setErrors(prev => ({ ...prev, [field]: "" }));
-  };
-
-  const validate = () => {
-      const newErrors: { [key: string]: string } = {};
-      if (!formData.name.trim()) newErrors.name = "O nome é obrigatório";
-      else if (formData.name.trim().length < 3) newErrors.name = "O nome deve ter pelo menos 3 letras";
-
-      if (!formData.cpf.trim()) newErrors.cpf = "O CPF é obrigatório";
-      else if (formData.cpf.replace(/\D/g, '').length !== 11) newErrors.cpf = "CPF inválido";
-
-      if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-          newErrors.email = "E-mail inválido";
-      }
-
-      setErrors(newErrors);
-      return Object.keys(newErrors).length === 0;
-  };
-
-  const handleCreateClient = (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!validate()) return;
-
-      createClient({
-          name: formData.name,
-          cpf: formData.cpf, // Controller removes non-digits
-          phone: formData.phone,
-          email: formData.email
-      }, {
-          onSuccess: () => {
-              setIsModalOpen(false);
-              resetForm();
-          }
-      });
-  }
-
-  // Define Render for List... (Keep existing list render logic, just replace Modal logic below)
   
   return (
     <div className="w-full flex flex-col h-full">
@@ -293,95 +183,7 @@ export const Pacientes = () => {
         </div>
       </div>
 
-      {/* Standard Modal */}
-      {isModalOpen && (
-        <ModalOverlay onClose={() => setIsModalOpen(false)}>
-            <div className="flex flex-col items-center text-center mb-8">
-                <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center mb-4 border border-blue-500/20 shadow-inner">
-                   <UserPlus className="w-8 h-8 text-blue-400" />
-                </div>
-                <h2 className="text-2xl font-bold text-white tracking-tight">Novo Paciente</h2>
-                <p className="text-gray-400 text-sm mt-2 max-w-[80%] leading-relaxed">Preencha as informações abaixo para adicionar um novo paciente ao sistema.</p>
-            </div>
-            
-            <form onSubmit={handleCreateClient} className="space-y-6">
-                <div className="space-y-1 group">
-                    <label className="text-xs uppercase tracking-wider text-blue-300/80 font-semibold mb-1 block group-focus-within:text-blue-400 transition-colors">Nome Completo</label>
-                    <input 
-                        value={formData.name} 
-                        onChange={e => handleInputChange('name', e.target.value)} 
-                        className={`w-full bg-transparent border-0 border-b border-gray-600/50 text-xl font-normal text-white placeholder:text-gray-600 focus:border-blue-500 focus:outline-none focus:ring-0 py-2 transition-all duration-300 ${errors.name ? 'border-red-500' : ''}`}
-                        placeholder="Ex: Maria da Silva"
-                        type="text"
-                        autoFocus
-                    />
-                    {errors.name && <p className="text-red-400 text-xs mt-1 animate-pulse">{errors.name}</p>}
-                </div>
-
-                <div className="grid grid-cols-2 gap-6">
-                    <div className="space-y-1 group">
-                        <label className="text-xs uppercase tracking-wider text-blue-300/80 font-semibold mb-1 block group-focus-within:text-blue-400 transition-colors">CPF</label>
-                        <input 
-                            value={formData.cpf} 
-                            onChange={e => handleInputChange('cpf', e.target.value)} 
-                            className={`w-full bg-transparent border-0 border-b border-gray-600/50 text-xl font-normal text-white placeholder:text-gray-600 focus:border-blue-500 focus:outline-none focus:ring-0 py-2 transition-all duration-300 ${errors.cpf ? 'border-red-500' : ''}`}
-                            placeholder="000.000.000-00"
-                            maxLength={14}
-                            type="text"
-                        />
-                         {errors.cpf && <p className="text-red-400 text-xs mt-1 animate-pulse">{errors.cpf}</p>}
-                    </div>
-
-                    <div className="space-y-1 group">
-                        <label className="text-xs uppercase tracking-wider text-blue-300/80 font-semibold mb-1 block group-focus-within:text-blue-400 transition-colors">Telefone</label>
-                        <input 
-                            value={formData.phone} 
-                            onChange={e => handleInputChange('phone', e.target.value)} 
-                            className="w-full bg-transparent border-0 border-b border-gray-600/50 text-xl font-normal text-white placeholder:text-gray-600 focus:border-blue-500 focus:outline-none focus:ring-0 py-2 transition-all duration-300"
-                            placeholder="(00) 00000-0000"
-                            maxLength={15}
-                            type="text"
-                        />
-                    </div>
-                </div>
-
-                 <div className="space-y-1 group">
-                    <label className="text-xs uppercase tracking-wider text-blue-300/80 font-semibold mb-1 block group-focus-within:text-blue-400 transition-colors">E-mail</label>
-                    <input
-                      type="text" 
-                      placeholder="exemplo@email.com"
-                      className={`w-full bg-transparent border-0 border-b border-gray-600/50 text-xl font-normal text-white placeholder:text-gray-600 focus:border-blue-500 focus:outline-none focus:ring-0 py-2 transition-all duration-300 ${errors.email ? 'border-red-500' : ''}`}
-                      value={formData.email ?? ""}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                    />  
-                     {errors.email && <p className="text-red-400 text-xs mt-1 animate-pulse">{errors.email}</p>}
-                </div>
-
-                <div className="pt-8 flex justify-end gap-3 items-center">
-                     <Button 
-                        type="button" 
-                        variant="ghost" 
-                        className="text-gray-400 hover:text-white hover:bg-white/5 px-6 rounded-lg transition-all duration-200"
-                        onClick={() => setIsModalOpen(false)}
-                     >
-                        Cancelar
-                    </Button>
-                    <Button 
-                        type="submit" 
-                        className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-8 py-6 rounded-lg font-medium shadow-lg shadow-blue-900/40 hover:shadow-blue-900/60 transition-all duration-300 transform hover:-translate-y-0.5"
-                        disabled={isCreating}
-                    >
-                        {isCreating ? (
-                            <span className="flex items-center gap-2">
-                                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/>
-                                Salvando...
-                            </span>
-                        ) : 'Criar Paciente'}
-                    </Button>
-                </div>
-            </form>
-        </ModalOverlay>
-      )}
+       <CreateClientModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
 
     </div>
   );

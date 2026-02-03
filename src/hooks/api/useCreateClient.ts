@@ -7,6 +7,8 @@ interface CreateClientDTO {
   cpf: string;
   phone?: string;
   email?: string;
+  gender?: string;
+  photoUrl?: string;
 }
 
 export const useCreateClient = () => {
