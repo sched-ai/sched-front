@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,184 +19,75 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { useGetAllAppointments, type AppointmentAPI } from "@/hooks/api/useGetAllAppointments";
+import { format } from "date-fns";
 
-interface Atendimento {
-  id: string;
-  paciente: string;
-  especialidade: string;
-  data: string;
-  hora: string;
-  status: "concluido" | "agendado" | "cancelado";
-  duracao: string;
-  medico: string;
-  tipoConsulta: string;
+// Helper to debounce value
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+  return debouncedValue;
 }
 
 export const Atendimentos = () => {
-  const [filtro, setFiltro] = useState("todos");
   const [pesquisa, setPesquisa] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [itensPorPagina, setItensPorPagina] = useState(5);
   const navigate = useNavigate();
 
-  const atendimentos: Atendimento[] = [
-    {
-      id: "1",
-      paciente: "Maria Silva Santos",
-      especialidade: "Cardiologia",
-      data: "15/01/2024",
-      hora: "09:00",
-      status: "concluido",
-      duracao: "30min",
-      medico: "Dr. Carlos Mendes",
-      tipoConsulta: "Consulta de Retorno",
-    },
-    {
-      id: "2",
-      paciente: "João Pedro Oliveira",
-      especialidade: "Ortopedia",
-      data: "16/01/2024",
-      hora: "14:30",
-      status: "concluido",
-      duracao: "45min",
-      medico: "Dra. Ana Costa",
-      tipoConsulta: "Primeira Consulta",
-    },
-    {
-      id: "3",
-      paciente: "Ana Beatriz Costa",
-      especialidade: "Dermatologia",
-      data: "17/01/2024",
-      hora: "10:15",
-      status: "agendado",
-      duracao: "40min",
-      medico: "Dr. Roberto Silva",
-      tipoConsulta: "Consulta de Rotina",
-    },
-    {
-      id: "4",
-      paciente: "Pedro Henrique Lima",
-      especialidade: "Neurologia",
-      data: "18/01/2024",
-      hora: "16:00",
-      status: "cancelado",
-      duracao: "50min",
-      medico: "Dra. Fernanda Alves",
-      tipoConsulta: "Consulta Urgente",
-    },
-    {
-      id: "5",
-      paciente: "Fernanda Rodrigues",
-      especialidade: "Ginecologia",
-      data: "19/01/2024",
-      hora: "11:45",
-      status: "concluido",
-      duracao: "35min",
-      medico: "Dra. Juliana Santos",
-      tipoConsulta: "Consulta Preventiva",
-    },
-    {
-      id: "6",
-      paciente: "Roberto Carlos Silva",
-      especialidade: "Urologia",
-      data: "20/01/2024",
-      hora: "15:30",
-      status: "agendado",
-      duracao: "40min",
-      medico: "Dr. Marcos Pereira",
-      tipoConsulta: "Consulta de Retorno",
-    },
-    {
-      id: "7",
-      paciente: "Lucia Maria Ferreira",
-      especialidade: "Endocrinologia",
-      data: "21/01/2024",
-      hora: "08:30",
-      status: "agendado",
-      duracao: "45min",
-      medico: "Dra. Patricia Lima",
-      tipoConsulta: "Primeira Consulta",
-    },
-    {
-      id: "8",
-      paciente: "Antonio José Santos",
-      especialidade: "Cardiologia",
-      data: "22/01/2024",
-      hora: "13:15",
-      status: "concluido",
-      duracao: "30min",
-      medico: "Dr. Carlos Mendes",
-      tipoConsulta: "Consulta de Rotina",
-    },
-  ];
+  const debouncedPesquisa = useDebounce(pesquisa, 500);
 
-  const calcularEstatisticas = () => {
-    const total = atendimentos.length;
-    const concluidos = atendimentos.filter(
-      (a) => a.status === "concluido"
-    ).length;
-    const agendados = atendimentos.filter(
-      (a) => a.status === "agendado"
-    ).length;
-    const cancelados = atendimentos.filter(
-      (a) => a.status === "cancelado"
-    ).length;
-
-    return {
-      total,
-      concluidos,
-      agendados,
-      cancelados,
-    };
-  };
-
-  const estatisticas = calcularEstatisticas();
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "concluido":
-        return "bg-green-500";
-      case "agendado":
-        return "bg-blue-500";
-      case "cancelado":
-        return "bg-red-500";
-      default:
-        return "bg-gray-500";
-    }
-  };
-
-  const atendimentosFiltrados = atendimentos.filter((atendimento) => {
-    const matchFiltro =
-      filtro === "todos" ||
-      atendimento.especialidade.toLowerCase().includes(filtro.toLowerCase());
-    const matchPesquisa =
-      atendimento.paciente.toLowerCase().includes(pesquisa.toLowerCase()) ||
-      atendimento.especialidade.toLowerCase().includes(pesquisa.toLowerCase()) ||
-      atendimento.medico.toLowerCase().includes(pesquisa.toLowerCase()) ||
-      atendimento.tipoConsulta.toLowerCase().includes(pesquisa.toLowerCase());
-    const matchStatus =
-      filtroStatus === "todos" || atendimento.status === filtroStatus;
-    return matchFiltro && matchPesquisa && matchStatus;
+  const { data: appointments = [], isLoading } = useGetAllAppointments({
+    status: filtroStatus,
+    search: debouncedPesquisa,
   });
 
-  const totalPaginas = Math.ceil(atendimentosFiltrados.length / itensPorPagina);
+  const calcularEstatisticas = (data: AppointmentAPI[]) => {
+    const total = data.length;
+    const concluidos = data.filter(a => ['concluido', 'finished', 'done'].includes(a.status?.toLowerCase())).length;
+    const agendados = data.filter(a => ['agendado', 'pending', 'scheduled', 'confirmed'].includes(a.status?.toLowerCase())).length;
+    const cancelados = data.filter(a => ['cancelado', 'cancelled'].includes(a.status?.toLowerCase())).length;
+    return { total, concluidos, agendados, cancelados };
+  };
+
+  const estatisticas = calcularEstatisticas(appointments);
+
+  const getStatusColor = (status: string) => {
+    const s = status?.toLowerCase() || "";
+    if (['concluido', 'finished', 'done'].includes(s)) return "bg-green-500";
+    if (['agendado', 'pending', 'scheduled', 'confirmed'].includes(s)) return "bg-blue-500";
+    if (['cancelado', 'cancelled'].includes(s)) return "bg-red-500";
+    return "bg-gray-500";
+  };
+
+  const getStatusLabel = (status: string) => {
+    const s = status?.toLowerCase() || "";
+    if (['concluido', 'finished', 'done'].includes(s)) return "Concluído";
+    if (['agendado', 'pending', 'scheduled', 'confirmed'].includes(s)) return "Agendado";
+    if (['cancelado', 'cancelled'].includes(s)) return "Cancelado";
+    return status;
+  };
+
+  const totalPaginas = Math.ceil(appointments.length / itensPorPagina) || 1;
   const indiceInicial = (paginaAtual - 1) * itensPorPagina;
   const indiceFinal = indiceInicial + itensPorPagina;
-  const atendimentosPaginados = atendimentosFiltrados.slice(indiceInicial, indiceFinal);
+  const atendimentosPaginados = appointments.slice(indiceInicial, indiceFinal);
 
-  const handleFiltroChange = (novoFiltro: string) => {
-    setFiltro(novoFiltro);
+  const handlePesquisaChange = (novaPesquisa: string) => {
+    setPesquisa(novaPesquisa);
     setPaginaAtual(1);
   };
 
   const handleFiltroStatusChange = (novoFiltroStatus: string) => {
     setFiltroStatus(novoFiltroStatus);
-    setPaginaAtual(1);
-  };
-
-  const handlePesquisaChange = (novaPesquisa: string) => {
-    setPesquisa(novaPesquisa);
     setPaginaAtual(1);
   };
 
@@ -292,14 +183,6 @@ export const Atendimentos = () => {
                 className="w-full"
               />
             </div>
-            <Select value={filtro} onValueChange={handleFiltroChange}>
-              <SelectTrigger className="w-full lg:w-[250px] !h-[48px] border-[#A2A6BB66]">
-                <SelectValue placeholder="Filtrar por especialidade" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todas as especialidades</SelectItem>
-              </SelectContent>
-            </Select>
             <Select
               value={filtroStatus}
               onValueChange={handleFiltroStatusChange}
@@ -317,15 +200,9 @@ export const Atendimentos = () => {
           </div>
 
           <div className="border bg-[#141736] text-white rounded-t-lg py-2">
-            <div className="grid grid-cols-2 lg:grid-cols-7 gap-4 items-center px-6 py-3">
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 items-center px-6 py-3">
               <div className="lg:col-span-1">
                 <h3 className="font-semibold text-sm uppercase">Paciente</h3>
-              </div>
-              <div className="lg:col-span-1">
-                <h3 className="font-semibold text-sm uppercase">Especialidade</h3>
-              </div>
-              <div className="lg:col-span-1">
-                <h3 className="font-semibold text-sm uppercase">Médico</h3>
               </div>
               <div className="lg:col-span-1">
                 <h3 className="font-semibold text-sm uppercase">Data</h3>
@@ -342,79 +219,73 @@ export const Atendimentos = () => {
             </div>
           </div>
           <div className="flex-1">
-            {atendimentosPaginados.map((atendimento, index) => (
-              <div
-                key={atendimento.id}
-                className={`${
-                  index % 2 === 0 ? 'bg-white' : 'bg-slate-50'
-                } hover:bg-slate-100 transition-colors duration-200`}
-              >
-                <div className={`grid grid-cols-2 lg:grid-cols-7 gap-4 items-center p-6 border border-slate-200 ${index === atendimentosPaginados.length - 1  ? 'rounded-b-lg' : ''}`}>
-                  <div className="lg:col-span-1">
-                    <p className="text-slate-800 text-sm font-medium">
-                      {atendimento.paciente}
-                    </p>
-                  </div>
-
-                  <div className="lg:col-span-1">
-                    <p className="text-slate-600 text-sm">
-                      {atendimento.especialidade}
-                    </p>
-                  </div>
-
-                  <div className="lg:col-span-1">
-                    <p className="text-slate-600 text-sm">
-                      {atendimento.medico}
-                    </p>
-                  </div>
-
-                  <div className="lg:col-span-1">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-slate-400" />
-                      <p className="text-slate-600 text-sm">
-                        {atendimento.data}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="lg:col-span-1">
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-slate-400" />
-                      <p className="text-slate-600 text-sm font-medium">
-                        {atendimento.hora}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="lg:col-span-1">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`w-2.5 h-2.5 rounded-full ${getStatusColor(
-                          atendimento.status
-                        )}`}
-                      ></div>
-                      <span className="text-slate-700 text-sm capitalize">
-                        {atendimento.status}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="lg:col-span-1 flex justify-center">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="bg-[#141736] hover:bg-[#282d64] text-white hover:text-white font-medium"
-                      onClick={() => navigate(`/appointment/${atendimento.id}`, { state: { atendimento } })}
-                    >
-                      Ver
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </div>
+            {isLoading ? (
+                <div className="text-center py-12">
+                   <p className="text-gray-500 text-lg">Carregando...</p>
                 </div>
-              </div>
-            ))}
+            ) : atendimentosPaginados.map((atendimento, index) => {
+              const start = new Date(atendimento.startDate);
+              return (
+                <div
+                    key={atendimento.id}
+                    className={`${
+                    index % 2 === 0 ? 'bg-white' : 'bg-slate-50'
+                    } hover:bg-slate-100 transition-colors duration-200`}
+                >
+                    <div className={`grid grid-cols-2 lg:grid-cols-5 gap-4 items-center p-6 border border-slate-200 ${index === atendimentosPaginados.length - 1  ? 'rounded-b-lg' : ''}`}>
+                    <div className="lg:col-span-1">
+                        <p className="text-slate-800 text-sm font-medium">
+                        {atendimento.clientName || atendimento.client?.name || 'Sem nome'}
+                        </p>
+                    </div>
 
-            {atendimentosFiltrados.length === 0 && (
+                    <div className="lg:col-span-1">
+                        <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-slate-400" />
+                        <p className="text-slate-600 text-sm">
+                            {format(start, 'dd/MM/yyyy')}
+                        </p>
+                        </div>
+                    </div>
+
+                    <div className="lg:col-span-1">
+                        <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-slate-400" />
+                        <p className="text-slate-600 text-sm font-medium">
+                           {format(start, 'HH:mm')}
+                        </p>
+                        </div>
+                    </div>
+
+                    <div className="lg:col-span-1">
+                        <div className="flex items-center gap-2">
+                        <div
+                            className={`w-2.5 h-2.5 rounded-full ${getStatusColor(
+                            atendimento.status
+                            )}`}
+                        ></div>
+                        <span className="text-slate-700 text-sm capitalize">
+                            {getStatusLabel(atendimento.status)}
+                        </span>
+                        </div>
+                    </div>
+
+                    <div className="lg:col-span-1 flex justify-center">
+                        <Button
+                        variant="ghost"
+                        size="sm"
+                        className="bg-[#141736] hover:bg-[#282d64] text-white hover:text-white font-medium"
+                        onClick={() => navigate(`/appointment/${atendimento.id}`, { state: { atendimento } })}
+                        >
+                        Ver
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                        </Button>
+                    </div>
+                    </div>
+                </div>
+            )})}
+
+            {!isLoading && atendimentosPaginados.length === 0 && (
               <div className="text-center py-12">
                 <p className="text-gray-500 text-lg">
                   Nenhuma consulta encontrada com os filtros aplicados.
@@ -423,7 +294,7 @@ export const Atendimentos = () => {
             )}
           </div>
 
-          {atendimentosFiltrados.length > 0 && (
+          {!isLoading && appointments.length > 0 && (
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 p-4 rounded-lg">
               <div className="flex items-center gap-4">
                 <span className="text-sm text-slate-600">
@@ -458,7 +329,10 @@ export const Atendimentos = () => {
                 </Button>
 
                 <div className="flex items-center gap-1">
-                  {Array.from({ length: totalPaginas }, (_, i) => i + 1).map(
+                  {/* Simplificado para mostrar apenas paginas proximas se forem muitas, mas mantendo logica anterior simplificada */}
+                  {Array.from({ length: totalPaginas }, (_, i) => i + 1)
+                    .slice(Math.max(0, paginaAtual - 3), Math.min(totalPaginas, paginaAtual + 2))
+                    .map(
                     (pagina) => (
                       <Button
                         key={pagina}
@@ -493,5 +367,5 @@ export const Atendimentos = () => {
         </div>
       </div>
     </div>
-   );
- };
+  );
+};
