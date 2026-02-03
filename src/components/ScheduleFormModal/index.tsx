@@ -57,8 +57,11 @@ const DraggableModalContent = ({
   return (
     <div
       ref={setNodeRef}
-      style={style}
-      className="fixed z-50 min-w-[400px] max-w-[95vw] max-h-[90vh] shadow-2xl rounded-2xl border-none bg-cover flex flex-col"
+      style={{
+        ...style,
+        maxHeight: "calc(100vh - 40px)",
+      }}
+      className="fixed z-50 min-w-[400px] max-w-[95vw] shadow-2xl rounded-2xl border-none bg-cover flex flex-col"
     >
       <div
         {...attributes}
@@ -221,17 +224,33 @@ export const ScheduleFormModal = ({
 
   useEffect(() => {
     if (clickPosition) {
-       // We want the final 'style.left' to be clickPosition.x
-       // The formula is: x = initialPosition.x + (transform?.x ?? 0) + position.x
-       // Assuming no transform initially:
-       // position.x = clickPosition.x - initialPosition.x
-       
        const initialX = (window.innerWidth - MODAL_WIDTH) / 2;
        const initialY = (window.innerHeight - MODAL_HEIGHT) / 2;
+
+       // Calculate desired top/left based on click
+       let targetX = clickPosition.x;
+       let targetY = clickPosition.y;
+
+       // Boundary checks (padding 20px)
+       const PADDING = 20;
+       
+       // If right edge goes off-screen
+       if (targetX + MODAL_WIDTH > window.innerWidth - PADDING) {
+           targetX = window.innerWidth - MODAL_WIDTH - PADDING;
+       }
+       // If bottom edge goes off-screen (approximate height check)
+       if (targetY + MODAL_HEIGHT > window.innerHeight - PADDING) {
+           targetY = window.innerHeight - MODAL_HEIGHT - PADDING;
+       }
+       
+       // If left/top go off-screen (negative)
+       if (targetX < PADDING) targetX = PADDING;
+       if (targetY < PADDING) targetY = PADDING;
+
        
        setPosition({
-         x: clickPosition.x - initialX,
-         y: clickPosition.y - initialY
+         x: targetX - initialX,
+         y: targetY - initialY
        });
     } else {
        setPosition({ x: 0, y: 0 }); // 0 means use initial centered position
@@ -291,7 +310,7 @@ export const ScheduleFormModal = ({
   return (
     <DndContext onDragEnd={handleDragEnd} modifiers={[restrictToWindowEdges]}>
       <DraggableModalContent position={position}>
-        <div className="flex flex-col w-full">
+        <div className="flex flex-col w-full max-w-[446px]">
           {/* Header Actions (Close) - Grip is handled by wrapper */}
           <div className="flex justify-end pr-2 pt-2">
             <Button
@@ -303,7 +322,7 @@ export const ScheduleFormModal = ({
             </Button>
           </div>
 
-          <div className="px-6 pb-6 pt-0 flex flex-col gap-4">
+          <div className="px-6 pt-0 flex flex-col gap-4">
              {/* Title Input moved down */}
 
             {/* Tabs / Type Switcher */}

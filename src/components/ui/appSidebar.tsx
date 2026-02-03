@@ -10,7 +10,6 @@ import {
 } from "../../components/ui/sidebar";
 import { NavItem } from "../NavItem";
 import { BriefcaseBusiness, CalendarFold, LogOut, NotepadText, ArrowLeft, Users, Phone, Mail, MapPin, Cake, CreditCard, Clock } from "lucide-react";
-import logoFull from "@/assets/logoFull.png";
 import logo from "@/assets/logo.png";
 import { logout } from "@/services/storage";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -106,7 +105,6 @@ function PatientTimer() {
 export function AppSidebar() {
   const { state } = useSidebar();
   const isSidebarOpen = state === "expanded";
-  const sidebarLogo = isSidebarOpen ? logoFull : logo;
   const navigate = useNavigate();
   const { userData, userLoading } = useUser();
   const location = useLocation();
@@ -121,11 +119,14 @@ export function AppSidebar() {
         <SidebarTrigger className="absolute top-16 right-0 translate-x-1/2 z-30 shadow-lg bg-[#141736] text-white border border-white" />
         <SidebarHeader
           className={
-            "font-semibold text-white italic flex truncate " +
-            (isSidebarOpen ? "p-4 px-8 text-4xl" : "text-start p-5")
+            "flex items-center transition-all duration-300 " +
+            (isSidebarOpen ? "justify-center py-6" : "justify-center py-4")
           }
-        >
-          <img src={sidebarLogo} />
+        > 
+          <img 
+            src={logo} 
+            className={`transition-all duration-300 ${isSidebarOpen ? "w-14" : "w-12"}`}
+          />
         </SidebarHeader>
         <SidebarContent className="flex flex-col justify-between h-full">
           {isPatientDetails ? (

@@ -300,7 +300,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                             }}
                             onClick={(e) => handleEventClick(ev, e)}
                           >
-                            <div className="flex flex-col h-full relative justify-center">
+                            <div className="flex flex-col h-full relative">
                                {/* Left accent bar */}
                               <div className={`absolute left-[-10px] top-0 bottom-0 w-[4px] ${isConsultation ? 'bg-white/30' : 'bg-slate-400/30'}`}></div>
 

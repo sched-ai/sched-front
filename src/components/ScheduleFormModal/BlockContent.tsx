@@ -59,17 +59,19 @@ export const BlockContent = ({
   onClose,
   timeBlockId
 }: IProps) => {
-  const { mutate: createTimeBlock, isPending: isCreating } = useCreateTimeBlock({
+  const { mutate: createTimeBlock, isPending: isCreating, error: createError } = useCreateTimeBlock({
     onSuccessFn: () => {
       if (onClose) onClose();
     },
   });
 
-  const { mutate: updateTimeBlock, isPending: isUpdating } = useUpdateTimeBlock({
+  const { mutate: updateTimeBlock, isPending: isUpdating, error: updateError } = useUpdateTimeBlock({
     onSuccessFn: () => {
       if (onClose) onClose();
     },
   });
+
+  const error = createError || updateError;
 
   const isPending = isCreating || isUpdating;
 
@@ -191,7 +193,7 @@ export const BlockContent = ({
                 id="inicio"
                 type="time"
                 style={{ colorScheme: "dark" }}
-                className="bg-transparent border-b border-gray-600 focus:border-blue-500 text-white p-1 w-24 text-center focus:outline-none"
+                className="lightInput bg-transparent border-b border-gray-600 focus:border-blue-500 text-white p-1 w-24 text-center focus:outline-none"
                 value={startHour}
                 onChange={(e) => setStartHour(e.target.value)}
               />
@@ -199,7 +201,7 @@ export const BlockContent = ({
               <input
                 type="time"
                 style={{ colorScheme: "dark" }}
-                className="bg-transparent border-b border-gray-600 focus:border-blue-500 text-white p-1 w-24 text-center focus:outline-none"
+                className="lightInput bg-transparent border-b border-gray-600 focus:border-blue-500 text-white p-1 w-24 text-center focus:outline-none"
                 value={endHour}
                 onChange={(e) => setEndHour(e.target.value)}
               />
@@ -294,15 +296,24 @@ export const BlockContent = ({
         </div>
       </div>
 
-      <div className="flex justify-end mt-4">
-        <Button
-          type="button"
-          onClick={handleCreateTimeBlock}
-          disabled={isPending}
-          className="bg-blue-600 hover:bg-blue-700 text-white rounded-md px-6 py-2 min-w-[100px]"
-        >
-          {isPending ? "Salvando..." : "Salvar"}
-        </Button>
+      <div className="mt-4 flex flex-col gap-2">
+        <div className="h-[60px] w-full flex items-center justify-center">
+        {error ? (
+            <div className="bg-red-900/20 border border-red-900/50 rounded-md p-3 text-sm text-red-400 w-full leading-tight">
+              {(error as any)?.response?.data?.error || (error as any)?.response?.data?.message || (error as any)?.message || "Ocorreu um erro"}
+            </div>
+          ) : null}
+        </div>
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            onClick={handleCreateTimeBlock}
+            disabled={isPending}
+            className="bg-blue-600 hover:bg-blue-700 text-white rounded-md px-6 py-2 min-w-[100px]"
+          >
+            {isPending ? "Salvando..." : "Salvar"}
+          </Button>
+        </div>
       </div>
     </form>
   );

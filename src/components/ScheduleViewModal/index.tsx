@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { capitalizeFirst } from "@/util/helper";
 import { CalendarDays, Clock, Layers, Pencil, Trash2, MapPin, X } from "lucide-react";
@@ -92,9 +93,16 @@ export const ScheduleViewModal = ({
         <div className="p-6 pb-2">
             <div className="flex items-start justify-between">
               <div className="space-y-1">
-                <h2 className="text-2xl font-bold tracking-tight text-white pr-4 leading-none">
-                  {capitalizeFirst(details.title)}
-                </h2>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <h2 className="text-2xl font-bold tracking-tight text-white pr-4 leading-none truncate max-w-[250px]">
+                      {capitalizeFirst(details.title)}
+                    </h2>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-slate-900 border-slate-700 text-slate-100 max-w-[300px] break-words">
+                    <p>{capitalizeFirst(details.title)}</p>
+                  </TooltipContent>
+                </Tooltip>
                 <p className="text-slate-400 text-sm">
                   {isBlock ? "Detalhes do bloqueio" : "Detalhes da consulta"}
                 </p>
