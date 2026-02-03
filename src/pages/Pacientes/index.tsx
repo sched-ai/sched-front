@@ -14,143 +14,176 @@ import {
   ArrowRight,
   ChevronLeft,
   ChevronRight,
+  X,
+  UserPlus,
 } from "lucide-react";
+import { useGetAllClients } from "@/hooks/api/useGetAllClients";
+import { useCreateClient } from "@/hooks/api/useCreateClient";
+import { format } from "date-fns";
 
-interface Paciente {
-  id: string;
-  nome: string;
-  cpf: string;
-  telefone: string;
-  email: string;
-  cadastro: string;
-  status: "Ok" | "Taxado";
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  React.useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+  return debouncedValue;
 }
 
+// --- Modal Component (Standard Centered) ---
+const ModalOverlay = ({
+  children,
+  onClose
+}: {
+  children: React.ReactNode;
+  onClose: () => void;
+}) => {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-300">
+      <div
+        className="relative w-full max-w-md rounded-2xl border border-white/10 bg-[#121535] flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300 overflow-hidden"
+      >
+        <div className="flex justify-end pr-4 pt-4 relative z-10">
+            <Button
+              variant="ghost"
+              className="bg-transparent hover:bg-white/10 text-gray-400 hover:text-white h-8 w-8 rounded-full p-0 transition-all duration-200"
+              onClick={onClose}
+            >
+              <X size={20} />
+            </Button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-8 pb-8 custom-scrollbar relative z-10">
+            {children}
+        </div>
+        
+        {/* Decorative background blur element */}
+        <div className="absolute top-0 left-0 w-full h-full bg-blue-500/5 pointer-events-none z-0" />
+        <div className="absolute -top-24 -left-24 w-48 h-48 bg-blue-500/20 rounded-full blur-3xl pointer-events-none z-0" />
+      </div>
+    </div>
+  );
+};
+
+// ... helpers ...
+
+// Simple masks
+const maskCPF = (v: string) => {
+  return v
+    .replace(/\D/g, "")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d{1,2})/, "$1-$2")
+    .replace(/(-\d{2})\d+?$/, "$1");
+};
+
+const maskPhone = (v: string) => {
+  return v
+    .replace(/\D/g, "")
+    .replace(/(\d{2})(\d)/, "($1) $2")
+    .replace(/(\d{5})(\d)/, "$1-$2")
+    .replace(/(-\d{4})\d+?$/, "$1"); // 11 digits
+};
+
 export const Pacientes = () => {
+  // ... existing list state ...
   const [pesquisa, setPesquisa] = useState("");
-  const [filtroTipo, setFiltroTipo] = useState("todos");
   const [paginaAtual, setPaginaAtual] = useState(1);
-  const [itensPorPagina, setItensPorPagina] = useState(5);
+  const [itensPorPagina, setItensPorPagina] = useState(10);
   const navigate = useNavigate();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const pacientes: Paciente[] = [
-    {
-      id: "1",
-      nome: "Maria Silva Santos",
-      cpf: "024.156.746-07",
-      telefone: "(21) 99909-8978",
-      email: "msilva@gmail.com",
-      cadastro: "15/01/2024",
-      status: "Ok",
-    },
-    {
-      id: "2",
-      nome: "João Pedro Oliveira",
-      cpf: "134.167.644-01",
-      telefone: "(21) 99459-7648",
-      email: "jp.oliveira@yahoo.com.br",
-      cadastro: "16/01/2024",
-      status: "Ok",
-    },
-    {
-      id: "3",
-      nome: "Ana Beatriz Costa",
-      cpf: "146.776.927-10",
-      telefone: "(22) 99876-6543",
-      email: "bibicosta@gmail.com",
-      cadastro: "17/01/2024",
-      status: "Taxado",
-    },
-    {
-      id: "4",
-      nome: "Pedro Henrique Lima",
-      cpf: "037.765.356-05",
-      telefone: "(24) 99516-6548",
-      email: "",
-      cadastro: "18/01/2024",
-      status: "Taxado",
-    },
-  ];
+  const debouncedPesquisa = useDebounce(pesquisa, 500);
 
-  const pacientesFiltrados = pacientes.filter((p) => {
-    const matchPesquisa =
-      p.nome.toLowerCase().includes(pesquisa.toLowerCase()) ||
-      p.cpf.toLowerCase().includes(pesquisa.toLowerCase()) ||
-      p.telefone.toLowerCase().includes(pesquisa.toLowerCase()) ||
-      p.email.toLowerCase().includes(pesquisa.toLowerCase());
-
-    const matchTipo = filtroTipo === "todos" || p.status === filtroTipo;
-    return matchPesquisa && matchTipo;
+  const { data: response, isLoading } = useGetAllClients({
+    search: debouncedPesquisa,
+    page: paginaAtual,
+    limit: itensPorPagina,
   });
 
-  const totalPaginas = Math.ceil(pacientesFiltrados.length / itensPorPagina);
-  const indiceInicial = (paginaAtual - 1) * itensPorPagina;
-  const indiceFinal = indiceInicial + itensPorPagina;
-  const pacientesPaginados = pacientesFiltrados.slice(indiceInicial, indiceFinal);
+  const { mutate: createClient, isPending: isCreating } = useCreateClient();
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Ok":
-        return "bg-green-500";
-      case "Taxado":
-        return "bg-red-500";
-      default:
-        return "bg-gray-500";
-    }
-  };
+  const pacientes = response?.data || [];
+  const meta = response?.meta || { total: 0, totalPages: 1, page: 1, limit: 10 };
 
-  const handlePesquisaChange = (val: string) => {
-    setPesquisa(val);
-    setPaginaAtual(1);
-  };
-
-  const handleFiltroTipoChange = (val: string) => {
-    setFiltroTipo(val);
-    setPaginaAtual(1);
-  };
-
-  const handleItensPorPaginaChange = (val: string) => {
-    setItensPorPagina(Number(val));
-    setPaginaAtual(1);
-  };
-
+  // ... paging handlers ...
+  const handlePesquisaChange = (val: string) => { setPesquisa(val); setPaginaAtual(1); };
+  const handleItensPorPaginaChange = (val: string) => { setItensPorPagina(Number(val)); setPaginaAtual(1); };
   const irParaPagina = (p: number) => setPaginaAtual(p);
+  const irParaProximaPagina = () => { if (paginaAtual < meta.totalPages) setPaginaAtual(paginaAtual + 1); };
+  const irParaPaginaAnterior = () => { if (paginaAtual > 1) setPaginaAtual(paginaAtual - 1); };
 
-  const irParaProximaPagina = () => {
-    if (paginaAtual < totalPaginas) setPaginaAtual(paginaAtual + 1);
-  };
-
-  const irParaPaginaAnterior = () => {
-    if (paginaAtual > 1) setPaginaAtual(paginaAtual - 1);
-  };
-
-  // Tooltip state for showing full text near the cursor
-  const [tooltip, setTooltip] = useState({
-    visible: false,
-    text: "",
-    x: 0,
-    y: 0,
-  });
-
-  const handleMouseEnter = (e: React.MouseEvent, text: string) => {
-    const padding = 12;
-    setTooltip({ visible: true, text, x: e.clientX + padding, y: e.clientY + padding });
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    const padding = 12;
-    setTooltip((t) => (t.visible ? { ...t, x: e.clientX + padding, y: e.clientY + padding } : t));
-  };
-
+  // Tooltip
+  const [tooltip, setTooltip] = useState({ visible: false, text: "", x: 0, y: 0 });
+  const handleMouseEnter = (e: React.MouseEvent, text: string) => { setTooltip({ visible: true, text, x: e.clientX + 12, y: e.clientY + 12 }); };
+  const handleMouseMove = (e: React.MouseEvent) => { setTooltip((t) => (t.visible ? { ...t, x: e.clientX + 12, y: e.clientY + 12 } : t)); };
   const handleMouseLeave = () => setTooltip({ visible: false, text: "", x: 0, y: 0 });
 
+  // Form State
+  const [formData, setFormData] = useState({ name: "", cpf: "", phone: "", email: "" });
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  const resetForm = () => {
+      setFormData({ name: "", cpf: "", phone: "", email: "" });
+      setErrors({});
+  }
+
+  const handleInputChange = (field: string, value: string) => {
+      let val = value;
+      if (field === 'cpf') val = maskCPF(value);
+      if (field === 'phone') val = maskPhone(value);
+      setFormData(prev => ({ ...prev, [field]: val }));
+      // clear error when typing
+      if (errors[field]) setErrors(prev => ({ ...prev, [field]: "" }));
+  };
+
+  const validate = () => {
+      const newErrors: { [key: string]: string } = {};
+      if (!formData.name.trim()) newErrors.name = "O nome é obrigatório";
+      else if (formData.name.trim().length < 3) newErrors.name = "O nome deve ter pelo menos 3 letras";
+
+      if (!formData.cpf.trim()) newErrors.cpf = "O CPF é obrigatório";
+      else if (formData.cpf.replace(/\D/g, '').length !== 11) newErrors.cpf = "CPF inválido";
+
+      if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+          newErrors.email = "E-mail inválido";
+      }
+
+      setErrors(newErrors);
+      return Object.keys(newErrors).length === 0;
+  };
+
+  const handleCreateClient = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!validate()) return;
+
+      createClient({
+          name: formData.name,
+          cpf: formData.cpf, // Controller removes non-digits
+          phone: formData.phone,
+          email: formData.email
+      }, {
+          onSuccess: () => {
+              setIsModalOpen(false);
+              resetForm();
+          }
+      });
+  }
+
+  // Define Render for List... (Keep existing list render logic, just replace Modal logic below)
+  
   return (
     <div className="w-full flex flex-col h-full">
+      {/* ... keeping header and table code unchanged ... */}
       <header className="border-b border-b-[#DADCE0] h-full max-h-[80px] p-4">
         <h1 className="text-[30px] font-medium">Pacientes</h1>
       </header>
       <div className="p-6">
         <div className="rounded-lg p-6 mb-2 border bg-white shadow-custom">
+            {/* ... Filters ... */}
           <div className="flex items-center gap-2 mb-4">
             <Filter className="w-5 h-5 text-[#141736]" />
             <h2 className="text-lg font-semibold text-[#141736]">Filtros</h2>
@@ -160,103 +193,54 @@ export const Pacientes = () => {
             <div className="flex-1">
               <Input
                 type="text"
-                placeholder="Pesquise por paciente..."
+                placeholder="Pesquise por nome, CPF ou e-mail..."
                 value={pesquisa}
                 onChange={(e) => handlePesquisaChange(e.target.value)}
                 className="w-full"
               />
             </div>
 
-            <Select value={filtroTipo} onValueChange={handleFiltroTipoChange}>
-              <SelectTrigger className="w-full lg:w-[250px] !h-[48px] border-[#A2A6BB66]">
-                <SelectValue placeholder="Todos os tipos" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos os tipos</SelectItem>
-                <SelectItem value="Ok">Ok</SelectItem>
-                <SelectItem value="Taxado">Taxado</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Button className="bg-[#121535] text-white px-8 py-2" onClick={() => {}}>
+            <Button 
+                className="bg-[#121535] text-white px-8 py-2 hover:bg-[#1f2347] transition-colors" 
+                onClick={() => setIsModalOpen(true)}
+            >
               + Adicionar paciente
             </Button>
           </div>
-
+            
+            {/* ... Table Header ... */}
           <div className="border bg-[#141736] text-white rounded-t-lg py-2">
-            <div className="grid grid-cols-2 lg:grid-cols-7 gap-4 items-center px-6 py-3 min-w-0">
-              <div className="lg:col-span-1">
-                <h3 className="font-semibold text-sm uppercase">Nome</h3>
-              </div>
-              <div className="lg:col-span-1">
-                <h3 className="font-semibold text-sm uppercase">CPF</h3>
-              </div>
-              <div className="lg:col-span-1">
-                <h3 className="font-semibold text-sm uppercase">Telefone</h3>
-              </div>
-              <div className="lg:col-span-1">
-                <h3 className="font-semibold text-sm uppercase">E-mail</h3>
-              </div>
-              <div className="lg:col-span-1">
-                <h3 className="font-semibold text-sm uppercase">Cadastro</h3>
-              </div>
-              <div className="lg:col-span-1">
-                <h3 className="font-semibold text-sm uppercase">Status</h3>
-              </div>
-              <div className="lg:col-span-1 flex justify-center">
-                <h3 className="font-semibold text-sm uppercase">Histórico</h3>
-              </div>
+            <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 items-center px-6 py-3 min-w-0">
+               {['Nome', 'CPF', 'Telefone', 'E-mail', 'Cadastro', 'Histórico'].map((h, i) => (
+                   <div key={h} className={`${i === 5 ? 'flex justify-center' : ''} lg:col-span-1`}>
+                        <h3 className="font-semibold text-sm uppercase">{h}</h3>
+                   </div>
+               ))}
             </div>
           </div>
 
           <div className="flex-1">
-            {pacientesPaginados.map((p, index) => (
+            {isLoading ? (
+                <div className="text-center py-12">
+                   <p className="text-gray-500 text-lg">Carregando...</p>
+                </div>
+            ) : pacientes.map((p, index) => {
+                const createdAt = p.createdAt ? format(new Date(p.createdAt), 'dd/MM/yyyy') : '-';
+                return (
               <div
                 key={p.id}
                 className={`${index % 2 === 0 ? 'bg-white' : 'bg-slate-50'} hover:bg-slate-100 transition-colors duration-200`}
               >
-                <div className={`grid grid-cols-2 lg:grid-cols-7 gap-4 items-center p-6 border border-slate-200 min-w-0 ${index === pacientesPaginados.length - 1  ? 'rounded-b-lg' : ''}`}>
+                <div className={`grid grid-cols-2 lg:grid-cols-6 gap-4 items-center p-6 border border-slate-200 min-w-0 ${index === pacientes.length - 1  ? 'rounded-b-lg' : ''}`}>
                   <div className="lg:col-span-1">
-                    <p
-                      className="text-slate-800 text-sm font-medium truncate"
-                      onMouseEnter={(e) => handleMouseEnter(e, p.nome)}
-                      onMouseMove={handleMouseMove}
-                      onMouseLeave={handleMouseLeave}
-                    >
-                      {p.nome}
-                    </p>
+                    <p className="text-slate-800 text-sm font-medium truncate" onMouseEnter={(e) => handleMouseEnter(e, p.name)} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}>{p.name}</p>
                   </div>
-
+                  <div className="lg:col-span-1"><p className="text-slate-600 text-sm truncate">{p.cpf}</p></div>
+                  <div className="lg:col-span-1"><p className="text-slate-600 text-sm truncate">{p.phone || '-'}</p></div>
                   <div className="lg:col-span-1">
-                    <p className="text-slate-600 text-sm truncate">{p.cpf}</p>
+                    <p className="text-slate-600 text-sm truncate" onMouseEnter={(e) => handleMouseEnter(e, p.email || '-')} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}>{p.email || '-'}</p>
                   </div>
-
-                  <div className="lg:col-span-1">
-                    <p className="text-slate-600 text-sm truncate">{p.telefone}</p>
-                  </div>
-
-                  <div className="lg:col-span-1">
-                    <p
-                      className="text-slate-600 text-sm truncate"
-                      onMouseEnter={(e) => handleMouseEnter(e, p.email || '-')}
-                      onMouseMove={handleMouseMove}
-                      onMouseLeave={handleMouseLeave}
-                    >
-                      {p.email || '-'}
-                    </p>
-                  </div>
-
-                  <div className="lg:col-span-1">
-                    <p className="text-slate-600 text-sm truncate">{p.cadastro}</p>
-                  </div>
-
-                  <div className="lg:col-span-1">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-2.5 h-2.5 rounded-full ${getStatusColor(p.status)}`} />
-                      <span className="text-slate-700 text-sm truncate">{p.status}</span>
-                    </div>
-                  </div>
-
+                  <div className="lg:col-span-1"><p className="text-slate-600 text-sm truncate">{createdAt}</p></div>
                   <div className="lg:col-span-1 flex justify-center">
                     <Button
                       variant="ghost"
@@ -264,89 +248,141 @@ export const Pacientes = () => {
                       className="bg-[#141736] hover:bg-[#282d64] text-white hover:text-white font-medium"
                       onClick={() => navigate(`/appointment/${p.id}`, { state: { paciente: p } })}
                     >
-                      Ver
-                      <ArrowRight className="w-4 h-4 ml-2" />
+                      Ver <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </div>
                 </div>
               </div>
-            ))}
-
-            {pacientesFiltrados.length === 0 && (
+            )})}
+             {!isLoading && pacientes.length === 0 && (
               <div className="text-center py-12">
-                <p className="text-gray-500 text-lg">Nenhum paciente encontrado com os filtros aplicados.</p>
+                <p className="text-gray-500 text-lg">Nenhum paciente encontrado.</p>
               </div>
             )}
           </div>
-
-          {pacientesFiltrados.length > 0 && (
+            
+            {/* ... Pagination (unchanged logic) ... */}
+          {!isLoading && meta.total > 0 && (
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 p-4 rounded-lg">
-              <div className="flex items-center gap-4">
+               {/* ... (Pagination controls same as before) ... */}
+               <div className="flex items-center gap-4">
                 <span className="text-sm text-slate-600">Mostrando</span>
                  <Select value={itensPorPagina.toString()} onValueChange={handleItensPorPaginaChange}>
                    <SelectTrigger className="w-[100px] !h-[36px] cursor-pointer bg-white">
                      <SelectValue />
                    </SelectTrigger>
                    <SelectContent>
-                     <SelectItem value="5">5</SelectItem>
-                     <SelectItem value="10">10</SelectItem>
-                     <SelectItem value="20">20</SelectItem>
-                     <SelectItem value="50">50</SelectItem>
+                     {[5, 10, 20, 50].map(v => <SelectItem key={v} value={String(v)}>{v}</SelectItem>)}
                    </SelectContent>
                  </Select>
                  <span className="text-sm text-slate-600">itens por página</span>
               </div>
-
               <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={irParaPaginaAnterior}
-                  disabled={paginaAtual === 1}
-                  className="flex items-center gap-1"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                  Anterior
-                </Button>
-
+                <Button variant="outline" size="sm" onClick={irParaPaginaAnterior} disabled={paginaAtual === 1} className="flex items-center gap-1"><ChevronLeft className="w-4 h-4" /> Anterior</Button>
                 <div className="flex items-center gap-1">
-                  {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((pagina) => (
-                    <Button
-                      key={pagina}
-                      variant={pagina === paginaAtual ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => irParaPagina(pagina)}
-                      className={`w-8 h-8 p-0 ${pagina === paginaAtual ? "bg-[#141736] text-white hover:bg-[#282c5e]" : "hover:bg-gray-100"}`}
-                    >
-                      {pagina}
-                    </Button>
+                   {/* Simplified pagination map */}
+                   {Array.from({ length: meta.totalPages }, (_, i) => i + 1).slice(Math.max(0, paginaAtual - 3), Math.min(meta.totalPages, paginaAtual + 2)).map((pagina) => (
+                    <Button key={pagina} variant={pagina === paginaAtual ? "default" : "outline"} size="sm" onClick={() => irParaPagina(pagina)} className={`w-8 h-8 p-0 ${pagina === paginaAtual ? "bg-[#141736] text-white hover:bg-[#282c5e]" : "hover:bg-gray-100"}`}>{pagina}</Button>
                   ))}
                 </div>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={irParaProximaPagina}
-                  disabled={paginaAtual === totalPaginas}
-                  className="flex items-center gap-1"
-                >
-                  Próxima
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
+                <Button variant="outline" size="sm" onClick={irParaProximaPagina} disabled={paginaAtual === meta.totalPages} className="flex items-center gap-1">Próxima <ChevronRight className="w-4 h-4" /></Button>
               </div>
             </div>
           )}
-          {/* Tooltip element shown near cursor when hovering truncated text */}
-          {tooltip.visible && (
-            <div
-              className="fixed z-50 max-w-xs bg-black text-white text-sm px-2 py-1 rounded shadow-lg pointer-events-none"
-              style={{ left: tooltip.x, top: tooltip.y }}
-            >
-              {tooltip.text}
-            </div>
-          )}
+          {tooltip.visible && <div className="fixed z-50 max-w-xs bg-black text-white text-sm px-2 py-1 rounded shadow-lg pointer-events-none" style={{ left: tooltip.x, top: tooltip.y }}>{tooltip.text}</div>}
         </div>
       </div>
+
+      {/* Standard Modal */}
+      {isModalOpen && (
+        <ModalOverlay onClose={() => setIsModalOpen(false)}>
+            <div className="flex flex-col items-center text-center mb-8">
+                <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center mb-4 border border-blue-500/20 shadow-inner">
+                   <UserPlus className="w-8 h-8 text-blue-400" />
+                </div>
+                <h2 className="text-2xl font-bold text-white tracking-tight">Novo Paciente</h2>
+                <p className="text-gray-400 text-sm mt-2 max-w-[80%] leading-relaxed">Preencha as informações abaixo para adicionar um novo paciente ao sistema.</p>
+            </div>
+            
+            <form onSubmit={handleCreateClient} className="space-y-6">
+                <div className="space-y-1 group">
+                    <label className="text-xs uppercase tracking-wider text-blue-300/80 font-semibold mb-1 block group-focus-within:text-blue-400 transition-colors">Nome Completo</label>
+                    <input 
+                        value={formData.name} 
+                        onChange={e => handleInputChange('name', e.target.value)} 
+                        className={`w-full bg-transparent border-0 border-b border-gray-600/50 text-xl font-normal text-white placeholder:text-gray-600 focus:border-blue-500 focus:outline-none focus:ring-0 py-2 transition-all duration-300 ${errors.name ? 'border-red-500' : ''}`}
+                        placeholder="Ex: Maria da Silva"
+                        type="text"
+                        autoFocus
+                    />
+                    {errors.name && <p className="text-red-400 text-xs mt-1 animate-pulse">{errors.name}</p>}
+                </div>
+
+                <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-1 group">
+                        <label className="text-xs uppercase tracking-wider text-blue-300/80 font-semibold mb-1 block group-focus-within:text-blue-400 transition-colors">CPF</label>
+                        <input 
+                            value={formData.cpf} 
+                            onChange={e => handleInputChange('cpf', e.target.value)} 
+                            className={`w-full bg-transparent border-0 border-b border-gray-600/50 text-xl font-normal text-white placeholder:text-gray-600 focus:border-blue-500 focus:outline-none focus:ring-0 py-2 transition-all duration-300 ${errors.cpf ? 'border-red-500' : ''}`}
+                            placeholder="000.000.000-00"
+                            maxLength={14}
+                            type="text"
+                        />
+                         {errors.cpf && <p className="text-red-400 text-xs mt-1 animate-pulse">{errors.cpf}</p>}
+                    </div>
+
+                    <div className="space-y-1 group">
+                        <label className="text-xs uppercase tracking-wider text-blue-300/80 font-semibold mb-1 block group-focus-within:text-blue-400 transition-colors">Telefone</label>
+                        <input 
+                            value={formData.phone} 
+                            onChange={e => handleInputChange('phone', e.target.value)} 
+                            className="w-full bg-transparent border-0 border-b border-gray-600/50 text-xl font-normal text-white placeholder:text-gray-600 focus:border-blue-500 focus:outline-none focus:ring-0 py-2 transition-all duration-300"
+                            placeholder="(00) 00000-0000"
+                            maxLength={15}
+                            type="text"
+                        />
+                    </div>
+                </div>
+
+                 <div className="space-y-1 group">
+                    <label className="text-xs uppercase tracking-wider text-blue-300/80 font-semibold mb-1 block group-focus-within:text-blue-400 transition-colors">E-mail</label>
+                    <input
+                      type="text" 
+                      placeholder="exemplo@email.com"
+                      className={`w-full bg-transparent border-0 border-b border-gray-600/50 text-xl font-normal text-white placeholder:text-gray-600 focus:border-blue-500 focus:outline-none focus:ring-0 py-2 transition-all duration-300 ${errors.email ? 'border-red-500' : ''}`}
+                      value={formData.email ?? ""}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                    />  
+                     {errors.email && <p className="text-red-400 text-xs mt-1 animate-pulse">{errors.email}</p>}
+                </div>
+
+                <div className="pt-8 flex justify-end gap-3 items-center">
+                     <Button 
+                        type="button" 
+                        variant="ghost" 
+                        className="text-gray-400 hover:text-white hover:bg-white/5 px-6 rounded-lg transition-all duration-200"
+                        onClick={() => setIsModalOpen(false)}
+                     >
+                        Cancelar
+                    </Button>
+                    <Button 
+                        type="submit" 
+                        className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-8 py-6 rounded-lg font-medium shadow-lg shadow-blue-900/40 hover:shadow-blue-900/60 transition-all duration-300 transform hover:-translate-y-0.5"
+                        disabled={isCreating}
+                    >
+                        {isCreating ? (
+                            <span className="flex items-center gap-2">
+                                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/>
+                                Salvando...
+                            </span>
+                        ) : 'Criar Paciente'}
+                    </Button>
+                </div>
+            </form>
+        </ModalOverlay>
+      )}
+
     </div>
   );
 };
