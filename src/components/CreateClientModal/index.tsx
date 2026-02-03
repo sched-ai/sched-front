@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { X, User, Edit2 } from "lucide-react";
+import { X } from "lucide-react";
 import { useCreateClient } from "@/hooks/api/useCreateClient";
 
 // --- Helpers ---
@@ -119,30 +119,25 @@ export const CreateClientModal = ({ isOpen, onClose }: CreateClientModalProps) =
   }
 
   // Visual Logic for Avatar
-  const getAvatarConfig = () => {
-      switch(gender) {
-          case 'masculino': return { bg: 'bg-blue-300', iconColor: 'text-blue-800' };
-          case 'feminino': return { bg: 'bg-pink-300', iconColor: 'text-pink-800' };
-          default: return { bg: 'bg-yellow-300', iconColor: 'text-yellow-800' };
-      }
-  };
-  const avatarConfig = getAvatarConfig();
+  // const getAvatarConfig = () => {
+  //     switch(gender) {
+  //         case 'masculino': return { bg: 'bg-blue-300', iconColor: 'text-blue-800' };
+  //         case 'feminino': return { bg: 'bg-pink-300', iconColor: 'text-pink-800' };
+  //         default: return { bg: 'bg-yellow-300', iconColor: 'text-yellow-800' };
+  //     }
+  // };
+  // const avatarConfig = getAvatarConfig();
 
   if (!isOpen) return null;
 
   return (
     <ModalOverlay onClose={onClose}>
         {/* Header Section */}
-        <div className="flex justify-center items-center pt-2">
-
-             <div>
-                <div className={`w-24 h-24 rounded-full ${avatarConfig.bg} border-4 border-[#121535] flex items-center justify-center relative shadow-xl transition-colors duration-300`}>
-                    <User className={`w-12 h-12 ${avatarConfig.iconColor}`} />
-                    <button className="absolute bottom-0 right-0 bg-white text-gray-800 p-1.5 rounded-full shadow-md hover:bg-gray-100 transition-colors">
-                        <Edit2 size={14} />
-                    </button>
-                </div>
-            </div>
+        <div className="flex flex-col items-center text-center pt-8 pb-4">
+            <h1 className="text-2xl font-bold text-white mb-2">Novo Paciente</h1>
+            <p className="text-gray-400 text-sm max-w-[80%]">
+                Preencha os dados abaixo para cadastrar um novo paciente no sistema.
+            </p>
         </div>
         
         {/* Form Body */}
