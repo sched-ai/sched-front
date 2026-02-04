@@ -40,8 +40,8 @@ export const SignIn = () => {
             SCHED
           </h1>
           <Button
-            variant="seccondary"
-            className="flex lg:hidden"
+            variant="default"
+            className="flex lg:hidden bg-white text-black hover:bg-slate-200 hover:text-black font-semibold"
             type="button"
             onClick={() => {
                 navigate("/signup");
@@ -59,8 +59,8 @@ export const SignIn = () => {
               Crie sua conta!
             </h2>
             <Button
-              variant="seccondary"
-              className="w-full max-w-[394px]"
+              variant="default"
+              className="w-full max-w-[394px] bg-white text-black lg:text-lg hover:bg-slate-200 hover:text-black p-4 font-semibold"
               type="button"
               onClick={() => {
                 navigate("/signup");
@@ -136,7 +136,7 @@ export const SignIn = () => {
 
               <Button
                 type="submit"
-                variant="secondary"
+                variant="default"
                 className="w-full font-semibold bg-blue-600 text-white hover:bg-white hover:text-black transition-colors"
               >
                 ENTRAR
