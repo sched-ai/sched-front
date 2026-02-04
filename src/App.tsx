@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { routesConfig } from "./router/routesConfig";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
@@ -18,6 +18,11 @@ export const queryClient = new QueryClient({
 
 function App() {
   const { showToast } = useToast();
+  const { pathname } = useLocation();
+
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
 
   React.useEffect(() => {
     const expired = sessionStorage.getItem("expired");

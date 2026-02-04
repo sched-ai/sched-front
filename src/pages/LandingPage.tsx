@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { ArrowRight, CheckCircle2, Menu, X, Instagram, Facebook, Linkedin, PlayCircle, Calendar, Clock, Users, Bell } from 'lucide-react'
 
 // Hook simples para animação ao scroll
@@ -44,6 +45,7 @@ const FadeInSection = ({ children, delay = 0 }: { children: React.ReactNode, del
 }
 
 export default function LandingPage() {
+    const navigate = useNavigate()
     // -- Header Logic --
     const [isMenuOpen, setIsMenuOpen] = useState(false)
     const [scrolled, setScrolled] = useState(false)
@@ -429,13 +431,12 @@ export default function LandingPage() {
                         <div className="flex flex-col items-center md:items-start gap-4">
                             <h4 className="font-bold text-white text-lg">Legal</h4>
                             <nav className="flex flex-col gap-2 text-center md:text-left">
-                                <a href="/politica-privacidade" className="text-white/60 hover:text-sky-400 transition-colors text-sm">Política de Privacidade</a>
-                                <a href="/termos-uso" className="text-white/60 hover:text-sky-400 transition-colors text-sm">Termos de condições de uso</a>
-                                <a href="/termos-medico" className="text-white/60 hover:text-sky-400 transition-colors text-sm">Termos e Condições de uso (Médico)</a>
-                                <a href="/termos-paciente" className="text-white/60 hover:text-sky-400 transition-colors text-sm">Termos e Condições de Uso (Paciente)</a>
+                                <span onClick={() => navigate('/politica-privacidade')} className="text-white/60 hover:text-sky-400 transition-colors text-sm cursor-pointer">Política de Privacidade</span>
+                                <span onClick={() => navigate('/termos-uso')} className="text-white/60 hover:text-sky-400 transition-colors text-sm cursor-pointer">Termos de condições de uso</span>
+                                <span onClick={() => navigate('/termos-medico')} className="text-white/60 hover:text-sky-400 transition-colors text-sm cursor-pointer">Termos e Condições de uso (Médico)</span>
+                                <span onClick={() => navigate('/termos-paciente')} className="text-white/60 hover:text-sky-400 transition-colors text-sm cursor-pointer">Termos e Condições de Uso (Paciente)</span>
                             </nav>
                         </div>
-                        {/* Future columns can be added here */}
                     </div>
                 
                     <div className="border-t border-white/5 pt-8 text-center text-white/60 text-sm">
