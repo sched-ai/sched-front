@@ -136,7 +136,7 @@ export const Pacientes = () => {
                       variant="ghost"
                       size="sm"
                       className="bg-[#141736] hover:bg-[#282d64] text-white hover:text-white font-medium"
-                      onClick={() => navigate(`/appointment/${p.id}`, { state: { paciente: p } })}
+                      onClick={() => navigate(`/patients/${p.id}/history`, { state: { paciente: p } })}
                     >
                       Ver <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>

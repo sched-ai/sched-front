@@ -1,7 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Users, Eye, EyeClosed } from "lucide-react";
+import { useUpdateAppointment } from "@/hooks/api/useUpdateAppointment";
+import { useGetAppointment } from "@/hooks/api/useGetAppointment";
 
 function formatTime(totalSeconds: number) {
   const h = Math.floor(totalSeconds / 3600)
@@ -31,25 +33,27 @@ function formatTime(totalSeconds: number) {
 
 export const PatientDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const location = useLocation();
   const navData: any = (location && (location.state as any)) || null;
   const atendimentoState = navData?.atendimento || navData;
 
   const [patient, setPatient] = useState<any>(() => ({
     id: id || "1",
-    name: atendimentoState?.paciente || "Gabriela Muniz",
-    cpf: atendimentoState?.cpf || atendimentoState?.document || "",
-    phone: atendimentoState?.phone || atendimentoState?.telefone || "",
-    email: atendimentoState?.email || "",
-    address: atendimentoState?.address || "",
-    birth: atendimentoState?.birth || "",
+    clientId: atendimentoState?.clientId || atendimentoState?.client?.id || "",
+    name: atendimentoState?.clientName || atendimentoState?.client?.name || atendimentoState?.paciente || "",
+    cpf: atendimentoState?.client?.cpf || atendimentoState?.cpf || atendimentoState?.document || "",
+    phone: atendimentoState?.client?.phone || atendimentoState?.phone || atendimentoState?.telefone || "",
+    email: atendimentoState?.client?.email || atendimentoState?.email || "",
+    address: atendimentoState?.client?.address || atendimentoState?.address || "",
+    birth: atendimentoState?.client?.birthDate || atendimentoState?.birth || "",
     age: atendimentoState?.age || undefined,
     especialidade: atendimentoState?.especialidade || atendimentoState?.specialty || "",
-    data: atendimentoState?.data || atendimentoState?.date || "",
-    hora: atendimentoState?.hora || atendimentoState?.time || "",
-    medico: atendimentoState?.medico || atendimentoState?.medico || "",
+    data: atendimentoState?.startDate?.split('T')[0] || atendimentoState?.data || atendimentoState?.date || "",
+    hora: atendimentoState?.startDate?.split('T')[1]?.substring(0,5) || atendimentoState?.hora || atendimentoState?.time || "",
+    medico: atendimentoState?.professional?.user?.name || atendimentoState?.medico || "",
     status: atendimentoState?.status || "",
-    tipoConsulta: atendimentoState?.tipoConsulta || atendimentoState?.tipoConsulta || "",
+    tipoConsulta: atendimentoState?.service?.name || atendimentoState?.tipoConsulta || "",
   }));
   const atendimentoPrevRef = useRef<string | any>(null);
 
@@ -101,16 +105,63 @@ export const PatientDetails: React.FC = () => {
       
     ];
 
-  const [cards, setCards] = useState<CardType[]>(initialCards);
+  const [cards, setCards] = useState<CardType[]>([]);
+  // We use useGetAppointment to fetch fresh data
+  const { data: fetchedAppointment, refetch: refetchAppointment } = useGetAppointment(id || "", !!id);
+  
+  const { mutateAsync: updateAppointment, isPending: isUpdating } = useUpdateAppointment({
+    onSuccessFn: () => {
+      refetchAppointment();
+    }
+  });
+
+  useEffect(() => {
+    if (fetchedAppointment) {
+       // Update component state with fetched data
+       setPatient((prev: any) => ({
+         ...prev,
+         clientId: fetchedAppointment.clientId || fetchedAppointment.client?.id || prev.clientId,
+         name: fetchedAppointment.client?.name || fetchedAppointment.clientName || prev.name,
+         cpf: fetchedAppointment.client?.cpf || prev.cpf,
+         phone: fetchedAppointment.client?.phone || prev.phone,
+         email: fetchedAppointment.client?.email || prev.email,
+         address: fetchedAppointment.client?.address || prev.address,
+         birth: fetchedAppointment.client?.birthDate || prev.birth,
+       }));
+
+       // Update cards
+       const newCard: CardType = {
+        id: fetchedAppointment.id,
+        title: fetchedAppointment.service?.name || "Atendimento",
+        date: fetchedAppointment.startDate ? fetchedAppointment.startDate.split('T')[0] : "",
+        time: fetchedAppointment.startDate ? fetchedAppointment.startDate.split('T')[1]?.substring(0,5) : "",
+        summary: fetchedAppointment.description || "Sem observações.",
+        notes: fetchedAppointment.description || ""
+       };
+       setCards([newCard]);
+    }
+  }, [fetchedAppointment]);
 
   const handleNoteChange = (cardId: string, value: string) => {
     setCards((prev) => prev.map((c) => (c.id === cardId ? { ...c, notes: value } : c)));
   };
 
-  const handleSave = (cardId: string) => {
-    // For now persist only to local component state. Blur the textarea.
-    const el = document.getElementById(`note-${cardId}`) as HTMLTextAreaElement | null;
-    if (el) el.blur();
+  const handleSave = async (cardId: string) => {
+    const card = cards.find(c => c.id === cardId);
+    if (!card) return;
+
+    try {
+      await updateAppointment({
+        id: cardId,
+        payload: {
+          description: card.notes
+        }
+      });
+      const el = document.getElementById(`note-${cardId}`) as HTMLTextAreaElement | null;
+      if (el) el.blur();
+    } catch (error) {
+       console.error("Failed to save note", error);
+    }
   };
 
   useEffect(() => {
@@ -184,32 +235,21 @@ export const PatientDetails: React.FC = () => {
             <div>
               <Button
                 size="sm"
-                className="bg-[#121535] text-white px-3 py-2 w-[170px] relative overflow-hidden flex items-center justify-center"
-                onClick={() => setShowHistory((s) => !s)}
+                className="bg-[#121535] text-white px-3 py-2 w-[170px] relative overflow-hidden flex items-center justify-center cursor-pointer"
+                onClick={() => {
+                   const clientId = patient.clientId || fetchedAppointment?.clientId || fetchedAppointment?.client?.id || (location.state as any)?.atendimento?.clientId || (location.state as any)?.paciente?.id;
+                   
+                   if (clientId) {
+                     navigate(`/patients/${clientId}/history`);
+                   } else {
+                     console.warn("Client ID not found for navigation. Check fetchedAppointment object.", { fetchedAppointment, patient, state: location.state });
+                   }
+                }}
               >
                 <span className="w-4 h-4 mr-2 flex-shrink-0 flex items-center justify-center">
-                  {showHistory ? <EyeClosed className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                   <Eye className="w-4 h-4" />
                 </span>
-
-                <span className="relative w-full h-5">
-                  <span
-                    className={
-                      "absolute left-0 right-0 top-0 bottom-0 flex items-center justify-center transition-opacity duration-200 ease-in-out " +
-                      (showHistory ? "opacity-100" : "opacity-0")
-                    }
-                  >
-                    Ocultar Histórico
-                  </span>
-
-                  <span
-                    className={
-                      "absolute left-0 right-0 top-0 bottom-0 flex items-center justify-center transition-opacity duration-200 ease-in-out " +
-                      (showHistory ? "opacity-0" : "opacity-100")
-                    }
-                  >
-                    Ver Histórico
-                  </span>
-                </span>
+                <span>Ver Histórico</span>
               </Button>
             </div>
           </div>

@@ -14,6 +14,7 @@ import logo from "@/assets/logo.png";
 import { logout } from "@/services/storage";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useUser } from "@/context/user";
+import { useGetAppointment } from "@/hooks/api/useGetAppointment";
 // icons imported above
 
 function formatTime(totalSeconds: number) {
@@ -108,14 +109,30 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const { userData, userLoading } = useUser();
   const location = useLocation();
-  const isPatientDetails = /^\/appointment\/[^/]+$/.test(location.pathname);
+  const isPatientDetails = /^\/appointment\/[^/]+$/.test(location.pathname) || /^\/patients\/[^/]+\/history$/.test(location.pathname);
+
+  // Extract ID from path if possible
+  const appointmentIdMatch = location.pathname.match(/^\/appointment\/([^/]+)$/);
+  const appointmentId = appointmentIdMatch ? appointmentIdMatch[1] : null;
+
+  const { data: fetchedAppointment } = useGetAppointment(appointmentId || "", !!appointmentId);
+
+  // Helper to get data from fetched or location state
+  const displayData = {
+    name: fetchedAppointment?.client?.name || fetchedAppointment?.clientName || (location.state as any)?.atendimento?.paciente || (location.state as any)?.paciente?.name || 'Paciente',
+    cpf: fetchedAppointment?.client?.cpf || (location.state as any)?.atendimento?.cpf || (location.state as any)?.paciente?.cpf || '',
+    phone: fetchedAppointment?.client?.phone || (location.state as any)?.atendimento?.phone || (location.state as any)?.paciente?.phone || (location.state as any)?.atendimento?.telefone || '',
+    email: fetchedAppointment?.client?.email || (location.state as any)?.atendimento?.email || (location.state as any)?.paciente?.email || '',
+    address: fetchedAppointment?.client?.address || (location.state as any)?.atendimento?.address || (location.state as any)?.paciente?.address || '',
+    birth: fetchedAppointment?.client?.birthDate || (location.state as any)?.atendimento?.birth || (location.state as any)?.paciente?.birth || (location.state as any)?.paciente?.birthDate || ''
+  };
 
   return (
     <Sidebar
       collapsible="icon"
       className="!max-w-[260px] md:w-[260px] w-auto fixed z-50"
     >
-      <div className="relative z-10 h-full max-h-[85vh]">
+      <div className="relative z-10 h-full">
         <SidebarTrigger className="absolute top-16 right-0 translate-x-1/2 z-30 shadow-lg bg-[#141736] text-white border border-white" />
         <SidebarHeader
           className={
@@ -128,9 +145,9 @@ export function AppSidebar() {
             className={`transition-all duration-300 ${isSidebarOpen ? "w-14" : "w-12"}`}
           />
         </SidebarHeader>
-        <SidebarContent className="flex flex-col justify-between h-full">
+        <SidebarContent className="flex flex-col justify-between h-full scrollbar-none">
           {isPatientDetails ? (
-            <div className="p-4">
+            <div className={`p-4 ${!isSidebarOpen ? "hidden" : ""}`}>
               <div className="mb-4">
                 <button
                   onClick={() => navigate(-1)}
@@ -142,31 +159,47 @@ export function AppSidebar() {
                 </button>
               </div>
 
-              <div className="bg-[#E9EDF1] rounded-lg p-4">
-                <div className="flex items-start gap-4">
-                  <div className="w-14 h-14 rounded-full bg-[#121535] flex items-center justify-center">
-                    <Users className="w-7 h-7 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-lg font-semibold text-[#121535]">{(location.state && (location.state as any).atendimento?.paciente) || (location.state && (location.state as any).paciente) || 'Paciente'}</div>
-                    <div className="mt-3 space-y-3 text-[#121535] text-sm">
-                      {((location.state && (location.state as any).atendimento?.cpf) || (location.state && (location.state as any).cpf)) && (
-                        <div className="flex items-center gap-3"><CreditCard className="w-5 h-5" /> <span>{(location.state as any).atendimento?.cpf || (location.state as any).cpf}</span></div>
-                      )}
-                      {((location.state && (location.state as any).atendimento?.phone) || (location.state && (location.state as any).phone) || (location.state && (location.state as any).atendimento?.telefone)) && (
-                        <div className="flex items-center gap-3"><Phone className="w-5 h-5" /> <span>{(location.state as any).atendimento?.phone || (location.state as any).phone || (location.state as any).atendimento?.telefone}</span></div>
-                      )}
-                      {((location.state && (location.state as any).atendimento?.email) || (location.state && (location.state as any).email)) && (
-                        <div className="flex items-center gap-3"><Mail className="w-5 h-5" /> <span>{(location.state as any).atendimento?.email || (location.state as any).email}</span></div>
-                      )}
-                      {((location.state && (location.state as any).atendimento?.address) || (location.state && (location.state as any).address)) && (
-                        <div className="flex items-center gap-3"><MapPin className="w-5 h-5" /> <span>{(location.state as any).atendimento?.address || (location.state as any).address}</span></div>
-                      )}
-                      {((location.state && (location.state as any).atendimento?.birth) || (location.state && (location.state as any).birth)) && (
-                        <div className="flex items-center gap-3"><Cake className="w-5 h-5" /> <span>{(location.state as any).atendimento?.birth || (location.state as any).birth}</span></div>
-                      )}
+              <div className="bg-[#E9EDF1] rounded-[20px] p-5 shadow-sm max-w-full">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-16 h-16 rounded-full bg-[#141736] flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xl font-medium italic text-[#141736] break-words">
+                      {displayData.name}
                     </div>
                   </div>
+                </div>
+
+                <div className="space-y-4 text-[#141736] text-sm">
+                  {displayData.cpf && (
+                    <div className="flex flex-col gap-1 w-full">
+                      <span className="font-semibold text-xs uppercase opacity-70">CPF</span>
+                      <span className="font-medium break-all">{displayData.cpf}</span>
+                    </div>
+                  )}
+                  {displayData.phone && (
+                    <div className="flex flex-col gap-1 w-full">
+                      <span className="font-semibold text-xs uppercase opacity-70">Telefone</span>
+                      <span className="font-medium break-words">{displayData.phone}</span>
+                    </div>
+                  )}
+                  {displayData.email && (
+                    <div className="flex flex-col gap-1 w-full">
+                      <span className="font-semibold text-xs uppercase opacity-70">E-mail</span>
+                      <span className="font-medium break-all">{displayData.email}</span>
+                    </div>
+                  )}
+                  {displayData.address && (
+                    <div className="flex flex-col gap-1 w-full">
+                      <span className="font-semibold text-xs uppercase opacity-70">Endereço</span>
+                      <span className="font-medium break-words">{displayData.address}</span>
+                    </div>
+                  )}
+                  {displayData.birth && (
+                    <div className="flex flex-col gap-1 w-full">
+                      <span className="font-semibold text-xs uppercase opacity-70">Data de Nascimento</span>
+                      <span className="font-medium break-words">{displayData.birth}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 

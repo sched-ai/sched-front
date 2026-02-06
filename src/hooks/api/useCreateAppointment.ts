@@ -10,6 +10,7 @@ export interface ICreateServicePayload {
   workplaceId?: string | null;
   startDate: string; // ISO 8601
   duration?: number;
+  description?: string;
 }
 
 export const useCreateAppointment = ({ onSuccessFn }: IUseMutationParams) => {

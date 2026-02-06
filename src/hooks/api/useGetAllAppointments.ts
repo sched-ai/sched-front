@@ -12,8 +12,17 @@ export interface AppointmentAPI {
   workplaceId: string | null;
   serviceId: string | null;
   professional?: { user?: { name: string } | null } | null;
-  client?: { name: string } | null;
+  client?: { 
+    id?: string;
+    name: string; 
+    cpf?: string; 
+    phone?: string; 
+    email?: string; 
+    address?: string; 
+    birthDate?: string; 
+  } | null;
   service?: { name: string } | null;
+  description?: string;
 }
 
 export interface AppointmentsResponse {
