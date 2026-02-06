@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Users, Eye, EyeClosed } from "lucide-react";
+import { Users, Eye } from "lucide-react";
 import { useUpdateAppointment } from "@/hooks/api/useUpdateAppointment";
 import { useGetAppointment } from "@/hooks/api/useGetAppointment";
 
@@ -77,7 +77,6 @@ export const PatientDetails: React.FC = () => {
   const [running, setRunning] = useState(false);
   // timer editing / initial value
   const [initialSeconds, setInitialSeconds] = useState(timerSeconds);
-  const [showHistory, setShowHistory] = useState(false);
   const [editingTime, setEditingTime] = useState(false);
   const [timeInput, setTimeInput] = useState(() => formatTime(timerSeconds));
   
@@ -91,25 +90,11 @@ export const PatientDetails: React.FC = () => {
     notes: string;
   };
 
-  const initialCards: CardType[] =
-    atendimentoState?.consultas ||
-    atendimentoState?.cards || [
-      {
-        id: "1",
-        title: "Consulta inicial",
-        date: patient.data || "2025-12-01",
-        time: patient.hora || "09:00",
-        summary: "Exame e anamnese. Recomendações iniciais.",
-        notes: "",
-        }
-      
-    ];
-
   const [cards, setCards] = useState<CardType[]>([]);
   // We use useGetAppointment to fetch fresh data
   const { data: fetchedAppointment, refetch: refetchAppointment } = useGetAppointment(id || "", !!id);
   
-  const { mutateAsync: updateAppointment, isPending: isUpdating } = useUpdateAppointment({
+  const { mutateAsync: updateAppointment } = useUpdateAppointment({
     onSuccessFn: () => {
       refetchAppointment();
     }
@@ -258,11 +243,7 @@ export const PatientDetails: React.FC = () => {
         
         
 
-        {showHistory && (
-          <div className="mb-6">
-            <div className="bg-white rounded-lg shadow-custom p-4">Histórico do paciente (exemplo)</div>
-          </div>
-        )}
+
 
         {/* Consultations list - dynamic cards with local save */}
         <div className="space-y-6">

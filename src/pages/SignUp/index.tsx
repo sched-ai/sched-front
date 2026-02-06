@@ -52,7 +52,7 @@ export const SignUp = () => {
                 Bem vindo de volta!
               </h3>
               <Button
-                variant="seccondary"
+                variant="light"
                 className="w-full"
                 onClick={() => {
                   navigate("/signin");
@@ -134,7 +134,7 @@ export const SignUp = () => {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-semibold text-white italic">SCHED</h2>
             <Button
-              variant="seccondary"
+              variant="light"
               onClick={() => {
                 window.location.href = "/";
               }}

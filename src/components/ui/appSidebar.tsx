@@ -9,7 +9,7 @@ import {
   useSidebar,
 } from "../../components/ui/sidebar";
 import { NavItem } from "../NavItem";
-import { BriefcaseBusiness, CalendarFold, LogOut, NotepadText, ArrowLeft, Users, Phone, Mail, MapPin, Cake, CreditCard, Clock } from "lucide-react";
+import { BriefcaseBusiness, CalendarFold, LogOut, NotepadText, ArrowLeft, Users, Clock } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { logout } from "@/services/storage";
 import { useNavigate, useLocation } from "react-router-dom";
