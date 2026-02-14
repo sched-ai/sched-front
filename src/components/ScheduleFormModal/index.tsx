@@ -8,9 +8,11 @@ import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 import type { EventType } from "@/components/WeeklyCalendar";
 import { BlockContent } from "./BlockContent";
 import { AppoimentContent } from "./AppoimentContent";
+import { useSearchClients } from "@/hooks/api/useSearchClients";
+import { useNavigate } from "react-router-dom";
 
 const MODAL_WIDTH = 400;
-const MODAL_HEIGHT = 600; // Estimated height for initial centering
+const MODAL_HEIGHT = 600;
 
 interface FormModalProps {
   isOpen?: boolean;
@@ -105,6 +107,15 @@ export const ScheduleFormModal = ({
   const [endOption, setEndOption] = useState<"never" | "onDate" | "afterOccurrences">("never");
   const [endDate, setEndDate] = useState<string | undefined>(undefined);
   const [occurrences, setOccurrences] = useState<number | undefined>(1);
+  const [clientId, setClientId] = useState<string | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const navigate = useNavigate();
+
+  // Search clients when tab is 'consulta' and we have a title
+  const { data: clients, isLoading: isLoadingClients } = useSearchClients({
+      search: activeTab === 'consulta' ? title : undefined
+  });
 
   // Initialize with Today's date to avoid null state in "Agendar" flow
   const [selectedDateState, setSelectedDateState] = useState<{ day: number, month: number, year: number } | null>(() => {
@@ -141,6 +152,8 @@ export const ScheduleFormModal = ({
       setEndOption("never");
       if (!keepEndDate) setEndDate(formatDate(new Date()));
       setOccurrences(1);
+      setClientId(null);
+      setShowSuggestions(false);
       
       setSelectedDateState({ day: now.getDate(), month: now.getMonth() + 1, year: now.getFullYear() });
     };
@@ -157,6 +170,8 @@ export const ScheduleFormModal = ({
         setWeekDays([false, false, false, false, false, false, false]);
         setEndOption("never");
         setOccurrences(1);
+        setClientId((selectedEvent as any).clientId || null); // Attempt to get clientId if available
+        setShowSuggestions(false);
         
         // Date Logic for Event
         if (
@@ -193,6 +208,8 @@ export const ScheduleFormModal = ({
         setWeekDays([false, false, false, false, false, false, false]);
         setEndOption("never");
         setOccurrences(1);
+        setClientId(null);
+        setShowSuggestions(false);
         
         // Date Logic for DateTime (Prop)
         if (
@@ -304,7 +321,8 @@ export const ScheduleFormModal = ({
     service,
     setService,
     onClose,
-    appointmentId: selectedEvent?.type === 'consulta' ? String(selectedEvent.id) : undefined
+    appointmentId: selectedEvent?.type === 'consulta' ? String(selectedEvent.id) : undefined,
+    clientId
   };
 
   return (
@@ -348,19 +366,77 @@ export const ScheduleFormModal = ({
                 </TabsList>
               </div>
 
-               {/* Title Input */}
-               <div className="w-full">
+               <div className="w-full relative">
                <input
                 type="text"
                 placeholder={activeTab === 'consulta' ? "Nome do paciente" : "Adicionar título"}
                 className="w-full bg-transparent border-0 border-b border-gray-600 text-2xl font-normal text-white placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-0 py-2 transition-colors"
                 value={title ?? ""}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e) => {
+                    setTitle(e.target.value);
+                    if (activeTab === 'consulta') {
+                        setShowSuggestions(true);
+                        // If user types, we might want to clear selected clientId until they re-select?
+                        // Or we assume they are searching for a new one. 
+                        // Let's clear clientId if the input doesn't match the selected name strictly? 
+                        // For now, simpler: clear clientId on change to force selection, 
+                        // unless we want to allow loose text. But requirement says "select".
+                        setClientId(null);
+                    }
+                }}
+                onFocus={() => {
+                    if (activeTab === 'consulta') setShowSuggestions(true);
+                }}
+                onBlur={() => {
+                    // Delay hiding to allow click
+                    setTimeout(() => setShowSuggestions(false), 200);
+                }}
                 autoFocus
               />
                <p className="text-xs text-gray-400 mt-1">
                  {activeTab === 'consulta' ? 'Adicione o nome do paciente para a consulta' : 'Defina um título para o bloqueio e agenda'}
                </p>
+
+               {/* Suggestions List */}
+               {showSuggestions && activeTab === 'consulta' && title && title.trim().length > 0 && (
+                   <div className="absolute top-full left-0 right-0 z-50 bg-[#1e224e] border border-gray-700 rounded-b-md shadow-lg max-h-60 overflow-y-auto mt-1">
+                       {/* Loading */}
+                       {isLoadingClients && (
+                           <div className="p-3 text-sm text-gray-400">Carregando...</div>
+                       )}
+                       
+                       {/* Results */}
+                       {!isLoadingClients && clients && clients.length > 0 && (
+                           <ul>
+                               {clients.map((client) => (
+                                   <li 
+                                       key={client.id}
+                                       className="px-4 py-2 hover:bg-white/10 cursor-pointer text-white text-sm flex flex-col"
+                                       onClick={() => {
+                                           setTitle(client.name);
+                                           setClientId(client.id);
+                                           setShowSuggestions(false);
+                                       }}
+                                   >
+                                       <span>{client.name}</span>
+                                   </li>
+                               ))}
+                           </ul>
+                       )}
+
+                       {/* No Results - Add Patient */}
+                       {!isLoadingClients && clients && clients.length === 0 && (
+                           <div 
+                               className="px-4 py-3 hover:bg-white/10 cursor-pointer text-blue-400 text-sm flex items-center gap-2"
+                               onClick={() => {
+                                   navigate('/patients');
+                               }}
+                           >
+                               <span>+ Adicionar paciente "{title}"</span>
+                           </div>
+                       )}
+                   </div>
+               )}
             </div>
 
               <TabsContent value="bloqueio" className="mt-4">

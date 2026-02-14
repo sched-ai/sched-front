@@ -40,6 +40,7 @@ interface IProps {
   setService: Dispatch<SetStateAction<string>>;
   onClose?: () => void;
   appointmentId?: string;
+  clientId?: string | null;
 }
 
 export const AppoimentContent = ({
@@ -55,7 +56,8 @@ export const AppoimentContent = ({
   service,
   setService,
   onClose,
-  appointmentId
+  appointmentId,
+  clientId
 }: IProps) => {
   const { userData, userLoading } = useUser();
   const { data: services } = useGetAllServices();
@@ -121,7 +123,7 @@ export const AppoimentContent = ({
     }
 
     const payload = {
-      clientId: null,
+      clientId: clientId || null,
       clientName: title || null,
       serviceId: service || null,
       workplaceId: location || null,
