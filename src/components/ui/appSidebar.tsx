@@ -9,7 +9,7 @@ import {
   useSidebar,
 } from "../../components/ui/sidebar";
 import { NavItem } from "../NavItem";
-import { BriefcaseBusiness, CalendarFold, LogOut, NotepadText, ArrowLeft, Users, Clock } from "lucide-react";
+import { BriefcaseBusiness, CalendarFold, LogOut, NotepadText, ArrowLeft, Users, Clock, Settings } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { logout } from "@/services/storage";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -255,6 +255,15 @@ export function AppSidebar() {
                   icon={BriefcaseBusiness}
                   iconSize={isSidebarOpen ? 24 : 28}
                   href="/services"
+                  isSidebarOpen={isSidebarOpen}
+                />
+              </SidebarGroup>
+              <SidebarGroup title="Configurações" className="p-0 gap-2">
+                <NavItem
+                  title="Configurações"
+                  icon={Settings}
+                  iconSize={isSidebarOpen ? 24 : 28}
+                  href="/settings"
                   isSidebarOpen={isSidebarOpen}
                 />
               </SidebarGroup>
