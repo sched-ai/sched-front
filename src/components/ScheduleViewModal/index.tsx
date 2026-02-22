@@ -2,10 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { capitalizeFirst } from "@/util/helper";
-import { CalendarDays, Clock, Layers, Pencil, Trash2, MapPin, X } from "lucide-react";
+import { CalendarDays, Clock, Layers, Pencil, Trash2, MapPin, X, Loader2, DollarSign, Timer } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { EventType } from "../WeeklyCalendar";
 import { DeleteConfirmationModal } from "../DeleteConfirmationModal";
+import { useGetService } from "@/hooks/api/useGetService";
 
 interface Details {
   title: string;
@@ -13,6 +14,7 @@ interface Details {
   start?: string;
   end?: string;
   services?: string[];
+  serviceId?: string;
   workplaceName?: string;
   type?: 'consulta' | 'bloqueio';
 }
@@ -37,6 +39,11 @@ export const ScheduleViewModal = ({
 }: IProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  const { data: service, isLoading: isLoadingService } = useGetService(
+    details?.serviceId ?? "",
+    isOpen && !!details?.serviceId
+  );
 
   const handleDeleteClick = () => {
     setIsDeleteModalOpen(true);
@@ -176,19 +183,48 @@ export const ScheduleViewModal = ({
                 <div className="flex items-center gap-2 text-slate-300">
                   <Layers className="w-4 h-4" />
                   <h4 className="text-sm font-semibold uppercase tracking-wider">
-                    Serviços
+                    Serviço
                   </h4>
                 </div>
                 
                 <div className="flex flex-wrap gap-2">
-                  {details.services && details.services.length > 0 ? (
-                    details.services.map((service, i) => (
+                  {isLoadingService ? (
+                    <div className="flex items-center gap-2 text-slate-400">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span className="text-sm">Carregando serviço...</span>
+                    </div>
+                  ) : service ? (
+                      <Badge 
+                        variant="secondary" 
+                        className="flex justify-between w-full bg-slate-700/50 hover:bg-slate-700 text-slate-200 px-3 py-1 text-sm font-normal border-transparent"
+                      >
+                        {service.name}
+                          <div className="flex">
+                            {service.duration && (
+                              <div className="flex items-center gap-1.5 text-slate-300">
+                                <Timer className="w-4 h-4 text-amber-400" />
+                                <span className="text-sm">{service.duration} min</span>
+                              </div>
+                            )}
+                            {service.price && (
+                              <div className="flex items-center gap-1.5 text-slate-300">
+                                <DollarSign className="w-4 h-4 text-emerald-400" />
+                                <span className="text-sm">
+                                  {Number(service.price).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                      </Badge>
+
+                  ) : details.services && details.services.length > 0 ? (
+                    details.services.map((svc, i) => (
                       <Badge 
                         key={i} 
                         variant="secondary" 
                         className="bg-slate-700/50 hover:bg-slate-700 text-slate-200 px-3 py-1 text-sm font-normal border-transparent"
                       >
-                        {service}
+                        {svc}
                       </Badge>
                     ))
                   ) : (

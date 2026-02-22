@@ -25,6 +25,7 @@ export type EventType = {
 	year: number;
 	workplaceId?: string;
 	workplaceName?: string;
+  serviceId?: string;
 	services?: string[];
 	type?: 'consulta' | 'bloqueio';
 };
@@ -168,7 +169,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 	};
 
 	const handleEventClick = (event: EventType, e: React.MouseEvent<HTMLDivElement>) => {
-		e.stopPropagation(); // Previne que o clique na célula seja acionado
+		e.stopPropagation();
 		if (onEventClick) {
 			onEventClick(event, e.currentTarget.getBoundingClientRect());
 		}

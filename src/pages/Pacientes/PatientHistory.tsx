@@ -61,7 +61,6 @@ export const PatientHistory = () => {
   };
 
   const handleStartEdit = (apt: any) => {
-    console.log("Editing Appointment:", apt); // Debugging: Check available fields
     setEditingAptId(apt.id);
     setNoteText(apt.description || apt.notes || apt.observacao || "");
   };

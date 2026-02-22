@@ -22,7 +22,7 @@ interface AppointmentAPI {
   startDate: string;
   endDate: string;
   clientName?: string | null;
-  service?: { name?: string } | null;
+  serviceId?: string | null;
   workplaceId?: string | null;
   workplaceName?: string | null;
 }
@@ -72,13 +72,13 @@ const toAppointmentEvent = (a: AppointmentAPI): EventType => {
 
   const titleParts: string[] = [];
   if (a.clientName) titleParts.push(a.clientName);
-  if (a.service && a.service.name) titleParts.push(`(${a.service.name})`);
 
   return {
     id: a.id,
     title: titleParts.length ? titleParts.join(" ") : a.clientName || "Consulta",
     workplaceId: a.workplaceId ?? undefined,
     workplaceName: a.workplaceName ?? undefined,
+    serviceId: a.serviceId ?? undefined,
     day: weekDaysPt[dayIdx],
     dayNumber: start.getUTCDate(),
     start: timeFromUTC(start),

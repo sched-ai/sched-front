@@ -131,13 +131,9 @@ export const AppoimentContent = ({
       duration,
     };
 
-    console.log("handleCreateConsultation", { appointmentId, payload });
-
     if (appointmentId) {
-      console.log("Updating appointment...");
       updateAppointment({ id: appointmentId, payload });
     } else {
-      console.log("Creating appointment...");
       createAppointment(payload);
     }
   };

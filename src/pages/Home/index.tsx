@@ -50,6 +50,7 @@ export const Home = () => {
     start?: string;
     end?: string;
     services?: string[];
+    serviceId?: string;
     workplaceName?: string;
     type?: 'consulta' | 'bloqueio';
   } | null>(null);
@@ -61,7 +62,7 @@ export const Home = () => {
   
 
 
-  const { data: calendar = [], isLoading } = useGetCalendar({
+  const { data: calendarData = [], isLoading } = useGetCalendar({
     referenceDate: currentDate,
   });
 
@@ -142,15 +143,13 @@ export const Home = () => {
       Number(startM),
     );
 
-
-    console.log('Event clicked:', event);
-
     setScheduleViewDetails({
       title: event.title,
       localDateTime,
       start: event.start,
       end: event.end,
       services: (event as EventType).services ?? [],
+      serviceId: (event as EventType).serviceId ?? '',
       workplaceName: (event as EventType).workplaceName,
       type: (event as EventType).type,
     }); 
@@ -277,7 +276,7 @@ export const Home = () => {
             </div>
           ) : (
             <WeeklyCalendar
-              events={calendar}
+              events={calendarData}
               currentDate={currentDate}
               onDateClick={handleDateClick}
               onEventClick={handleEventClick}

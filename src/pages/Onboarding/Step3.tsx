@@ -82,8 +82,6 @@ export default function Step3({
   const hasSpecialLocations = (locations || []).some(
     (l) => l.id === "online" || l.id === "home"
   );
-
-  console.log(locationsForSchedule);
   
   const showPorLocalOption =
     ((locations || []).length > 1) ||
