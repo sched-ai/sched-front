@@ -101,6 +101,7 @@ export const ScheduleFormModal = ({
   const [title, setTitle] = useState<string | undefined>(undefined);
   const [location, setLocation] = useState("");
   const [service, setService] = useState("");
+  const [professional, setProfessional] = useState("");
   const [activeTab, setActiveTab] = useState("consulta");
   const [repeatEnabled, setRepeatEnabled] = useState(false);
   const [weekDays, setWeekDays] = useState<boolean[]>([false, false, false, false, false, false, false]);
@@ -146,6 +147,7 @@ export const ScheduleFormModal = ({
       setTitle("");
       setLocation("");
       setService("");
+      setProfessional("");
       setActiveTab("consulta");
       setRepeatEnabled(false);
       setWeekDays([false, false, false, false, false, false, false]);
@@ -166,6 +168,7 @@ export const ScheduleFormModal = ({
         setActiveTab(selectedEvent.type || "consulta");
         setLocation(selectedEvent.workplaceId || "");
         setService("");
+        setProfessional(selectedEvent.professionalId || "");
         setRepeatEnabled(false);
         setWeekDays([false, false, false, false, false, false, false]);
         setEndOption("never");
@@ -203,6 +206,7 @@ export const ScheduleFormModal = ({
         setTitle("");
         setLocation("");
         setService("");
+        setProfessional("");
         setActiveTab("consulta");
         setRepeatEnabled(false);
         setWeekDays([false, false, false, false, false, false, false]);
@@ -320,6 +324,8 @@ export const ScheduleFormModal = ({
     setLocation,
     service,
     setService,
+    professional,
+    setProfessional,
     onClose,
     appointmentId: selectedEvent?.type === 'consulta' ? String(selectedEvent.id) : undefined,
     clientId
@@ -412,7 +418,8 @@ export const ScheduleFormModal = ({
                                    <li 
                                        key={client.id}
                                        className="px-4 py-2 hover:bg-white/10 cursor-pointer text-white text-sm flex flex-col"
-                                       onClick={() => {
+                                       onMouseDown={(e) => {
+                                           e.preventDefault();
                                            setTitle(client.name);
                                            setClientId(client.id);
                                            setShowSuggestions(false);

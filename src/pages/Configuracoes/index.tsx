@@ -131,7 +131,7 @@ export const Configuracoes = () => {
         <h1 className="text-[30px] font-medium text-[#121535]">Configurações</h1>
       </header>
 
-      <main className="p-6 md:p-10 max-w-6xl">
+      <main className="p-6 md:p-10">
         {/* ── Clinic Header ─────────────────────────────────── */}
         <ClinicHeader
           name="Clínica Bem Estar"

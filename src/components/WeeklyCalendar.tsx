@@ -28,6 +28,8 @@ export type EventType = {
   serviceId?: string;
 	services?: string[];
 	type?: 'consulta' | 'bloqueio';
+	professionalId?: string;
+	professionalName?: string;
 };
 
 interface WeeklyCalendarProps {
@@ -273,50 +275,135 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                     ))}
 
                     {/* Events */}
-                    {eventMap
-                      .filter((ev) => ev.dayIdx === dayIdx)
-                      .map((ev) => {
+                    {(() => {
+                      const PROFESSIONAL_COLORS = [
+                        { bg: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)", border: "border-blue-400/30", text: "#fff", accent: "bg-blue-300/40", hoverShadow: "shadow-blue-500/20" },
+                        { bg: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)", border: "border-purple-400/30", text: "#fff", accent: "bg-purple-300/40", hoverShadow: "shadow-purple-500/20" },
+                        { bg: "linear-gradient(135deg, #10b981 0%, #059669 100%)", border: "border-emerald-400/30", text: "#fff", accent: "bg-emerald-300/40", hoverShadow: "shadow-emerald-500/20" },
+                        { bg: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)", border: "border-amber-400/30", text: "#fff", accent: "bg-amber-300/40", hoverShadow: "shadow-amber-500/20" },
+                        { bg: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)", border: "border-red-400/30", text: "#fff", accent: "bg-red-300/40", hoverShadow: "shadow-red-500/20" },
+                        { bg: "linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)", border: "border-cyan-400/30", text: "#fff", accent: "bg-cyan-300/40", hoverShadow: "shadow-cyan-500/20" },
+                        { bg: "linear-gradient(135deg, #ec4899 0%, #db2777 100%)", border: "border-pink-400/30", text: "#fff", accent: "bg-pink-300/40", hoverShadow: "shadow-pink-500/20" },
+                      ];
+
+                      const BLOCK_COLOR = { bg: "linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)", border: "border-slate-500/10", text: "#1e293b", accent: "bg-slate-400/30", hoverShadow: "shadow-slate-500/10" };
+
+                      // Get events for this day
+                      const dayEvents = eventMap.filter((ev) => ev.dayIdx === dayIdx);
+
+                      // Build a map of professionalId → color index
+                      const profColorMap = new Map<string, number>();
+                      let colorIdx = 0;
+                      for (const ev of dayEvents) {
+                        if (ev.professionalId && !profColorMap.has(ev.professionalId)) {
+                          profColorMap.set(ev.professionalId, colorIdx % PROFESSIONAL_COLORS.length);
+                          colorIdx++;
+                        }
+                      }
+
+                      // Group overlapping events
+                      const sorted = [...dayEvents].sort((a, b) => a.startPos.totalPosition - b.startPos.totalPosition);
+                      
+                      // Assign columns to overlapping events
+                      const columns: number[] = new Array(sorted.length).fill(0);
+                      const maxCols: number[] = new Array(sorted.length).fill(1);
+                      
+                      for (let i = 0; i < sorted.length; i++) {
+                        const usedCols = new Set<number>();
+                        for (let j = 0; j < i; j++) {
+                          // Check if events j and i overlap
+                          if (sorted[j].endPos.totalPosition > sorted[i].startPos.totalPosition &&
+                              sorted[j].startPos.totalPosition < sorted[i].endPos.totalPosition) {
+                            usedCols.add(columns[j]);
+                          }
+                        }
+                        // Find first available column
+                        let col = 0;
+                        while (usedCols.has(col)) col++;
+                        columns[i] = col;
+                      }
+
+                      // Calculate max columns for each event (how many concurrent events)
+                      for (let i = 0; i < sorted.length; i++) {
+                        let max = columns[i] + 1;
+                        for (let j = 0; j < sorted.length; j++) {
+                          if (i === j) continue;
+                          if (sorted[j].endPos.totalPosition > sorted[i].startPos.totalPosition &&
+                              sorted[j].startPos.totalPosition < sorted[i].endPos.totalPosition) {
+                            max = Math.max(max, columns[j] + 1);
+                          }
+                        }
+                        maxCols[i] = max;
+                      }
+
+                      return sorted.map((ev, idx) => {
                         const cellHeight = 80;
                         const top = ev.startPos.totalPosition * cellHeight;
                         const height = (ev.endPos.totalPosition - ev.startPos.totalPosition) * cellHeight;
                         const isShort = height <= 50;
                         const isConsultation = ev.type === 'consulta';
+                        const hasOverlap = maxCols[idx] > 1;
+                        
+                        const col = columns[idx];
+                        const totalCols = maxCols[idx];
+                        
+                        // Get color for this event
+                        const color = isConsultation
+                          ? (ev.professionalId ? PROFESSIONAL_COLORS[profColorMap.get(ev.professionalId) ?? 0] : PROFESSIONAL_COLORS[0])
+                          : BLOCK_COLOR;
+
+                        // Calculate width and left position
+                        const widthPercent = hasOverlap ? (100 / totalCols) : 100;
+                        const leftPercent = hasOverlap ? (col * widthPercent) : 0;
+                        
+                        const tooltipText = [
+                          ev.professionalName && `👤 ${ev.professionalName}`,
+                          ev.title && `📋 ${ev.title}`,
+                          `🕐 ${ev.start} - ${ev.end}`,
+                        ].filter(Boolean).join('\n');
                         
                         return (
                           <div
                             key={ev.id}
-                            className={`absolute w-[calc(100%-8px)] left-1 rounded-lg border ${
+                            title={tooltipText}
+                            className={`absolute rounded-lg border ${color.border} ${
                               isConsultation
-                                ? 'border-blue-400/20 shadow-sm shadow-blue-500/10 z-20 hover:shadow-md hover:shadow-blue-500/20' 
-                                : 'border-slate-500/10 z-10'
-                            } px-2.5 py-2 cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] overflow-hidden group`}
+                                ? `z-20 hover:shadow-md ${color.hoverShadow}` 
+                                : 'z-10'
+                            } ${hasOverlap ? 'px-1.5 py-1' : 'px-2.5 py-2'} cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:z-30 active:scale-[0.98] overflow-hidden group shadow-sm`}
                             style={{
-                              top: `${top + 1}px`, // Slight offset
-                              height: `${height - 3}px`, // Slight gap
-                              minHeight: `${Math.max(height - 3, 30)}px`,
-                              background: isConsultation 
-                                  ? "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)" 
-                                  : "linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)",
-                              color: isConsultation ? "#fff" : "#1e293b",
+                              top: `${top + 1}px`,
+                              height: `${height - 3}px`,
+                              minHeight: `${Math.max(height - 3, 26)}px`,
+                              left: hasOverlap ? `calc(${leftPercent}% + 2px)` : '4px',
+                              width: hasOverlap ? `calc(${widthPercent}% - 4px)` : 'calc(100% - 8px)',
+                              background: color.bg,
+                              color: color.text,
                             }}
                             onClick={(e) => handleEventClick(ev, e)}
                           >
                             <div className="flex flex-col h-full relative">
                                {/* Left accent bar */}
-                              <div className={`absolute left-[-10px] top-0 bottom-0 w-[4px] ${isConsultation ? 'bg-white/30' : 'bg-slate-400/30'}`}></div>
+                              <div className={`absolute left-[-6px] top-0 bottom-0 w-[3px] ${color.accent} rounded-full`}></div>
 
-                              <div className="font-semibold text-xs truncate leading-tight pr-1 tracking-tight">
+                              <div className={`font-semibold ${hasOverlap ? 'text-[10px]' : 'text-xs'} truncate leading-tight pr-1 tracking-tight`}>
                                 {ev.title}
                               </div>
-                              {!isShort && (
-                                <div className={`text-[10px] flex items-center gap-1 mt-0.5 font-medium tracking-tight ${isConsultation ? 'text-blue-100' : 'text-slate-500'}`}>
+                              {!isShort && !hasOverlap && (
+                                <div className={`text-[10px] flex items-center gap-1 mt-0.5 font-medium tracking-tight ${isConsultation ? 'opacity-80' : 'text-slate-500'}`}>
                                   {ev.start} - {ev.end}
+                                </div>
+                              )}
+                              {!isShort && hasOverlap && ev.professionalName && (
+                                <div className={`text-[9px] truncate mt-0.5 font-medium tracking-tight opacity-80`}>
+                                  {ev.professionalName}
                                 </div>
                               )}
                             </div>
                           </div>
                         );
-                      })}
+                      });
+                    })()}
                   </div>
                 ))}
               </div>

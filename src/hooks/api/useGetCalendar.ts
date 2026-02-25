@@ -25,6 +25,8 @@ interface AppointmentAPI {
   serviceId?: string | null;
   workplaceId?: string | null;
   workplaceName?: string | null;
+  professionalId?: string | null;
+  professionalName?: string | null;
 }
 
 interface ICalendar {
@@ -79,6 +81,8 @@ const toAppointmentEvent = (a: AppointmentAPI): EventType => {
     workplaceId: a.workplaceId ?? undefined,
     workplaceName: a.workplaceName ?? undefined,
     serviceId: a.serviceId ?? undefined,
+    professionalId: a.professionalId ?? undefined,
+    professionalName: a.professionalName ?? undefined,
     day: weekDaysPt[dayIdx],
     dayNumber: start.getUTCDate(),
     start: timeFromUTC(start),

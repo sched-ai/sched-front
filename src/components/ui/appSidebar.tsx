@@ -132,7 +132,7 @@ export function AppSidebar() {
       collapsible="icon"
       className="!max-w-[260px] md:w-[260px] w-auto fixed z-50"
     >
-      <div className="relative z-10 h-full">
+      <div className="relative z-10 h-full flex flex-col">
         <SidebarTrigger className="absolute top-16 right-0 translate-x-1/2 z-30 shadow-lg bg-[#141736] text-white border border-white" />
         <SidebarHeader
           className={
@@ -145,7 +145,7 @@ export function AppSidebar() {
             className={`transition-all duration-300 ${isSidebarOpen ? "w-14" : "w-12"}`}
           />
         </SidebarHeader>
-        <SidebarContent className="flex flex-col justify-between h-full scrollbar-none">
+        <SidebarContent className="flex flex-col justify-between scrollbar-none">
           {isPatientDetails ? (
             <div className={`p-4 ${!isSidebarOpen ? "hidden" : ""}`}>
               <div className="mb-4">
@@ -269,20 +269,19 @@ export function AppSidebar() {
               </SidebarGroup>
             </div>
           )}
-            <SidebarGroup title="Logout" className="p-0 gap-2">
-            <button
-              className="flex items-center font-medium gap-3 text-red-500 p-3 border-l-4 rounded-none justify-start hover:text-white border-transparent cursor-pointer hover:bg-[#0177FB]/10 pl-6"
-              onClick={() => {
-                logout();
-                navigate("/signin");
-              }}
-            >
-              <LogOut />
-              <span className={`${isSidebarOpen ? "" : "hidden"}`}>Sair</span>
-            </button>
-          </SidebarGroup>
         </SidebarContent>
-        <SidebarFooter />
+        <SidebarFooter className="p-2">
+          <button
+            className="flex items-center font-medium gap-3 text-red-500 p-3 border-l-4 rounded-none justify-start hover:text-white border-transparent cursor-pointer hover:bg-[#0177FB]/10 pl-6"
+            onClick={() => {
+              logout();
+              navigate("/signin");
+            }}
+          >
+            <LogOut />
+            <span className={`${isSidebarOpen ? "" : "hidden"}`}>Sair</span>
+          </button>
+        </SidebarFooter>
       </div>
     </Sidebar>
   );
