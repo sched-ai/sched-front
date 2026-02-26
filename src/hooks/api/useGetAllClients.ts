@@ -7,6 +7,8 @@ export interface ClientAPI {
   cpf: string;
   phone?: string | null;
   email?: string | null;
+  gender?: string | null;
+  photoUrl?: string | null;
   createdAt?: string; // Prisma specific
   companyId: string;
 }
