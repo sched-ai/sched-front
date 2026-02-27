@@ -48,9 +48,9 @@ const ModalOverlay = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-300">
       <div
-        className="relative w-full max-w-md rounded-2xl bg-[#121535] border border-white/5 shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300 overflow-hidden"
+        className="relative w-full max-w-md rounded-2xl bg-[#121535] border border-white/5 shadow-2xl flex flex-col animate-in zoom-in-95 duration-300"
       >
-        <div className="absolute top-4 right-4 z-20">
+        <div className="absolute top-3 right-3 z-20">
           <Button
             variant="ghost"
             className="text-white/70 hover:text-white hover:bg-white/10 h-8 w-8 rounded-full p-0"
@@ -59,9 +59,7 @@ const ModalOverlay = ({
             <X size={20} />
           </Button>
         </div>
-        <div className="flex-1 overflow-y-auto custom-scrollbar">
-            {children}
-        </div>
+        {children}
       </div>
     </div>
   );
@@ -157,8 +155,8 @@ export const CreateClientModal = ({ isOpen, onClose, clientToEdit }: CreateClien
   return (
     <ModalOverlay onClose={onClose}>
         {/* Header Section */}
-        <div className="flex flex-col items-center text-center pt-8 pb-4">
-            <h1 className="text-2xl font-bold text-white mb-2">
+        <div className="flex flex-col items-center text-center pt-6 pb-2">
+            <h1 className="text-xl font-bold text-white mb-1">
               {isEditMode ? "Editar Paciente" : "Novo Paciente"}
             </h1>
             <p className="text-gray-400 text-sm max-w-[80%]">
@@ -169,8 +167,8 @@ export const CreateClientModal = ({ isOpen, onClose, clientToEdit }: CreateClien
         </div>
         
         {/* Form Body */}
-        <div className="px-6 pb-6 pt-4">
-            <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="px-6 pb-5 pt-2">
+            <form onSubmit={handleSubmit} className="space-y-3">
                 
                 {/* Inputs with Outline Style */}
                 <div className="space-y-1">
@@ -178,7 +176,7 @@ export const CreateClientModal = ({ isOpen, onClose, clientToEdit }: CreateClien
                     <input 
                         value={formData.name} 
                         onChange={e => handleInputChange('name', e.target.value)} 
-                        className={`w-full bg-transparent border border-zinc-600 rounded-lg px-4 py-3 text-white placeholder:text-gray-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all ${errors.name ? 'border-red-500' : ''}`}
+                        className={`w-full bg-transparent border border-zinc-600 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-gray-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all ${errors.name ? 'border-red-500' : ''}`}
                         placeholder="Nome do usuário"
                         type="text"
                         autoFocus
@@ -191,7 +189,7 @@ export const CreateClientModal = ({ isOpen, onClose, clientToEdit }: CreateClien
                     <input 
                         value={formData.email} 
                         onChange={e => handleInputChange('email', e.target.value)} 
-                        className={`w-full bg-transparent border border-zinc-600 rounded-lg px-4 py-3 text-white placeholder:text-gray-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all ${errors.email ? 'border-red-500' : ''}`}
+                        className={`w-full bg-transparent border border-zinc-600 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-gray-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all ${errors.email ? 'border-red-500' : ''}`}
                         placeholder="email@exemplo.com"
                         type="text"
                     />
@@ -203,7 +201,7 @@ export const CreateClientModal = ({ isOpen, onClose, clientToEdit }: CreateClien
                     <input 
                         value={formData.phone} 
                         onChange={e => handleInputChange('phone', e.target.value)} 
-                        className="w-full bg-transparent border border-zinc-600 rounded-lg px-4 py-3 text-white placeholder:text-gray-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all"
+                        className="w-full bg-transparent border border-zinc-600 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-gray-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all"
                         placeholder="(00) 00000-0000"
                         maxLength={15}
                         type="text"
@@ -215,7 +213,7 @@ export const CreateClientModal = ({ isOpen, onClose, clientToEdit }: CreateClien
                     <input 
                         value={formData.cpf} 
                         onChange={e => handleInputChange('cpf', e.target.value)} 
-                        className={`w-full bg-transparent border border-zinc-600 rounded-lg px-4 py-3 text-white placeholder:text-gray-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all ${errors.cpf ? 'border-red-500' : ''}`}
+                        className={`w-full bg-transparent border border-zinc-600 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-gray-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all ${errors.cpf ? 'border-red-500' : ''}`}
                         placeholder="000.000.000-00"
                         maxLength={14}
                         type="text"
@@ -224,8 +222,8 @@ export const CreateClientModal = ({ isOpen, onClose, clientToEdit }: CreateClien
                 </div>
 
                 {/* Gender Selection */}
-                <div className="pt-2">
-                    <label className="text-base font-bold text-white mb-3 block">Gênero</label>
+                <div className="pt-1">
+                    <label className="text-sm font-bold text-white mb-2 block">Gênero</label>
                     <div className="flex items-center gap-6">
                         <label className="flex items-center gap-2 cursor-pointer group">
                              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${gender === 'masculino' ? 'border-blue-500' : 'border-gray-500 group-hover:border-gray-400'}`}>
@@ -253,18 +251,18 @@ export const CreateClientModal = ({ isOpen, onClose, clientToEdit }: CreateClien
                     </div>
                 </div>
 
-                <div className="pt-8 flex justify-end gap-3 items-center">
+                <div className="pt-4 flex justify-end gap-3 items-center">
                     <Button 
                         type="button" 
                         variant="ghost" 
-                        className="text-gray-400 hover:text-white hover:bg-white/5 py-6 px-6 rounded-lg transition-all duration-200"
+                        className="text-gray-400 hover:text-white hover:bg-white/5 py-5 px-5 rounded-lg transition-all duration-200"
                         onClick={onClose}
                     >
                     Cancelar
                     </Button>
                     <Button 
                         type="submit" 
-                        className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-6 rounded-lg font-medium shadow-lg shadow-blue-900/40 hover:shadow-blue-900/60 transition-all duration-300 transform hover:-translate-y-0.5"
+                        className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-5 rounded-lg font-medium shadow-lg shadow-blue-900/40 hover:shadow-blue-900/60 transition-all duration-300 transform hover:-translate-y-0.5"
                         disabled={isPending}
                     >
                         {isPending
