@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { useGetAllAppointments, type AppointmentAPI } from "@/hooks/api/useGetAllAppointments";
 import { format } from "date-fns";
+import { useUser } from "@/context/user";
 
 // Helper to debounce value
 function useDebounce<T>(value: T, delay: number): T {
@@ -130,6 +131,9 @@ export const Atendimentos = () => {
       setPaginaAtual(paginaAtual - 1);
     }
   };
+
+  const { userData } = useUser();
+  console.log(userData);
 
   return (
     <div className="w-full flex flex-col h-full">

@@ -68,7 +68,7 @@ export const ProfessionalModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="fixed left-1/2 top-1/2 z-50 w-[480px] max-w-[95%] overflow-hidden -translate-x-1/2 -translate-y-1/2 px-0 rounded-2xl border border-[#1C3760] bg-[rgba(3,8,22,0.85)] shadow-2xl">
+      <DialogContent showCloseButton={false} className="fixed left-1/2 top-1/2 z-50 w-[480px] max-w-[95%] overflow-hidden -translate-x-1/2 -translate-y-1/2 px-0 rounded-2xl border border-[#1C3760] bg-[rgba(3,8,22,0.85)] shadow-2xl">
         {/* Background wave */}
         <div
           className="absolute inset-0 -z-10"
