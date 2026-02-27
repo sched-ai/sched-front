@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { MapPin, Users, Plus } from "lucide-react";
 import { ClinicHeader } from "./components/ClinicHeader";
 import { SettingsInputs } from "./components/SettingsInputs";
@@ -6,14 +6,38 @@ import { AddressCard } from "./components/AddressCard";
 import { ProfessionalCard } from "./components/ProfessionalCard";
 import { ProfessionalModal, type ProfessionalData } from "./components/ProfessionalModal";
 import { LocationModal, type LocationData } from "./components/LocationModal";
+import { useUser } from "@/context/user";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
 type DayKey = "Dom" | "Seg" | "Ter" | "Qua" | "Qui" | "Sex" | "Sáb";
 
-// ── Mock data ─────────────────────────────────────────────────────────────────
+// ── Day-of-week helpers ───────────────────────────────────────────────────────
 
-const initialAddresses: LocationData[] = [
+const DAY_KEYS: DayKey[] = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+
+/** API dayOfWeek: 0 = Sunday … 6 = Saturday */
+const DOW_TO_KEY: Record<number, DayKey> = {
+  0: "Dom", 1: "Seg", 2: "Ter", 3: "Qua", 4: "Qui", 5: "Sex", 6: "Sáb",
+};
+
+// Map LocationData → AddressCard schedule prop
+function toCardSchedule(loc: LocationData): Record<DayKey, { active: boolean; hours: string }> {
+  return Object.fromEntries(
+    DAY_KEYS.map((d) => {
+      if (loc.scheduleType === "fixed") {
+        const active = loc.fixedDays.includes(d);
+        return [d, { active, hours: active ? `${loc.fixedStart.replace(":", "h")}–${loc.fixedEnd.replace(":", "h")}` : "" }];
+      }
+      const info = loc.flexibleSchedule[d];
+      return [d, { active: info.active, hours: info.active ? `${info.start.replace(":", "h")}–${info.end.replace(":", "h")}` : "" }];
+    })
+  ) as Record<DayKey, { active: boolean; hours: string }>;
+}
+
+// ── Mock fallback data ────────────────────────────────────────────────────────
+
+const mockAddresses: LocationData[] = [
   {
     id: "1",
     address: "Rua das Amendoeiras, nº 742",
@@ -54,22 +78,7 @@ const initialAddresses: LocationData[] = [
   },
 ];
 
-// Map LocationData → AddressCard schedule prop
-function toCardSchedule(loc: LocationData): Record<DayKey, { active: boolean; hours: string }> {
-  const days: DayKey[] = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-  return Object.fromEntries(
-    days.map((d) => {
-      if (loc.scheduleType === "fixed") {
-        const active = loc.fixedDays.includes(d);
-        return [d, { active, hours: active ? `${loc.fixedStart.replace(":", "h")}–${loc.fixedEnd.replace(":", "h")}` : "" }];
-      }
-      const info = loc.flexibleSchedule[d];
-      return [d, { active: info.active, hours: info.active ? `${info.start.replace(":", "h")}–${info.end.replace(":", "h")}` : "" }];
-    })
-  ) as Record<DayKey, { active: boolean; hours: string }>;
-}
-
-const initialProfessionals: ProfessionalData[] = [
+const mockProfessionals: ProfessionalData[] = [
   { id: "1", name: "Felipe Carneiro", phone: "(22) 98912-4442", email: "felipe.carneiro@gmail.com", role: "Administrador" },
   { id: "2", name: "Tiago Alves", phone: "(22) 98222-8585", email: "tiago.alves@gmail.com", role: "Profissional" },
   { id: "3", name: "Samanta Gomes", phone: "(23) 6411-8675", email: "samanta.alves@gmail.com", role: "Assistente" },
@@ -78,8 +87,75 @@ const initialProfessionals: ProfessionalData[] = [
 // ────────────────────────────────────────────────────────────────────────────
 
 export const Configuracoes = () => {
+  const { userData } = useUser();
+
+  // ── Derived real data from userData ───────────────────────
+  const clinicName = userData?.membership?.company?.name ?? "Clínica Bem Estar";
+  const companyType = userData?.membership?.company?.companyType === "AUTONOMO" ? "Autônomo" : "Empresa";
+  const userEmail = userData?.email ?? "bem.estar@gmail.com";
+
+  /**
+   * Convert API workplaces → LocationData[].
+   * Each workplace becomes one LocationData entry using its scheduleEntries
+   * to build a flexible schedule (minutes → HH:mm).
+   */
+  const apiAddresses = useMemo<LocationData[]>(() => {
+    const workplaces = userData?.membership?.company?.workplaces;
+    if (!workplaces) return [];
+
+    const minutesToTime = (minutes: number) => {
+      const h = Math.floor(minutes / 60).toString().padStart(2, "0");
+      const m = (minutes % 60).toString().padStart(2, "0");
+      return `${h}:${m}`;
+    };
+
+    // workplaces may be a single object or an array depending on the API shape;
+    // normalise to array just in case.
+    const list = Array.isArray(workplaces) ? workplaces : [workplaces];
+
+    return list.map((wp, i) => {
+      const defaultSlot = { active: false, start: "09:00", end: "18:00" };
+      const flexible: LocationData["flexibleSchedule"] = {
+        Dom: { ...defaultSlot },
+        Seg: { ...defaultSlot },
+        Ter: { ...defaultSlot },
+        Qua: { ...defaultSlot },
+        Qui: { ...defaultSlot },
+        Sex: { ...defaultSlot },
+        Sáb: { ...defaultSlot },
+      };
+
+      for (const entry of wp.scheduleEntries ?? []) {
+        const key = DOW_TO_KEY[Number(entry.day)];
+        if (key) {
+          flexible[key] = {
+            active: true,
+            start: minutesToTime(entry.startMinute),
+            end: minutesToTime(entry.endMinute),
+          };
+        }
+      }
+
+      return {
+        id: wp.id ?? String(i + 1),
+        address: `${wp.address}${wp.number ? ", nº " + wp.number : ""}`,
+        complement: wp.complement ?? "",
+        rooms: "1", // not available in API – kept mocked
+        scheduleType: "flexible" as const,
+        fixedDays: [],
+        fixedStart: "08:00",
+        fixedEnd: "20:00",
+        flexibleSchedule: flexible,
+        city: wp.city ?? "",
+        state: wp.state ?? "",
+      } satisfies LocationData & { city: string; state: string };
+    });
+  }, [userData]);
+
+  const initialAddresses = apiAddresses.length > 0 ? apiAddresses : mockAddresses;
+
   // ── Professionals state ────────────────────────────────────
-  const [professionals, setProfessionals] = useState<ProfessionalData[]>(initialProfessionals);
+  const [professionals, setProfessionals] = useState<ProfessionalData[]>(mockProfessionals);
   const [isProfModalOpen, setIsProfModalOpen] = useState(false);
   const [editingProfessional, setEditingProfessional] = useState<ProfessionalData | null>(null);
 
@@ -102,7 +178,14 @@ export const Configuracoes = () => {
   };
 
   // ── Addresses state ────────────────────────────────────────
-  const [addresses, setAddresses] = useState<LocationData[]>(initialAddresses);
+  const [addresses, setAddresses] = useState<LocationData[]>(() => initialAddresses);
+
+  // Sync addresses when the API data arrives (apiAddresses starts empty)
+  useEffect(() => {
+    if (apiAddresses.length > 0) {
+      setAddresses(apiAddresses);
+    }
+  }, [apiAddresses]);
   const [isLocModalOpen, setIsLocModalOpen] = useState(false);
   const [editingLocation, setEditingLocation] = useState<LocationData | null>(null);
 
@@ -134,14 +217,14 @@ export const Configuracoes = () => {
       <main className="p-6 md:p-10">
         {/* ── Clinic Header ─────────────────────────────────── */}
         <ClinicHeader
-          name="Clínica Bem Estar"
-          category="Empresa"
+          name={clinicName}
+          category={companyType}
           cnpj="45.646.498/0001-00"
           area="Odontologia"
         />
 
         {/* ── Settings Inputs ────────────────────────────────── */}
-        <SettingsInputs email="bem.estar@gmail.com" />
+        <SettingsInputs email={userEmail} />
 
         <hr className="border-[#DADCE0] my-6" />
 
@@ -160,8 +243,8 @@ export const Configuracoes = () => {
                 street={addr.address}
                 complement={addr.complement}
                 rooms={Number(addr.rooms)}
-                city={addr.id === "1" ? "Belo Horizonte" : "Florianópolis"}
-                state={addr.id === "1" ? "MG" : "SC"}
+                city={(addr as LocationData & { city?: string }).city ?? (addr.id === "1" ? "Belo Horizonte" : "Florianópolis")}
+                state={(addr as LocationData & { state?: string }).state ?? (addr.id === "1" ? "MG" : "SC")}
                 schedule={toCardSchedule(addr)}
                 online
                 homeVisit={addr.id === "1"}
