@@ -107,7 +107,7 @@ export const Pacientes = () => {
   return (
     <div className="w-full flex flex-col h-full">
       <header className="border-b border-b-[#DADCE0] h-full max-h-[80px] p-4">
-        <h1 className="text-[30px] font-medium">Pacientes</h1>
+        <h1 className="text-2xl font-medium">Pacientes</h1>
       </header>
       <div className="p-6">
         <div className="rounded-lg p-6 mb-2 border bg-white shadow-custom">

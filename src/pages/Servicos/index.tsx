@@ -89,7 +89,7 @@ export const Servicos = () => {
       <div>
         <Package className="mx-auto h-24 w-24" />
         <h2 className="mt-6 text-2xl font-semibold text-gray-800">
-          Comece a cadastrar seus serviços e pacotes
+          Comece a cadastrar seus serviços
         </h2>
         <p className="mt-2 text-base text-gray-500">
           Você ainda não possui nenhum serviço ou pacote. <br />
@@ -101,7 +101,7 @@ export const Servicos = () => {
   return (
     <div className="bg-[#F8F9FA] min-h-screen">
       <header className="border-b border-b-[#DADCE0] h-full max-h-[80px] p-4 bg-white">
-        <h1 className="text-[30px] font-medium">Serviços & Pacotes</h1>
+        <h1 className="text-2xl font-medium">Serviços</h1>
       </header>
 
       {services && services.length > 0 ? (
@@ -114,36 +114,17 @@ export const Servicos = () => {
               <Input
                 type="text"
                 label="Pesquisar"
-                placeholder="Pesquise por serviço ou pacote"
+                placeholder="Pesquise por serviço"
                 value={searchTerm}
                 onChange={handleSearchChange}
                 className="w-full md:flex-1"
               />
-              <div className="w-full md:w-auto">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="!text-[#121535] w-full md:w-[236px] !border-[#121535] flex items-center justify-center gap-2"
-                    >
-                      <ListFilter size={16} />
-                      {filter === "all" ? "Ver Todos" : filter === "service" ? "Serviços" : "Pacotes"}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start">
-                    <DropdownMenuLabel>Mostrar</DropdownMenuLabel>
-                    <DropdownMenuItem onSelect={() => setFilter("all")}>Todos</DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => setFilter("service")}>Serviços</DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => setFilter("package")}>Pacotes</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
               <Button
                 className="bg-[#121535] transition-colors gap-1 text-white text-[15px] w-full md:w-auto"
                 onClick={handleOpenCreateModal}
               >
                 <Plus size={15} />
-                Adicionar Serviço/Pacote
+                Adicionar Serviço
               </Button>
             </div>
           </div>

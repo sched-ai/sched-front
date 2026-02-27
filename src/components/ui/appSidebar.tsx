@@ -251,7 +251,7 @@ export function AppSidebar() {
               </SidebarGroup>
               <SidebarGroup title="Serviços" className="p-0 gap-2">
                 <NavItem
-                  title="Serviços e Pacotes"
+                  title="Serviços"
                   icon={BriefcaseBusiness}
                   iconSize={isSidebarOpen ? 24 : 28}
                   href="/services"

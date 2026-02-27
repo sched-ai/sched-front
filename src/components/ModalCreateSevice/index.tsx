@@ -1,16 +1,11 @@
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import bgWaves from "@/assets/abstract_waves.jpg";
-
-import { useState, type Dispatch, type SetStateAction, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
 import { useCreateService } from "@/hooks/api/useCreateService";
-
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
-
 import type { IService } from "@/hooks/api/useGetAllServices";
 import { useUpdateService } from "@/hooks/api/useEditService";
-import { Label } from "@/components/ui/label";
-import Input from "@/components/ui/input";
+import { useQueryClient } from "@tanstack/react-query";
+import { useListCompanyMemberships } from "@/hooks/api/useListCompanyMemberships";
 import {
   Select,
   SelectContent,
@@ -18,17 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { useQueryClient } from "@tanstack/react-query";
 
-interface IProps {
-  isModalOpen: boolean;
-  setIsModalOpen: Dispatch<SetStateAction<boolean>>;
-  service?: IService | null;
-}
-
-
-type ItemType = "SERVICE" | "PACKAGE";
+// --- Helpers ---
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function minutesToHHMM(totalMinutes: number) {
@@ -42,35 +28,90 @@ export function minutesToHHMM(totalMinutes: number) {
   return `${hh}:${mm}`;
 }
 
+function hhmmToMinutes(value: string): number | null {
+  if (!value) return null;
+  const parts = value.split(":");
+  if (parts.length < 2) return null;
+  const hours = parseInt(parts[0], 10);
+  const minutes = parseInt(parts[1], 10);
+  if (Number.isNaN(hours) || Number.isNaN(minutes)) return null;
+  return hours * 60 + minutes;
+}
+
+const formatBRL = (value: string) => {
+  const onlyNums = value.replace(/[^0-9]/g, "");
+  if (!onlyNums) return "";
+  const int = parseInt(onlyNums, 10);
+  const number = int / 100;
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(number);
+};
+
+const parseBRL = (formatted: string | null) => {
+  if (!formatted) return null;
+  const onlyNums = formatted.replace(/[^0-9]/g, "");
+  if (!onlyNums) return null;
+  const int = parseInt(onlyNums, 10);
+  return int / 100;
+};
+
+
+const ModalOverlay = ({
+  children,
+  onClose,
+}: {
+  children: React.ReactNode;
+  onClose: () => void;
+}) => {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4 animate-in fade-in duration-300">
+      <div
+        className="relative w-full max-w-md rounded-2xl bg-[#121535] border border-white/5 shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300 overflow-hidden"
+      >
+        <div className="absolute top-4 right-4 z-20">
+          <Button
+            variant="ghost"
+            className="text-white/70 hover:text-white hover:bg-white/10 h-8 w-8 rounded-full p-0"
+            onClick={onClose}
+          >
+            <X size={20} />
+          </Button>
+        </div>
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+interface IProps {
+  isModalOpen: boolean;
+  setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  service?: IService | null;
+}
+
 export const ModalCreateService = (props: IProps) => {
   const { isModalOpen, setIsModalOpen, service } = props;
   const isEditMode = !!service;
-
-  
-  // Service form state
-  const [serviceNome, setServiceNome] = useState("");
-  const [serviceDescricao, setServiceDescricao] = useState("");
-  const [servicePrice, setServicePrice] = useState("");
-  const [serviceDuration, setServiceDuration] = useState("00:00");
-  const [responsavel, setResponsavel] = useState("");
-  const [departamento, setDepartamento] = useState("");
-
-  // Package form state (separate so switching tabs doesn't copy values)
-  const [packageNome, setPackageNome] = useState("");
-  const [packageDescricao, setPackageDescricao] = useState("");
-  const [packagePrice, setPackagePrice] = useState("");
-  const [packageDiscount, setPackageDiscount] = useState("");
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<string>("servico");
-  const [repeatEnabled, setRepeatEnabled] = useState(false);
-  const [, setHasResponsavel] = useState("nao");
+  const { data: professionals } = useListCompanyMemberships();
+
+  const [nome, setNome] = useState("");
+  const [descricao, setDescricao] = useState("");
+  const [price, setPrice] = useState("");
+  const [duration, setDuration] = useState("00:00");
+  const [responsavel, setResponsavel] = useState("");
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
     if (isModalOpen) {
       if (service) {
-        setServiceNome(service.name || "");
-        setServiceDescricao(service.description || "");
-        setServicePrice(
+        setNome(service.name || "");
+        setDescricao(service.description || "");
+        setPrice(
           service.price !== undefined && service.price !== null
             ? new Intl.NumberFormat("pt-BR", {
                 style: "currency",
@@ -79,103 +120,65 @@ export const ModalCreateService = (props: IProps) => {
             : ""
         );
         setResponsavel(service.professional?.id || "");
-        setDepartamento(service.department || "");
-        setServiceDuration(
+        setDuration(
           service.duration !== undefined && service.duration !== null
             ? minutesToHHMM(Number(service.duration))
-            : ""
-        );
-        setHasResponsavel(
-          service.professional?.id || service.department ? "sim" : "nao"
+            : "00:00"
         );
       } else {
         resetForm();
       }
+      setErrors({});
     }
   }, [service, isModalOpen]);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const previous = document.body.style.overflow;
-    if (isModalOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = previous || "";
-    }
-    return () => {
-      document.body.style.overflow = previous || "";
-    };
-  }, [isModalOpen]);
+  const resetForm = () => {
+    setNome("");
+    setDescricao("");
+    setPrice("");
+    setDuration("00:00");
+    setResponsavel("");
+    setErrors({});
+  };
 
-  function hhmmToMinutes(value: string): number | null {
-    if (!value) return null;
-    const parts = value.split(":");
-    if (parts.length < 2) return null;
-    const hours = parseInt(parts[0], 10);
-    const minutes = parseInt(parts[1], 10);
-    if (Number.isNaN(hours) || Number.isNaN(minutes)) return null;
-    return hours * 60 + minutes;
-  }
-
-  const { mutate: createService } = useCreateService({
+  const { mutate: createService, isPending: isCreating } = useCreateService({
     onSuccessFn: () => {
-      handleOpenChange(false);
+      handleClose();
     },
   });
 
-  const { mutate: updateService } = useUpdateService({
+  const { mutate: updateService, isPending: isUpdating } = useUpdateService({
     onSuccessFn: () => {
       queryClient.invalidateQueries({ queryKey: ["services"] });
-      handleOpenChange(false);
+      handleClose();
     },
   });
 
-  const resetForm = () => {
-    setHasResponsavel("nao");
-    // reset service form
-    setServiceNome("");
-    setServiceDescricao("");
-    setServicePrice("");
-    setServiceDuration("00:00");
-    setResponsavel("");
-    setDepartamento("");
-    // reset package form
-    setPackageNome("");
-    setPackageDescricao("");
-    setPackagePrice("");
-    setPackageDiscount("");
-  };
+  const isPending = isCreating || isUpdating;
 
-  const formatBRL = (value: string) => {
-    const onlyNums = value.replace(/[^0-9]/g, "");
-    if (!onlyNums) return "";
-    const int = parseInt(onlyNums, 10);
-    const number = int / 100;
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    }).format(number);
-  };
+  const validate = () => {
+    const newErrors: { [key: string]: string } = {};
+    if (!nome.trim()) newErrors.nome = "O nome é obrigatório";
+    else if (nome.trim().length < 3)
+      newErrors.nome = "O nome deve ter pelo menos 3 letras";
 
-  const parseBRL = (formatted: string | null) => {
-    if (!formatted) return null;
-    const onlyNums = formatted.replace(/[^0-9]/g, "");
-    if (!onlyNums) return null;
-    const int = parseInt(onlyNums, 10);
-    return int / 100;
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    const durationInMinutes = hhmmToMinutes(serviceDuration as string);
+    if (!validate()) return;
+
+    const durationInMinutes = hhmmToMinutes(duration);
 
     const servicePayload = {
-      name: serviceNome,
-      description: serviceDescricao,
-      type: "SERVICE" as ItemType,
+      name: nome,
+      description: descricao,
+      type: "SERVICE" as const,
       professionalId: responsavel || null,
-      department: departamento || null,
-      price: parseBRL(servicePrice),
+      department: null,
+      price: parseBRL(price),
       duration: durationInMinutes,
     };
 
@@ -186,171 +189,132 @@ export const ModalCreateService = (props: IProps) => {
     }
   };
 
-  const handleOpenChange = (open: boolean) => {
-    if (!open) {
-      resetForm();
-    }
-    setIsModalOpen(open);
+  const handleClose = () => {
+    resetForm();
+    setIsModalOpen(false);
   };
+
+  if (!isModalOpen) return null;
+
   return (
-    <Dialog open={isModalOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="fixed left-1/2 top-1/2 z-50 w-[700px] max-w-[95%] overflow-hidden overflow-x-hidden -translate-x-1/2 -translate-y-1/2 px-0 rounded-2xl border border-[#1C3760] bg-[rgba(3,8,22,0.85)] shadow-2xl">
-        <div
-          className="absolute inset-0 -z-10"
-          style={{
-            backgroundImage: `url(${bgWaves})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            filter: 'blur(45px) brightness(0.6)',
-            transform: 'scale(1.02)'
-          }}
-        />
-        <div className="absolute inset-0 -z-10 bg-[rgba(8,18,40,0.55)]" />
+    <ModalOverlay onClose={handleClose}>
+      <div className="flex flex-col items-center text-center pt-8 pb-4">
+        <h1 className="text-2xl font-bold text-white mb-2">
+          {isEditMode ? "Editar Serviço" : "Novo Serviço"}
+        </h1>
+        <p className="text-gray-400 text-sm max-w-[80%]">
+          {isEditMode
+            ? "Atualize os dados do serviço abaixo."
+            : "Preencha os dados abaixo para cadastrar um novo serviço no sistema."}
+        </p>
+      </div>
 
-        <div className="relative z-10 p-4">
-          <div className="flex items-start justify-between mb-3">
-            <div>
-              <DialogTitle className="text-lg text-white font-semibold">
-                {activeTab === "servico" ? "Adicionar Serviço" : "Adicionar Pacote"}
-              </DialogTitle>
-              <DialogDescription className="text-sm text-white/70">Preencha o formulário para criar um novo serviço/pacote</DialogDescription>
-            </div>
-
-            <button
-              aria-label="Fechar"
-              onClick={() => handleOpenChange(false)}
-              className="text-white/80 hover:text-white"
-            >
-              ✕
-            </button>
+      <div className="px-6 pb-6 pt-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="space-y-1">
+            <label className="text-xs text-gray-400 font-medium ml-1">
+              Nome do serviço
+            </label>
+            <input
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              className={`w-full bg-transparent border border-zinc-600 rounded-lg px-4 py-3 text-white placeholder:text-gray-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all ${errors.nome ? "border-red-500" : ""}`}
+              placeholder="Ex: Limpeza de pele"
+              type="text"
+              autoFocus
+            />
+            {errors.nome && (
+              <p className="text-red-400 text-xs ml-1 mt-1">{errors.nome}</p>
+            )}
           </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="bg-white/5 border border-white h-[44px] mb-3">
-              <TabsTrigger
-                value="servico"
-                className="data-[state=active]:text-[#141736] data-[state=inactive]:text-background cursor-pointer h-[32px] px-2 text-sm"
-              >
-                Serviço
-              </TabsTrigger>
-              <TabsTrigger
-                value="pacote"
-                className="data-[state=active]:text-[#141736] data-[state=inactive]:text-background cursor-pointer h-[32px] px-2 text-sm"
-              >
-                Pacote
-              </TabsTrigger>
-            </TabsList>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-xs text-gray-400 font-medium ml-1">
+                Valor (R$)
+              </label>
+              <input
+                value={price}
+                onChange={(e) => setPrice(formatBRL(e.target.value))}
+                className="w-full bg-transparent border border-zinc-600 rounded-lg px-4 py-3 text-white placeholder:text-gray-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all"
+                placeholder="R$ 0,00"
+                type="text"
+              />
+            </div>
 
-            <TabsContent value="servico" className="text-white">
-              <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                <Label className="text-white text-sm">Nome do Serviço</Label>
-                <Input id="nome" type="text" placeholder="Nome do Serviço" value={serviceNome} onChange={(e) => setServiceNome(e.target.value)} placeholderWhite noFocusColor className="!h-[36px] text-sm text-white bg-transparent border-white/80 rounded-[10px]" />
+            <div className="space-y-1">
+              <label className="text-xs text-gray-400 font-medium ml-1">
+                Duração
+              </label>
+              <input
+                value={duration}
+                onChange={(e) => setDuration(e.target.value)}
+                className="w-full bg-transparent border border-zinc-600 rounded-lg px-4 py-3 text-white placeholder:text-gray-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all"
+                style={{ colorScheme: 'auto' }}
+                type="time"
+              />
+            </div>
+          </div>
 
-                <div className="flex gap-3 mt-4">
-                  <div className="flex-1">
-                    <Label className="text-sm text-white mb-2">Categoria</Label>
-                    <Select onValueChange={() => {}}>
-                      <SelectTrigger className="w-full !h-[40px] border-white text-white bg-transparent rounded-[10px] data-[placeholder]:text-white/50 text-sm">
-                        <SelectValue placeholder="Estética Facial, Corporal..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="__none">Nenhuma categoria</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+          <div className="space-y-1">
+            <label className="text-xs text-gray-400 font-medium ml-1">
+              Responsável
+            </label>
+            <Select
+              value={responsavel}
+              onValueChange={(val) => setResponsavel(val === "__none" ? "" : val)}
+            >
+              <SelectTrigger className="w-full bg-transparent border border-zinc-600 rounded-lg px-4 py-6 text-white data-[placeholder]:text-gray-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all h-auto">
+                <SelectValue placeholder="Selecione o profissional" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none">Nenhum responsável</SelectItem>
+                {professionals?.map((prof) => (
+                  <SelectItem key={prof.id} value={String(prof.id)}>
+                    {prof.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-                  <div className="w-40">
-                    <Label className="text-sm text-white mb-2">Responsável</Label>
-                    <Select value={responsavel} onValueChange={(e) => setResponsavel(e === "__none" ? "" : e)}>
-                      <SelectTrigger className="w-full !h-[40px] border-white/80 text-white bg-transparent rounded-[10px] data-[placeholder]:text-white/50 text-sm">
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="__none">Nenhum responsável</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+          <div className="space-y-1">
+            <label className="text-xs text-gray-400 font-medium ml-1">
+              Descrição do serviço
+            </label>
+            <textarea
+              value={descricao}
+              onChange={(e) => setDescricao(e.target.value)}
+              className="w-full bg-transparent border border-zinc-600 rounded-lg px-4 py-3 text-white placeholder:text-gray-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all min-h-[90px] resize-none"
+              placeholder="Descreva o serviço..."
+            />
+          </div>
 
-                <div className="flex gap-3 items-center">
-                  <div className="flex-1">
-                    <Label className="text-sm text-white mb-2">Valor (R$)</Label>
-                    <Input id="price" type="text" placeholder="R$ 0,00" value={servicePrice} onChange={(e) => setServicePrice(formatBRL(e.target.value))} placeholderWhite noFocusColor className="!h-[40px] text-sm text-white bg-transparent border-white/80 rounded-[10px]" />
-                  </div>
-                  <div className="w-40">
-                    <Label className="text-sm text-white mb-2">Duração</Label>
-                    <Input id="duration" type="time" value={serviceDuration} onChange={(e) => setServiceDuration(e.target.value)} placeholderWhite noFocusColor className="!h-[40px] text-sm text-white bg-transparent border-white/80 rounded-[10px]" />
-                  </div>
-                </div>
-
-                <div className="mt-5">
-                  <Label className="text-sm text-white">Descrição do serviço</Label>
-                  <textarea value={serviceDescricao} onChange={(e) => setServiceDescricao(e.target.value)} className="w-full mt-2 p-4 rounded-lg bg-transparent text-white min-h-[80px] placeholder-white/50 border-white/80 focus:text-white text-sm" placeholder="Descrição do serviço" />
-                </div>
-
-                <div className="flex justify-end gap-3 mt-2">
-                  <Button type="submit" className="bg-white text-[#141736] px-4 py-2 rounded-[10px] text-sm">Salvar</Button>
-                </div>
-              </form>
-            </TabsContent>
-
-            <TabsContent value="pacote" className="text-white">
-              <form onSubmit={(e) => { e.preventDefault();}} className="flex flex-col gap-4">
-                <Label className="text-white text-sm">Nome do Pacote</Label>
-                <Input id="nomePacote" type="text" placeholder="Nome do Pacote" value={packageNome} onChange={(e) => setPackageNome(e.target.value)} placeholderWhite noFocusColor className="!h-[36px] text-sm text-white bg-transparent border-white/80 rounded-[10px]" />
-
-                <div className="flex gap-3 items-end">
-                  <div className="flex-1">
-                    <Label className="text-sm text-white">Selecionar serviço</Label>
-                    <Select>
-                      <SelectTrigger className="w-full !h-[40px] border-white/80 text-white bg-transparent rounded-[10px] data-[placeholder]:text-white/50 text-sm">
-                        <SelectValue placeholder="Selecionar serviço" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="__none">Nenhum serviço</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="w-36">
-                    <Label className="text-sm text-white">Quantidade</Label>
-                    <input type="number" min={1} defaultValue={1} className="w-full p-2 rounded-lg bg-transparent text-white placeholder-white/50 border-white/80 text-sm" />
-                  </div>
-                </div>
-
-                <div>
-                  <button type="button" className="px-3 py-1 bg-white text-[#18181B] text-xs rounded-[10px]">+ Adicionar</button>
-                </div>
-
-                <div className="flex gap-3">
-                  <div className="flex-1">
-                    <Label className="text-sm text-white">Valor Cheio (R$)</Label>
-                    <Input type="text" placeholder="R$ 0,00" value={packagePrice} onChange={(e) => setPackagePrice(formatBRL(e.target.value))} placeholderWhite noFocusColor className="!h-[40px] text-sm text-white bg-transparent border-white/80 placeholder-white rounded-[10px]" />
-                  </div>
-                  <div className="w-40">
-                    <Label className="text-sm text-white">Desconto</Label>
-                    <Input type="text" placeholder="%" value={packageDiscount} onChange={(e) => setPackageDiscount(e.target.value)} placeholderWhite noFocusColor className="!h-[40px] text-sm text-white bg-transparent border-white/80 rounded-[10px]" />
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <Switch checked={repeatEnabled} onCheckedChange={(v) => setRepeatEnabled(Boolean(v))} />
-                  <span className="text-white text-sm">Repetir</span>
-                </div>
-
-                <div>
-                  <Label className="text-sm text-white">Descrição do pacote</Label>
-                  <textarea value={packageDescricao} onChange={(e) => setPackageDescricao(e.target.value)} className="w-full mt-2 p-4 rounded-lg bg-transparent text-white min-h-[80px] placeholder-white border border-white text-sm" placeholder="Descrição do pacote" />
-                </div>
-
-                <div className="flex justify-end gap-3 mt-2">
-                  <Button type="submit" className="bg-white text-[#141736] px-4 py-2 rounded-[10px] text-sm">Salvar</Button>
-                </div>
-              </form>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </DialogContent>
-    </Dialog>
+          <div className="pt-8 flex justify-end gap-3 items-center">
+            <Button
+              type="button"
+              variant="ghost"
+              className="text-gray-400 hover:text-white hover:bg-white/5 py-6 px-6 rounded-lg transition-all duration-200"
+              onClick={handleClose}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-6 rounded-lg font-medium shadow-lg shadow-blue-900/40 hover:shadow-blue-900/60 transition-all duration-300 transform hover:-translate-y-0.5"
+              disabled={isPending}
+            >
+              {isPending
+                ? isEditMode
+                  ? "Atualizando..."
+                  : "Salvando..."
+                : isEditMode
+                  ? "Atualizar"
+                  : "Salvar"}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </ModalOverlay>
   );
 };
