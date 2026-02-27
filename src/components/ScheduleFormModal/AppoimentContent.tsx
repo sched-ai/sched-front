@@ -177,8 +177,8 @@ export const AppoimentContent = ({
               <input
                 id="inicioConsulta"
                 type="time"
-                style={{ colorScheme: "dark" }}
-                className="lightInput bg-transparent border-b border-gray-600 focus:border-blue-500 text-white p-1 w-24 text-center focus:outline-none"
+                style={{ colorScheme: "auto" }}
+                className="bg-transparent border-b border-gray-600 focus:border-blue-500 text-white p-1 w-24 text-center focus:outline-none"
                 value={startHour}
                 onChange={(e) => setStartHour(e.target.value)}
               />
@@ -186,8 +186,8 @@ export const AppoimentContent = ({
               <input
                 id="fimConsulta"
                 type="time"
-                style={{ colorScheme: "dark" }}
-                className="lightInput bg-transparent border-b border-gray-600 focus:border-blue-500 text-white p-1 w-24 text-center focus:outline-none"
+                style={{ colorScheme: "auto" }}
+                className="bg-transparent border-b border-gray-600 focus:border-blue-500 text-white p-1 w-24 text-center focus:outline-none"
                 value={endHour}
                 onChange={(e) => setEndHour(e.target.value)}
               />

@@ -211,7 +211,7 @@ export const Configuracoes = () => {
     <div className="bg-[#F8F9FA] min-h-screen">
       {/* Page header */}
       <header className="border-b border-b-[#DADCE0] h-full max-h-[80px] p-4 bg-white">
-        <h1 className="text-[30px] font-medium text-[#121535]">Configurações</h1>
+        <h1 className="text-2xl font-medium text-[#121535]">Configurações</h1>
       </header>
 
       <main className="p-6 md:p-10">

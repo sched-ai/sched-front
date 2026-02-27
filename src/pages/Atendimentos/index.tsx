@@ -138,7 +138,7 @@ export const Atendimentos = () => {
   return (
     <div className="w-full flex flex-col h-full">
       <header className="border-b border-b-[#DADCE0] h-full max-h-[80px] p-4">
-        <h1 className="text-[30px] font-medium">Atendimentos</h1>
+        <h1 className="text-2xl font-medium">Atendimentos</h1>
       </header>
       <div className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
