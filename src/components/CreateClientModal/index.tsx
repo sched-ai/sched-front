@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { useCreateClient } from "@/hooks/api/useCreateClient";
+import { useUpdateClient } from "@/hooks/api/useUpdateClient";
+import type { ClientAPI } from "@/hooks/api/useGetAllClients";
 
 // --- Helpers ---
 
@@ -20,6 +22,18 @@ const maskPhone = (v: string) => {
     .replace(/(\d{2})(\d)/, "($1) $2")
     .replace(/(\d{5})(\d)/, "$1-$2")
     .replace(/(-\d{4})\d+?$/, "$1"); // 11 digits
+};
+
+const formatCPFForDisplay = (cpf: string) => {
+  const clean = cpf.replace(/\D/g, "");
+  if (clean.length !== 11) return cpf;
+  return maskCPF(clean);
+};
+
+const formatPhoneForDisplay = (phone: string) => {
+  const clean = phone.replace(/\D/g, "");
+  if (!clean) return "";
+  return maskPhone(clean);
 };
 
 // --- Modal Component ---
@@ -56,25 +70,40 @@ const ModalOverlay = ({
 interface CreateClientModalProps {
   isOpen: boolean;
   onClose: () => void;
+  clientToEdit?: ClientAPI | null;
 }
 
 type Gender = 'masculino' | 'feminino' | 'outro';
 
-export const CreateClientModal = ({ isOpen, onClose }: CreateClientModalProps) => {
+export const CreateClientModal = ({ isOpen, onClose, clientToEdit }: CreateClientModalProps) => {
   const { mutate: createClient, isPending: isCreating } = useCreateClient();
+  const { mutate: updateClient, isPending: isUpdating } = useUpdateClient();
+
+  const isEditMode = !!clientToEdit;
+  const isPending = isCreating || isUpdating;
 
   const [formData, setFormData] = useState({ name: "", cpf: "", phone: "", email: "" });
-  const [gender, setGender] = useState<Gender>('feminino'); // Defaulting to something visible, or 'outro'
+  const [gender, setGender] = useState<Gender>('outro');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-  // Reset form when modal opens/closes
+  // Reset/populate form when modal opens/closes or clientToEdit changes
   useEffect(() => {
     if (isOpen) {
-        setGender('outro'); // Default
+      if (clientToEdit) {
+        setFormData({
+          name: clientToEdit.name || "",
+          cpf: formatCPFForDisplay(clientToEdit.cpf || ""),
+          phone: formatPhoneForDisplay(clientToEdit.phone || ""),
+          email: clientToEdit.email || "",
+        });
+        setGender((clientToEdit.gender as Gender) || 'outro');
+      } else {
         setFormData({ name: "", cpf: "", phone: "", email: "" });
-        setErrors({});
+        setGender('outro');
+      }
+      setErrors({});
     }
-  }, [isOpen]);
+  }, [isOpen, clientToEdit]);
 
   const handleInputChange = (field: string, value: string) => {
       let val = value;
@@ -100,33 +129,28 @@ export const CreateClientModal = ({ isOpen, onClose }: CreateClientModalProps) =
       return Object.keys(newErrors).length === 0;
   };
 
-  const handleCreateClient = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       if (!validate()) return;
 
-      createClient({
-          name: formData.name,
-          cpf: formData.cpf,
-          phone: formData.phone,
-          email: formData.email,
-          gender: gender,
-          photoUrl: "" // Placeholder logic for now
-      }, {
-          onSuccess: () => {
-              onClose();
-          }
-      });
-  }
+      const payload = {
+        name: formData.name,
+        cpf: formData.cpf,
+        phone: formData.phone,
+        email: formData.email,
+        gender: gender,
+        photoUrl: "",
+      };
 
-  // Visual Logic for Avatar
-  // const getAvatarConfig = () => {
-  //     switch(gender) {
-  //         case 'masculino': return { bg: 'bg-blue-300', iconColor: 'text-blue-800' };
-  //         case 'feminino': return { bg: 'bg-pink-300', iconColor: 'text-pink-800' };
-  //         default: return { bg: 'bg-yellow-300', iconColor: 'text-yellow-800' };
-  //     }
-  // };
-  // const avatarConfig = getAvatarConfig();
+      if (isEditMode && clientToEdit) {
+        updateClient(
+          { id: clientToEdit.id, payload },
+          { onSuccess: () => onClose() }
+        );
+      } else {
+        createClient(payload, { onSuccess: () => onClose() });
+      }
+  }
 
   if (!isOpen) return null;
 
@@ -134,15 +158,19 @@ export const CreateClientModal = ({ isOpen, onClose }: CreateClientModalProps) =
     <ModalOverlay onClose={onClose}>
         {/* Header Section */}
         <div className="flex flex-col items-center text-center pt-8 pb-4">
-            <h1 className="text-2xl font-bold text-white mb-2">Novo Paciente</h1>
+            <h1 className="text-2xl font-bold text-white mb-2">
+              {isEditMode ? "Editar Paciente" : "Novo Paciente"}
+            </h1>
             <p className="text-gray-400 text-sm max-w-[80%]">
-                Preencha os dados abaixo para cadastrar um novo paciente no sistema.
+                {isEditMode
+                  ? "Atualize os dados do paciente abaixo."
+                  : "Preencha os dados abaixo para cadastrar um novo paciente no sistema."}
             </p>
         </div>
         
         {/* Form Body */}
         <div className="px-6 pb-6 pt-4">
-            <form onSubmit={handleCreateClient} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-5">
                 
                 {/* Inputs with Outline Style */}
                 <div className="space-y-1">
@@ -237,9 +265,11 @@ export const CreateClientModal = ({ isOpen, onClose }: CreateClientModalProps) =
                     <Button 
                         type="submit" 
                         className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-6 rounded-lg font-medium shadow-lg shadow-blue-900/40 hover:shadow-blue-900/60 transition-all duration-300 transform hover:-translate-y-0.5"
-                        disabled={isCreating}
+                        disabled={isPending}
                     >
-                        {isCreating ? 'Salvando...' : 'Salvar'}
+                        {isPending
+                          ? (isEditMode ? 'Atualizando...' : 'Salvando...')
+                          : (isEditMode ? 'Atualizar' : 'Salvar')}
                     </Button>
                 </div>
             </form>

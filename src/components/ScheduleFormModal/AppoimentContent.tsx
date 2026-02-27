@@ -1,4 +1,4 @@
-import { Clock, MapPin, Briefcase } from "lucide-react";
+import { Clock, MapPin, Briefcase, User } from "lucide-react";
 // plain import removed
 import { Button } from "../ui/button";
 import { DatePicker } from "../DatePicker";
@@ -20,6 +20,7 @@ import {
 import { useGetAllServices } from "@/hooks/api/useGetAllServices";
 import { useCreateAppointment } from "@/hooks/api/useCreateAppointment";
 import { useUpdateAppointment } from "@/hooks/api/useUpdateAppointment";
+import { useListCompanyMemberships } from "@/hooks/api/useListCompanyMemberships";
 
 interface IProps {
   title: string | undefined;
@@ -38,13 +39,14 @@ interface IProps {
   setLocation: Dispatch<SetStateAction<string>>;
   service: string;
   setService: Dispatch<SetStateAction<string>>;
+  professional: string;
+  setProfessional: Dispatch<SetStateAction<string>>;
   onClose?: () => void;
   appointmentId?: string;
   clientId?: string | null;
 }
 
 export const AppoimentContent = ({
-  title,
   selectedDateTime,
   setSelectedDateTime,
   startHour,
@@ -55,12 +57,15 @@ export const AppoimentContent = ({
   setLocation,
   service,
   setService,
+  professional,
+  setProfessional,
   onClose,
   appointmentId,
   clientId
 }: IProps) => {
   const { userData, userLoading } = useUser();
   const { data: services } = useGetAllServices();
+  const { data: professionals } = useListCompanyMemberships();
   const { mutate: createAppointment, isPending: isCreating, error: createError } = useCreateAppointment({
       onSuccessFn: () => {
         if (onClose) {
@@ -123,10 +128,10 @@ export const AppoimentContent = ({
     }
 
     const payload = {
-      clientId: clientId || null,
-      clientName: title || null,
-      serviceId: service || null,
-      workplaceId: location || null,
+      clientId: clientId || undefined,
+      serviceId: service || undefined,
+      workplaceId: location || undefined,
+      professionalId: professional || undefined,
       startDate: startDate.toISOString(),
       duration,
     };
@@ -245,6 +250,42 @@ export const AppoimentContent = ({
               {services?.map((service) => (
                 <SelectItem key={service.id} value={String(service.id)}>
                   {service.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Professional Section */}
+      <div className="flex items-start gap-4">
+        <div className="mt-3">
+          <User className="text-gray-400" size={20} />
+        </div>
+        <div className="flex-1">
+          <Select
+            value={professional}
+            onValueChange={(val: string) => setProfessional(val)}
+            disabled={!professionals || professionals.length === 0}
+          >
+            {(!professionals || professionals.length === 0) ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <SelectTrigger className="w-full border-0 border-b border-gray-600 rounded-none px-0 bg-transparent text-white data-[placeholder]:text-gray-400 focus:ring-0 focus:border-blue-500 h-10">
+                    <SelectValue placeholder="Selecionar profissional" />
+                  </SelectTrigger>
+                </TooltipTrigger>
+                <TooltipContent sideOffset={6}>Nenhum profissional encontrado</TooltipContent>
+              </Tooltip>
+            ) : (
+              <SelectTrigger className="w-full border-0 border-b border-gray-600 rounded-none px-0 bg-transparent text-white data-[placeholder]:text-gray-400 focus:ring-0 focus:border-blue-500 h-10">
+                <SelectValue placeholder="Selecionar profissional" />
+              </SelectTrigger>
+            )}
+            <SelectContent className="max-h-[200px]">
+              {professionals?.map((prof) => (
+                <SelectItem key={prof.id} value={String(prof.id)}>
+                  {prof.name}
                 </SelectItem>
               ))}
             </SelectContent>

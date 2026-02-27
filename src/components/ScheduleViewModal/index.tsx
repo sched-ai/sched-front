@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { capitalizeFirst } from "@/util/helper";
-import { CalendarDays, Clock, Layers, Pencil, Trash2, MapPin, X, Loader2, DollarSign, Timer } from "lucide-react";
+import { CalendarDays, Clock, Layers, Pencil, Trash2, MapPin, X, Loader2, Timer, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { EventType } from "../WeeklyCalendar";
 import { DeleteConfirmationModal } from "../DeleteConfirmationModal";
@@ -16,6 +16,7 @@ interface Details {
   services?: string[];
   serviceId?: string;
   workplaceName?: string;
+  professionalName?: string;
   type?: 'consulta' | 'bloqueio';
 }
 
@@ -176,6 +177,15 @@ export const ScheduleViewModal = ({
                   </span>
                 </div>
               )}
+
+              {details.professionalName && (
+                <div className="flex items-center gap-2 pt-2 border-t border-slate-700/50 mt-1">
+                  <User className="w-4 h-4 text-violet-400" />
+                  <span className="text-sm text-slate-200">
+                    {details.professionalName}
+                  </span>
+                </div>
+              )}
             </div>
 
             {details.type === 'consulta' && (
@@ -196,24 +206,17 @@ export const ScheduleViewModal = ({
                   ) : service ? (
                       <Badge 
                         variant="secondary" 
-                        className="flex justify-between w-full bg-slate-700/50 hover:bg-slate-700 text-slate-200 px-3 py-1 text-sm font-normal border-transparent"
+                        className="flex justify-between w-full bg-[#1a1e45] text-slate-200 px-3 py-1 text-sm font-normal border-transparent rounded-md"
                       >
                         {service.name}
-                          <div className="flex">
+                          <div className="flex gap-4">
                             {service.duration && (
                               <div className="flex items-center gap-1.5 text-slate-300">
                                 <Timer className="w-4 h-4 text-amber-400" />
                                 <span className="text-sm">{service.duration} min</span>
                               </div>
                             )}
-                            {service.price && (
-                              <div className="flex items-center gap-1.5 text-slate-300">
-                                <DollarSign className="w-4 h-4 text-emerald-400" />
-                                <span className="text-sm">
-                                  {Number(service.price).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                                </span>
-                              </div>
-                            )}
+                           
                           </div>
                       </Badge>
 

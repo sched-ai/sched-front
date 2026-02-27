@@ -328,7 +328,7 @@ export default function LandingPage() {
             <section id="beta" className="relative py-32 px-6 overflow-hidden">
                 <div className="absolute inset-0 bg-[url('/logotipo.svg')] bg-no-repeat bg-center opacity-[0.03] scale-150 animate-[spin_120s_linear_infinite]" />
                 
-                <div className="max-w-6xl mx-auto relative z-10">
+                <div className="mx-auto relative z-10">
                     <FadeInSection>
                         <div className="grid lg:grid-cols-2 gap-20 items-center">
                             <div className="space-y-8">

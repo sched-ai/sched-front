@@ -52,6 +52,7 @@ export const Home = () => {
     services?: string[];
     serviceId?: string;
     workplaceName?: string;
+    professionalName?: string;
     type?: 'consulta' | 'bloqueio';
   } | null>(null);
   
@@ -151,6 +152,7 @@ export const Home = () => {
       services: (event as EventType).services ?? [],
       serviceId: (event as EventType).serviceId ?? '',
       workplaceName: (event as EventType).workplaceName,
+      professionalName: (event as EventType).professionalName,
       type: (event as EventType).type,
     }); 
 

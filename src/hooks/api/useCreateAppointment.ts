@@ -5,7 +5,6 @@ import type { IUseMutationParams } from "@/types";
 export interface ICreateServicePayload {
   professionalId?: string;
   clientId?: string | null;
-  clientName?: string | null;
   serviceId?: string | null;
   workplaceId?: string | null;
   startDate: string; // ISO 8601
