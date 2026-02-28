@@ -9,6 +9,7 @@ interface DaySchedule {
 
 interface AddressCardProps {
   locationName: string;
+  nickname?: string;
   street: string;
   complement: string;
   rooms: number;
@@ -24,6 +25,7 @@ const DAY_LABELS: DayKey[] = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
 export const AddressCard = ({
   locationName,
+  nickname,
   street,
   complement,
   rooms,
@@ -34,13 +36,21 @@ export const AddressCard = ({
   homeVisit = false,
   onEdit,
 }: AddressCardProps) => {
+  const isOnline = nickname?.toLowerCase() === "online";
+
   return (
     <div className="flex flex-col md:flex-row gap-6 py-5 border-b border-[#DADCE0] last:border-0">
       {/* Left: location info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-2">
-          <MapPin size={16} className="text-[#121535] flex-shrink-0" />
-          <span className="text-[#121535] font-semibold text-sm">{locationName}</span>
+          {isOnline ? (
+            <Globe size={16} className="text-[#0177FB] flex-shrink-0" />
+          ) : (
+            <MapPin size={16} className="text-[#121535] flex-shrink-0" />
+          )}
+          <span className="text-[#121535] font-semibold text-sm">
+            {isOnline ? "Atendimento Online" : locationName}
+          </span>
           <button
             onClick={onEdit}
             className="text-gray-400 hover:text-[#121535] transition-colors cursor-pointer"
@@ -49,12 +59,18 @@ export const AddressCard = ({
             <Pencil size={13} />
           </button>
         </div>
-        <div className="text-gray-500 text-sm space-y-0.5 pl-6">
-          <p>Rua: {street}</p>
-          <p>Complemento: {complement}</p>
-          <p>Número de salas: {rooms}</p>
-          <p>Cidade: {city} | Estado: {state}</p>
-        </div>
+        {isOnline ? (
+          <div className="text-gray-500 text-sm pl-6">
+            <p>Consultas realizadas por vídeo ou chamada remota.</p>
+          </div>
+        ) : (
+          <div className="text-gray-500 text-sm space-y-0.5 pl-6">
+            <p>Rua: {street}</p>
+            <p>Complemento: {complement}</p>
+            <p>Número de salas: {rooms}</p>
+            <p>Cidade: {city} | Estado: {state}</p>
+          </div>
+        )}
       </div>
 
       {/* Center: days / hours */}

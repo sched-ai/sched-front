@@ -138,9 +138,10 @@ export const Configuracoes = () => {
 
       return {
         id: wp.id ?? String(i + 1),
+        nickname: wp.nickname ?? "",
         address: `${wp.address}${wp.number ? ", nº " + wp.number : ""}`,
         complement: wp.complement ?? "",
-        rooms: "1", // not available in API – kept mocked
+        rooms: "1",
         scheduleType: "flexible" as const,
         fixedDays: [],
         fixedStart: "08:00",
@@ -148,7 +149,7 @@ export const Configuracoes = () => {
         flexibleSchedule: flexible,
         city: wp.city ?? "",
         state: wp.state ?? "",
-      } satisfies LocationData & { city: string; state: string };
+      } satisfies LocationData & { city: string; state: string; nickname: string };
     });
   }, [userData]);
 
@@ -232,13 +233,14 @@ export const Configuracoes = () => {
         <section>
           <div className="flex items-center gap-2 mb-4">
             <MapPin size={18} className="text-[#121535]" />
-            <h2 className="text-lg font-semibold text-[#121535]">Endereços</h2>
+            <h2 className="text-lg font-semibold text-[#121535]">Locais de atendimento</h2>
           </div>
 
           <div className="bg-white rounded-lg border border-[#DADCE0] px-6 py-2 shadow-sm">
             {addresses.map((addr) => (
               <AddressCard
                 key={addr.id}
+                nickname={(addr as any).nickname}
                 locationName={addr.complement ? addr.address.split(",")[0] : addr.address}
                 street={addr.address}
                 complement={addr.complement}
