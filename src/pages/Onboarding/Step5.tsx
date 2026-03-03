@@ -268,11 +268,11 @@ function ActionButtons({ services }: { services: Service[] }) {
       return hasName && hasPrice && hasDuration;
     });
 
-  function parseBRLToCents(formatted?: string | null) {
+  function parseBRL(formatted?: string | null) {
     if (!formatted) return null;
     const onlyNums = formatted.toString().replace(/[^0-9]/g, "");
     if (!onlyNums) return null;
-    return parseInt(onlyNums, 10);
+    return parseInt(onlyNums, 10) / 100;
   }
 
   function durationToMinutes(duration?: string | null) {
@@ -294,7 +294,7 @@ function ActionButtons({ services }: { services: Service[] }) {
           name: s.name?.toString() || "",
           description: s.description ? s.description.toString() : null,
           duration: durationToMinutes(s.duration) ?? null,
-          price: parseBRLToCents(s.price ?? null),
+          price: parseBRL(s.price ?? null),
           type: "SERVICE" as const,
           professionalId: s.professional ?? null,
         };
@@ -339,7 +339,7 @@ function SkipButton() {
 
   const handleSkip = () => {
     nextStep();
-    toast("Você pulou esta etapa do onboarding.");
+    // toast("Você pulou esta etapa do onboarding.");
   };
 
   return (

@@ -1,46 +1,39 @@
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+
+const maskPhone = (v: string) => {
+  return v
+    .replace(/\D/g, "")
+    .replace(/(\d{2})(\d)/, "($1) $2")
+    .replace(/(\d{5})(\d)/, "$1-$2")
+    .replace(/(-\d{4})\d+?$/, "$1");
+};
 
 interface SettingsInputsProps {
   description?: string;
   email?: string;
+  phone?: string;
   onDescriptionChange?: (val: string) => void;
   onEmailChange?: (val: string) => void;
-  onPasswordChange?: (val: string) => void;
+  onPhoneChange?: (val: string) => void;
 }
 
 export const SettingsInputs = ({
   description = "",
   email = "bem.estar@gmail.com",
+  phone = "",
   onDescriptionChange,
   onEmailChange,
-  onPasswordChange,
+  onPhoneChange,
 }: SettingsInputsProps) => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [password, setPassword] = useState("••••••••");
   const [localDescription, setLocalDescription] = useState(description);
+  const [localPhone, setLocalPhone] = useState(phone);
   const [localEmail, setLocalEmail] = useState(email);
 
   const inputBase =
     "w-full rounded-md border border-[#DADCE0] bg-white px-3 py-2 text-sm text-[#121535] placeholder-gray-400 outline-none transition focus:border-[#0177FB] focus:ring-1 focus:ring-[#0177FB]/30";
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-4">
-      {/* Descrição */}
-      <div className="flex flex-col gap-1">
-        <label className="text-sm font-medium text-[#121535]">Descrição</label>
-        <textarea
-          rows={3}
-          placeholder="Bio do seu negócio"
-          className={`${inputBase} resize-none`}
-          value={localDescription}
-          onChange={(e) => {
-            setLocalDescription(e.target.value);
-            onDescriptionChange?.(e.target.value);
-          }}
-        />
-      </div>
-
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
       {/* Email */}
       <div className="flex flex-col gap-1">
         <label className="text-sm font-medium text-[#121535]">Email</label>
@@ -55,28 +48,34 @@ export const SettingsInputs = ({
         />
       </div>
 
-      {/* Senha */}
+      {/* Telefone */}
       <div className="flex flex-col gap-1">
-        <label className="text-sm font-medium text-[#121535]">Senha</label>
-        <div className="relative">
-          <input
-            type={showPassword ? "text" : "password"}
-            className={`${inputBase} pr-10`}
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-              onPasswordChange?.(e.target.value);
-            }}
-          />
-          <button
-            type="button"
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#121535] transition-colors cursor-pointer"
-            onClick={() => setShowPassword((p) => !p)}
-            aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-          >
-            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-          </button>
-        </div>
+        <label className="text-sm font-medium text-[#121535]">Telefone</label>
+        <input
+          type="text"
+          className={inputBase}
+          placeholder="(00) 00000-0000"
+          maxLength={15}
+          value={localPhone}
+          onChange={(e) => {
+            const masked = maskPhone(e.target.value);
+            setLocalPhone(masked);
+            onPhoneChange?.(masked);
+          }}
+        />
+      </div>
+      <div className="flex flex-col gap-1 col-span-2">
+        <label className="text-sm font-medium text-[#121535]">Descrição</label>
+        <textarea
+          rows={3}
+          placeholder="Bio do seu negócio"
+          className={`${inputBase} resize-none`}
+          value={localDescription}
+          onChange={(e) => {
+            setLocalDescription(e.target.value);
+            onDescriptionChange?.(e.target.value);
+          }}
+        />
       </div>
     </div>
   );

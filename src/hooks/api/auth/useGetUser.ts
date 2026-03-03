@@ -13,6 +13,7 @@ export interface IMembership {
   company: {
     id: string;
     name: string;
+    phone?: string;
     companyType: 'EMPRESA' | 'AUTONOMO'; 
     workplaces: {
       address: string;
@@ -27,7 +28,7 @@ export interface IMembership {
         endMinute: number;
       }[];
       state: string;
-    };
+    }[];
   };
   role: {
     name: string;

@@ -206,6 +206,7 @@ export default function Step1({
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   placeholder="Ex: (11) 91234-5678"
                   required
+                  isRequired
                 />
               </div>
             <div className="w-full">

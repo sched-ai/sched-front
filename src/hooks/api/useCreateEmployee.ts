@@ -7,6 +7,7 @@ export interface ICreateEmployeePayload {
   name: string;
   email: string;
   cargo: string;
+  workplaceIds?: string[];
 }
 
 export const useCreateEmployee = ({ onSuccessFn }: IUseMutationParams) => {

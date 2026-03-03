@@ -92,6 +92,7 @@ export const Configuracoes = () => {
   // ── Derived real data from userData ───────────────────────
   const clinicName = userData?.membership?.company?.name ?? "Clínica Bem Estar";
   const companyType = userData?.membership?.company?.companyType === "AUTONOMO" ? "Autônomo" : "Empresa";
+  const companyPhone = userData?.membership?.company?.phone ?? "";
   const userEmail = userData?.email ?? "bem.estar@gmail.com";
 
   /**
@@ -225,7 +226,7 @@ export const Configuracoes = () => {
         />
 
         {/* ── Settings Inputs ────────────────────────────────── */}
-        <SettingsInputs email={userEmail} />
+        <SettingsInputs email={userEmail} phone={companyPhone} />
 
         <hr className="border-[#DADCE0] my-6" />
 

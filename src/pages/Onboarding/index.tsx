@@ -4,11 +4,14 @@ import { RenderStep } from "./renderSteps";
 import logo from "@/assets/logo.png";
 import { useUser } from "@/context/user";
 import LoadingScreen from "../LoadingScreen";
+import { logout } from "@/services/storage";
+import { LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export const Onboarding = () => {
   const { userData, userLoading } = useUser();
   const [currentStep, setCurrentStep] = useState<number>(1);
-
+  const navigate = useNavigate();
   useEffect(() => {
     if (typeof userData?.onboardingStep === "number") {
       const step = userData.onboardingStep === 0 ? 1 : userData.onboardingStep;
@@ -98,6 +101,16 @@ export const Onboarding = () => {
               })}
             </div>
           </div>
+          <button
+            className="flex items-center font-medium gap-3 text-red-500 p-3 border-l-4 rounded-none justify-start hover:text-white border-transparent cursor-pointer hover:bg-[#0177FB]/10 w-fit mb-4"
+            onClick={() => {
+              logout();
+              navigate("/signin");
+            }}
+          >
+            <LogOut />
+            <span>Sair</span>
+          </button>
         </div>
         <div className="flex flex-col xl:justify-center p-6 relative w-full overflow-y-auto h-full max-h-screen">
           <div className="flex w-full mx-auto justify-center h-full">
