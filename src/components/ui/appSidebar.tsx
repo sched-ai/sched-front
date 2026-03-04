@@ -15,6 +15,7 @@ import { logout } from "@/services/storage";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useUser } from "@/context/user";
 import { useGetAppointment } from "@/hooks/api/useGetAppointment";
+import { useGetClient } from "@/hooks/api/useGetClient";
 // icons imported above
 
 function formatTime(totalSeconds: number) {
@@ -117,14 +118,22 @@ export function AppSidebar() {
 
   const { data: fetchedAppointment } = useGetAppointment(appointmentId || "", !!appointmentId);
 
-  // Helper to get data from fetched or location state
+  // Use statePaciente.id immediately (from navigation state) so client loads right away
+  // without waiting for fetchedAppointment to resolve first
+  const statePacienteId = (location.state as any)?.paciente?.id;
+  const clientIdFromAppointment = statePacienteId || fetchedAppointment?.clientId || fetchedAppointment?.client?.id || '';
+  const { data: fullClient } = useGetClient(clientIdFromAppointment, !!clientIdFromAppointment);
+
+  // Merge: fullClient has priority for fields the appointment API lacks
+  const stateClient = (location.state as any)?.atendimento?.client;
+  const statePaciente = (location.state as any)?.paciente;
   const displayData = {
-    name: fetchedAppointment?.client?.name || fetchedAppointment?.clientName || (location.state as any)?.atendimento?.paciente || (location.state as any)?.paciente?.name || 'Paciente',
-    cpf: fetchedAppointment?.client?.cpf || (location.state as any)?.atendimento?.cpf || (location.state as any)?.paciente?.cpf || '',
-    phone: fetchedAppointment?.client?.phone || (location.state as any)?.atendimento?.phone || (location.state as any)?.paciente?.phone || (location.state as any)?.atendimento?.telefone || '',
-    email: fetchedAppointment?.client?.email || (location.state as any)?.atendimento?.email || (location.state as any)?.paciente?.email || '',
-    address: fetchedAppointment?.client?.address || (location.state as any)?.atendimento?.address || (location.state as any)?.paciente?.address || '',
-    birth: fetchedAppointment?.client?.birthDate || (location.state as any)?.atendimento?.birth || (location.state as any)?.paciente?.birth || (location.state as any)?.paciente?.birthDate || ''
+    name: fullClient?.name || fetchedAppointment?.client?.name || fetchedAppointment?.clientName || stateClient?.name || (location.state as any)?.atendimento?.clientName || statePaciente?.name || 'Paciente',
+    cpf: fullClient?.cpf || fetchedAppointment?.client?.cpf || stateClient?.cpf || statePaciente?.cpf || '',
+    phone: fullClient?.phone || fetchedAppointment?.client?.phone || stateClient?.phone || statePaciente?.phone || '',
+    email: fullClient?.email || fetchedAppointment?.client?.email || stateClient?.email || statePaciente?.email || '',
+    address: (fullClient as any)?.address || fetchedAppointment?.client?.address || stateClient?.address || statePaciente?.address || '',
+    birth: (fullClient as any)?.birthDate || fetchedAppointment?.client?.birthDate || stateClient?.birthDate || statePaciente?.birthDate || ''
   };
 
   return (
@@ -204,10 +213,12 @@ export function AppSidebar() {
               </div>
 
               {/* Timer (below patient card) */}
-              <div className="mt-4">
-                <div className="text-sm text-[#6b7280] mb-2">Duração da consulta</div>
-                <PatientTimer />
-              </div>
+              {/^\/appointment\/[^/]+$/.test(location.pathname) && (
+                <div className="mt-4">
+                  <div className="text-sm text-[#6b7280] mb-2">Duração da consulta</div>
+                  <PatientTimer />
+                </div>
+              )}
             </div>
           ) : (
             <div>

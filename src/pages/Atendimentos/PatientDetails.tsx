@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Users, Eye } from "lucide-react";
+import { Eye, User } from "lucide-react";
 import { useUpdateAppointment } from "@/hooks/api/useUpdateAppointment";
 import { useGetAppointment } from "@/hooks/api/useGetAppointment";
+import { useGetClient } from "@/hooks/api/useGetClient";
 
 function formatTime(totalSeconds: number) {
   const h = Math.floor(totalSeconds / 3600)
@@ -16,6 +17,15 @@ function formatTime(totalSeconds: number) {
     .toString()
     .padStart(2, "0");
   return `${h}:${m}:${s}`;
+}
+
+function calculateAge(birthDate: string | undefined): number | undefined {
+  if (!birthDate) return undefined;
+  const dob = new Date(birthDate);
+  if (isNaN(dob.getTime())) return undefined;
+  const diffMs = Date.now() - dob.getTime();
+  const ageDt = new Date(diffMs); 
+  return Math.abs(ageDt.getUTCFullYear() - 1970);
 }
 
 // function formatTime(totalSeconds: number) {
@@ -47,7 +57,8 @@ export const PatientDetails: React.FC = () => {
     email: atendimentoState?.client?.email || atendimentoState?.email || "",
     address: atendimentoState?.client?.address || atendimentoState?.address || "",
     birth: atendimentoState?.client?.birthDate || atendimentoState?.birth || "",
-    age: atendimentoState?.age || undefined,
+    age: atendimentoState?.client?.age || atendimentoState?.age || calculateAge(atendimentoState?.client?.birthDate || atendimentoState?.birth) || undefined,
+    gender: atendimentoState?.client?.gender || atendimentoState?.gender || "",
     especialidade: atendimentoState?.especialidade || atendimentoState?.specialty || "",
     data: atendimentoState?.startDate?.split('T')[0] || atendimentoState?.data || atendimentoState?.date || "",
     hora: atendimentoState?.startDate?.split('T')[1]?.substring(0,5) || atendimentoState?.hora || atendimentoState?.time || "",
@@ -93,25 +104,41 @@ export const PatientDetails: React.FC = () => {
   const [cards, setCards] = useState<CardType[]>([]);
   // We use useGetAppointment to fetch fresh data
   const { data: fetchedAppointment, refetch: refetchAppointment } = useGetAppointment(id || "", !!id);
-  
+
+  // Derive clientId from appointment, then fetch the FULL client record directly by ID
+  const clientId = fetchedAppointment?.clientId || fetchedAppointment?.client?.id || patient.clientId || "";
+  const { data: fullClientData } = useGetClient(clientId, !!clientId);
+
   const { mutateAsync: updateAppointment } = useUpdateAppointment({
     onSuccessFn: () => {
       refetchAppointment();
     }
   });
 
+  // Update patient when full client data arrives
+  useEffect(() => {
+    if (fullClientData) {
+      setPatient((prev: any) => ({
+        ...prev,
+        clientId: fullClientData.id || prev.clientId,
+        name: fullClientData.name || prev.name,
+        cpf: fullClientData.cpf || prev.cpf,
+        phone: fullClientData.phone || prev.phone,
+        email: fullClientData.email || prev.email,
+        gender: fullClientData.gender || prev.gender,
+        age: (fullClientData as any).age || calculateAge((fullClientData as any).birthDate) || prev.age,
+        birth: (fullClientData as any).birthDate || prev.birth,
+      }));
+    }
+  }, [fullClientData]);
+
   useEffect(() => {
     if (fetchedAppointment) {
-       // Update component state with fetched data
+       // Update component state with appointment data
        setPatient((prev: any) => ({
          ...prev,
          clientId: fetchedAppointment.clientId || fetchedAppointment.client?.id || prev.clientId,
          name: fetchedAppointment.client?.name || fetchedAppointment.clientName || prev.name,
-         cpf: fetchedAppointment.client?.cpf || prev.cpf,
-         phone: fetchedAppointment.client?.phone || prev.phone,
-         email: fetchedAppointment.client?.email || prev.email,
-         address: fetchedAppointment.client?.address || prev.address,
-         birth: fetchedAppointment.client?.birthDate || prev.birth,
        }));
 
        // Update cards
@@ -120,7 +147,7 @@ export const PatientDetails: React.FC = () => {
         title: fetchedAppointment.service?.name || "Atendimento",
         date: fetchedAppointment.startDate ? fetchedAppointment.startDate.split('T')[0] : "",
         time: fetchedAppointment.startDate ? fetchedAppointment.startDate.split('T')[1]?.substring(0,5) : "",
-        summary: fetchedAppointment.description || "Sem observações.",
+        summary: fetchedAppointment.description || "Sem obs.",
         notes: fetchedAppointment.description || ""
        };
        setCards([newCard]);
@@ -206,18 +233,24 @@ export const PatientDetails: React.FC = () => {
   return (
     <div className="w-full flex flex-col h-full">
       <main className="flex-1 p-6">
-        <div className="bg-white rounded-lg shadow-custom p-4 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center">
-                <Users className="w-8 h-8 text-[#121535]" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-semibold text-[#121535]">{patient.name}</h2>
-                <div className="text-sm text-[#121535]">Idade: {patient.age} anos | CPF: {patient.cpf} | Tel: {patient.phone}</div>
-              </div>
-            </div>
-            <div>
+        <div className="bg-white rounded-[20px] shadow-custom p-6 flex items-center relative overflow-hidden mb-6">
+           <div className="absolute left-0 top-0 bottom-0 w-3 bg-[#141736]"></div>
+           <div className="flex items-center justify-between w-full ml-4">
+             <div className="flex items-center gap-6">
+                <div className="w-20 h-20 rounded-full border-4 border-[#141736] flex items-center justify-center bg-white text-[#141736]"> 
+                  <User className="w-10 h-10" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-[#141736]">{patient.name}</h1>
+                  <p className="text-slate-600 mt-1 text-sm">
+                    {patient.age ? `Idade: ${patient.age} anos | ` : ''} 
+                    {patient.gender ? `${patient.gender} | ` : ''} 
+                    {patient.cpf ? `CPF: ${patient.cpf} | ` : ''} 
+                    {patient.phone ? `Tel: ${patient.phone}` : ''}
+                  </p>
+                </div>
+             </div>
+             <div>
               <Button
                 size="sm"
                 className="bg-[#121535] text-white px-3 py-2 w-[170px] relative overflow-hidden flex items-center justify-center cursor-pointer"

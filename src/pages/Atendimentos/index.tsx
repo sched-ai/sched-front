@@ -298,7 +298,14 @@ export const Atendimentos = () => {
                         variant="ghost"
                         size="sm"
                         className="bg-[#141736] hover:bg-[#282d64] text-white hover:text-white font-medium"
-                        onClick={() => navigate(`/appointment/${atendimento.id}`, { state: { atendimento } })}
+                        onClick={() => navigate(`/appointment/${atendimento.id}`, { 
+                          state: { 
+                            atendimento,
+                            paciente: atendimento.client 
+                              ? { ...atendimento.client, id: atendimento.client.id || atendimento.clientId }
+                              : { id: atendimento.clientId, name: atendimento.clientName }
+                          } 
+                        })}
                         >
                         Ver
                         <ArrowRight className="w-4 h-4 ml-2" />
