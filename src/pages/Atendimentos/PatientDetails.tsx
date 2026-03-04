@@ -258,7 +258,7 @@ export const PatientDetails: React.FC = () => {
                    const clientId = patient.clientId || fetchedAppointment?.clientId || fetchedAppointment?.client?.id || (location.state as any)?.atendimento?.clientId || (location.state as any)?.paciente?.id;
                    
                    if (clientId) {
-                     navigate(`/patients/${clientId}/history`);
+                     navigate(`/patients/${clientId}/history`, { state: { paciente: patient } });
                    } else {
                      console.warn("Client ID not found for navigation. Check fetchedAppointment object.", { fetchedAppointment, patient, state: location.state });
                    }
