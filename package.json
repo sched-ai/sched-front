@@ -48,7 +48,7 @@
     "@types/react-dom": "^19.1.7",
     "@types/react-input-mask": "^3.0.6",
     "@vitejs/plugin-react": "^5.0.0",
-    "axios": "^1.12.2",
+    "axios": "^1.13.6",
     "chrono-node": "^2.8.4",
     "classnames": "^2.5.1",
     "date-fns": "^4.1.0",
@@ -60,7 +60,6 @@
     "react-input-mask": "^2.0.4",
     "react-select": "^5.10.2",
     "react-toastify": "^11.0.5",
-
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.39.1",
     "vite": "^7.1.2"

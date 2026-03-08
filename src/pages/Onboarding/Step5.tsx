@@ -90,7 +90,7 @@ export const Step5 = () => {
         agendá-los.
       </p>
 
-      <div className="relative w-full max-h-[calc(100vh-320px)] overflow-y-auto pr-2 custom-scrollbar">
+      <div className="relative w-full md:h-[calc(100vh-200px)] h-[calc(100vh-300px)] overflow-y-auto pr-2 custom-scrollbar">
         <div className="flex flex-col gap-4 w-full">
           {services.length === 0 && (
             <div className="rounded-md border border-dashed border-neutral-200 p-6 text-center text-sm text-neutral-600">
@@ -222,13 +222,12 @@ export const Step5 = () => {
         <div className="flex items-center gap-2">
           <Button
             type="button"
+            variant="outline"
             onClick={addService}
-            className="inline-flex items-center gap-3 px-4 py-2 rounded-lg bg-white border border-neutral-200 text-neutral-800 shadow-sm hover:shadow group"
+            className="px-4 font-medium flex items-center gap-2"
           >
-            <Plus className="h-4 w-4 text-sky-600 group-hover:text-sky-300" />
-            <span className="font-medium group-hover:text-sky-300">
-              Adicionar
-            </span>
+            <Plus size={16} />
+            Adicionar
           </Button>
 
           <ActionButtons services={services} />
@@ -300,7 +299,7 @@ function ActionButtons({ services }: { services: Service[] }) {
       return;
     }
 
-    toast("Serviços salvos com sucesso.");
+    toast("Onboarding concluído com sucesso!");
     nextStep();
   };
 
@@ -310,11 +309,7 @@ function ActionButtons({ services }: { services: Service[] }) {
         type="button"
         onClick={handleSaveAndContinue}
         disabled={!canProceed || isSaving}
-        className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white shadow-md transition-all duration-150 ${
-          canProceed
-            ? "bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700"
-            : "bg-neutral-300 cursor-not-allowed"
-        }`}
+        className="px-4 font-medium"
       >
         {isSaving ? "Salvando..." : "Salvar"}
       </Button>
@@ -326,8 +321,8 @@ function SkipButton() {
   const { mutate: nextStep } = useNextStep({});
 
   const handleSkip = () => {
+    toast("Onboarding concluído com sucesso!");
     nextStep();
-    // toast("Você pulou esta etapa do onboarding.");
   };
 
   return (

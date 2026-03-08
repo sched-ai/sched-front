@@ -24,6 +24,7 @@ export interface IOnboardingBody {
 			name?: string;
 			cep?: string;
 			address?: string;
+			neighborhood?: string;
 			number?: string;
 			district?: string;
 			city?: string;
@@ -55,6 +56,7 @@ export const useOnboarding = ({ onSuccessFn }: IUseMutationParams) => {
 						nickname: (loc as { nickname?: string }).nickname ?? loc.name,
 						cep: loc.cep,
 						address: loc.address,
+						neighborhood: loc.neighborhood,
 						number: loc.number,
 						district: loc.district,
 						city: loc.city,
@@ -77,6 +79,7 @@ export const useOnboarding = ({ onSuccessFn }: IUseMutationParams) => {
 								id: undefined,
 								nickname: 'Without location',
 								address: '',
+								neighborhood: '',
 								cep: undefined,
 								number: '',
 								district: undefined,
@@ -105,6 +108,7 @@ export const useOnboarding = ({ onSuccessFn }: IUseMutationParams) => {
 					locations: mappedLocations.map(l => ({
 						nickname: l.nickname,
 						address: l.address,
+						neighborhood: l.neighborhood,
 						state: l.state,
 						city: l.city,
 						number: l.number,

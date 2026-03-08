@@ -47,7 +47,7 @@
 			if(!navigator.onLine){
 				return showToast({
 					label: 'Sem conexão!',
-					message: 'Parece que voce está offiline, verifique sua conexão com a internet e tente novamente!',
+					message: 'Parece que você está offline, verifique sua conexão com a internet e tente novamente!',
 					toastId: 'error-offline-toast',
 					type: 'warning',
 					autoClose

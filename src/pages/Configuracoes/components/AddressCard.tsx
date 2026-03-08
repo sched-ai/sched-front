@@ -11,6 +11,7 @@ interface AddressCardProps {
   locationName: string;
   nickname?: string;
   street: string;
+  neighborhood?: string;
   complement: string;
   rooms: number;
   city: string;
@@ -27,6 +28,7 @@ export const AddressCard = ({
   locationName,
   nickname,
   street,
+  neighborhood,
   complement,
   rooms,
   city,
@@ -66,6 +68,7 @@ export const AddressCard = ({
         ) : (
           <div className="text-gray-500 text-sm space-y-0.5 pl-6">
             <p>Rua: {street}</p>
+            {neighborhood && <p>Bairro: {neighborhood}</p>}
             <p>Complemento: {complement}</p>
             <p>Número de salas: {rooms}</p>
             <p>Cidade: {city} | Estado: {state}</p>

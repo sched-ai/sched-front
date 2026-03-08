@@ -85,7 +85,7 @@ export const RenderStep = ({
         const exists = prev.some((l) => l.id === id);
         if (flag && !exists) {
           return [
-            { id, name, address: "", number: "", city: "", state: "", complement: "" },
+            { id, name, address: "", neighborhood: "", number: "", city: "", state: "", complement: "" },
             ...prev,
           ];
         }
@@ -119,6 +119,7 @@ export const RenderStep = ({
     id: Date.now().toString(),
     name: "",
     address: "",
+    neighborhood: "",
     number: "",
     city: "",
     state: "",
@@ -200,7 +201,16 @@ export const RenderStep = ({
 
     let hasNonSpecial = false;
     if (singleLocationMode === true) {
+      // In single location mode, either they saved a singleLocation or the form is fully valid
+      const hasValidForm = 
+          !!locationForm.address && 
+          !!locationForm.neighborhood && 
+          !!locationForm.number && 
+          !!locationForm.city && 
+          !!locationForm.state;
+          
       if (singleLocation && !isSpecial(singleLocation.id)) hasNonSpecial = true;
+      if (!singleLocation && hasValidForm) hasNonSpecial = true;
       if (!hasNonSpecial && locations.some((l) => !isSpecial(l.id))) hasNonSpecial = true;
     } else {
       if (locations.some((l) => !isSpecial(l.id))) hasNonSpecial = true;
@@ -210,7 +220,14 @@ export const RenderStep = ({
 
     if (singleLocationMode === null) return false;
     if (singleLocationMode === true) {
-      return !!singleLocation || locations.length > 0;
+      const hasValidForm = 
+          !!locationForm.address && 
+          !!locationForm.neighborhood && 
+          !!locationForm.number && 
+          !!locationForm.city && 
+          !!locationForm.state;
+          
+      return !!singleLocation || hasValidForm || locations.length > 0;
     }
     return locations.length > 0;
   };
@@ -503,6 +520,7 @@ export const RenderStep = ({
           return {
             nickname: trimmedName || fallback,
             address: l.address,
+            neighborhood: l.neighborhood,
             state: l.state,
             city: l.city,
             number: l.number,
@@ -536,7 +554,12 @@ export const RenderStep = ({
     }
 
     if (step === 2) {
-      if (canProceedLocations()) nextStep();
+      if (canProceedLocations()) {
+        if (singleLocationMode === true && !singleLocation) {
+             addOrUpdateLocation();
+        }
+        nextStep();
+      }
       return;
     }
     handleFinalSubmit();
@@ -758,7 +781,7 @@ export const RenderStep = ({
             variant="outline"
             className="font-semibold text-[#141736] flex items-center gap-2 px-6 py-3 bg-transparent border-none shadow-none"
           >
-            FINALIZAR <span aria-hidden>→</span>
+            SALVAR <span aria-hidden>→</span>
           </Button>
         )}
       </div>

@@ -26,6 +26,7 @@ const DAY_FULL: Record<DayKey, string> = {
 export interface LocationData {
   id?: string;
   address: string;
+  neighborhood: string;
   complement: string;
   rooms: string;
   scheduleType: "fixed" | "flexible";
@@ -62,6 +63,7 @@ export const LocationModal = ({
   const isEdit = !!location;
 
   const [address, setAddress] = useState("");
+  const [neighborhood, setNeighborhood] = useState("");
   const [complement, setComplement] = useState("");
   const [rooms, setRooms] = useState("1");
   const [scheduleType, setScheduleType] = useState<"fixed" | "flexible">("fixed");
@@ -74,6 +76,7 @@ export const LocationModal = ({
     if (isOpen) {
       if (location) {
         setAddress(location.address);
+        setNeighborhood(location.neighborhood);
         setComplement(location.complement);
         setRooms(location.rooms);
         setScheduleType(location.scheduleType);
@@ -83,6 +86,7 @@ export const LocationModal = ({
         setFlexibleSchedule(location.flexibleSchedule);
       } else {
         setAddress("");
+        setNeighborhood("");
         setComplement("");
         setRooms("1");
         setScheduleType("fixed");
@@ -118,6 +122,7 @@ export const LocationModal = ({
     onSave?.({
       id: location?.id,
       address,
+      neighborhood,
       complement,
       rooms,
       scheduleType,
@@ -174,6 +179,18 @@ export const LocationModal = ({
                 placeholder="Endereço Novo"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
+                className={`${inputCls} pr-9 h-[44px]`}
+                required
+              />
+              <Pencil size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60" />
+            </div>
+
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Bairro"
+                value={neighborhood}
+                onChange={(e) => setNeighborhood(e.target.value)}
                 className={`${inputCls} pr-9 h-[44px]`}
                 required
               />

@@ -41,6 +41,7 @@ const mockAddresses: LocationData[] = [
   {
     id: "1",
     address: "Rua das Amendoeiras, nº 742",
+    neighborhood: "Centro",
     complement: "302, Bloco B",
     rooms: "4",
     scheduleType: "fixed",
@@ -60,6 +61,7 @@ const mockAddresses: LocationData[] = [
   {
     id: "2",
     address: "Avenida Oceânica, nº 1289",
+    neighborhood: "Barra",
     complement: "Loja 05, Galeria Mar Azul",
     rooms: "2",
     scheduleType: "fixed",
@@ -141,6 +143,7 @@ export const Configuracoes = () => {
         id: wp.id ?? String(i + 1),
         nickname: wp.nickname ?? "",
         address: `${wp.address}${wp.number ? ", nº " + wp.number : ""}`,
+        neighborhood: (wp as { neighborhood?: string }).neighborhood ?? "",
         complement: wp.complement ?? "",
         rooms: "1",
         scheduleType: "flexible" as const,
@@ -243,6 +246,7 @@ export const Configuracoes = () => {
                 nickname={(addr as any).nickname}
                 locationName={addr.complement ? addr.address.split(",")[0] : addr.address}
                 street={addr.address}
+                neighborhood={addr.neighborhood}
                 complement={addr.complement}
                 rooms={Number(addr.rooms)}
                 city={(addr as LocationData & { city?: string }).city ?? (addr.id === "1" ? "Belo Horizonte" : "Florianópolis")}

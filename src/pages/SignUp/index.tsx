@@ -3,6 +3,7 @@ import abstract from "../../assets/abstract_signup.png";
 import { Input } from "../../components/ui/input";
 import React from "react";
 import { useSignUp } from "@/hooks/api/auth/useSignUp";
+import { useSignIn } from "@/hooks/api/auth/useSignIn";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -13,10 +14,23 @@ export const SignUp = () => {
 
   const navigate = useNavigate();
 
+  const signIn = useSignIn({
+    onSuccessFn: () => {
+      navigate("/");
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onErrorFn: (err: any) => {
+      const errorMessage =
+        err?.response?.data?.message || "Erro ao realizar login automático.";
+      toast.error(errorMessage);
+      navigate("/");
+    },
+  });
+
   const signUp = useSignUp({
     onSuccessFn: () => {
-      toast( "Cadastro realizado com sucesso!");
-      navigate('/');
+      toast("Cadastro realizado com sucesso!");
+      signIn.mutate({ email, password });
     }
   });
 
@@ -33,7 +47,7 @@ export const SignUp = () => {
 
   return (
     <>
-      <div className="min-h-screen md:flex bg-[#d9d9d9] hidden">
+      <div className="min-h-screen md:flex hidden">
         <div
           className="flex p-11 max-w-[640px] w-full bg-cover bg-center"
           style={{ backgroundImage: `url(${abstract})` }}
@@ -65,7 +79,7 @@ export const SignUp = () => {
         </div>
         <div className="w-full max-w-[510px] m-auto">
           {/* O onSubmit agora chama a função com validação */}
-          <form className="space-y-6 px-8 py-12 bg-white shadow-custom" onSubmit={handleRegister}>
+          <form className="space-y-6 px-8 py-12 bg-white" onSubmit={handleRegister}>
             <div className="text-start">
               <h3 className="lg:text-[40px] font-semibold leading-[1.6] text-2xl">
                 Crie sua conta
