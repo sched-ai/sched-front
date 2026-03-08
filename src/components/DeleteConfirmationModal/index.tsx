@@ -67,7 +67,7 @@ export const DeleteConfirmationModal = ({
       >
           <div className="flex items-center gap-2 mb-4">
             <TriangleAlert className="w-6 h-6 text-red-500" />
-            <h2 className="text-xl font-bold text-white">Confirmar Exclusão</h2>
+            <h2 className="text-xl font-bold text-white">{isBlock ? "Confirmar Exclusão" : "Confirmar Cancelamento"}</h2>
           </div>
 
           <div className="bg-slate-800/50 rounded-lg p-3 mb-4 border border-slate-700/50">
@@ -87,7 +87,7 @@ export const DeleteConfirmationModal = ({
           <p className="text-slate-300 text-sm mb-4 leading-relaxed whitespace-pre-line">
             {isBlock 
               ? "Tem certeza que deseja excluir este bloqueio? \n\nATENÇÃO: Caso este bloqueio seja recorrente, TODAS as ocorrências futuras também serão excluídas."
-              : "Tem certeza que deseja excluir esta consulta? Essa ação não pode ser desfeita."
+              : "Tem certeza que deseja cancelar esta consulta? Essa ação não pode ser desfeita."
             }
           </p>
 
@@ -97,14 +97,14 @@ export const DeleteConfirmationModal = ({
               onClick={onClose}
               className="border-slate-600 !text-slate-300 hover:bg-slate-800 hover:text-white px-2"
             >
-              Cancelar
+              Não, Fechar
             </Button>
             <Button 
               variant="destructive" 
               onClick={confirmDelete}
               className="bg-red-600 hover:bg-red-700 text-white px-2"
             >
-              Excluir
+              {isBlock ? "Excluir" : "Sim, Cancelar"}
             </Button>
           </div>
       </div>

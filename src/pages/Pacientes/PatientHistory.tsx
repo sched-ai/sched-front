@@ -5,12 +5,14 @@ import {
   User, 
   Clock,
   Plus,
-  FolderOpen
+  FolderOpen,
+  Trash2
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useGetAllAppointments } from "@/hooks/api/useGetAllAppointments";
-import { useUpdateAppointment } from "@/hooks/api/useUpdateAppointment";
+import { useCreateAnnotation } from "@/hooks/api/useCreateAnnotation";
+import { DeleteNoteModal } from "@/components/DeleteNoteModal";
 
 export const PatientHistory = () => {
   const { id } = useParams<{ id: string }>();
@@ -35,7 +37,7 @@ export const PatientHistory = () => {
     limit: 50
   });
 
-  const { mutateAsync: updateAppointment, isPending: isUpdating } = useUpdateAppointment({
+  const { mutateAsync: createAnnotation, isPending: isCreating } = useCreateAnnotation({
     onSuccessFn: () => {
       refetch();
     }
@@ -55,6 +57,8 @@ export const PatientHistory = () => {
   const [editingAptId, setEditingAptId] = useState<string | null>(null);
   const [noteText, setNoteText] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  /* UI State for Delete Note Modal */
+  const [noteToDelete, setNoteToDelete] = useState<string | null>(null);
 
   const toggleExpand = (id: string) => {
     setExpandedCards(prev => ({ ...prev, [id]: !prev[id] }));
@@ -62,7 +66,7 @@ export const PatientHistory = () => {
 
   const handleStartEdit = (apt: any) => {
     setEditingAptId(apt.id);
-    setNoteText(apt.description || apt.notes || apt.observacao || "");
+    setNoteText("");
   };
 
   const handleCancelEdit = () => {
@@ -70,18 +74,23 @@ export const PatientHistory = () => {
     setNoteText("");
   };
 
-  const handleSaveNote = async (aptId: string) => {
+  const handleSaveNote = async (aptId: string, clientId: string) => {
+    if (!noteText.trim()) return;
     try {
-      await updateAppointment({
-        id: aptId,
-        payload: {
-          description: noteText
-        }
+      await createAnnotation({
+        appointmentId: aptId,
+        clientId: clientId,
+        content: noteText
       });
       setEditingAptId(null);
+      setNoteText("");
     } catch (error) {
       console.error("Failed to save note", error);
     }
+  };
+
+  const handleDeleteNote = (annotationId: string) => {
+    setNoteToDelete(annotationId);
   };
 
   useEffect(() => {
@@ -95,6 +104,12 @@ export const PatientHistory = () => {
 
   return (
     <div className="w-full h-full flex flex-col bg-[#FAFAFA]">
+      <DeleteNoteModal
+        isOpen={!!noteToDelete}
+        onClose={() => setNoteToDelete(null)}
+        onSuccess={() => refetch()}
+        noteId={noteToDelete}
+      />
       <div className="p-6 w-full">
         
         <div className="flex flex-col gap-8">
@@ -144,12 +159,8 @@ export const PatientHistory = () => {
                    const serviceName = apt.service?.name || "Atendimento";
                    const doctorName = apt.professional?.user?.name || "Dr. Desconhecido";
 
-                   /* Text Truncation Logic */
-                   const text = apt.description || "";
-                   const hasText = text.trim().length > 0;
-                   const isExpanded = expandedCards[apt.id];
-                   const shouldTruncate = text.length > 200;
-                   const displayedText = (isExpanded || !shouldTruncate) ? text : text.slice(0, 200) + "...";
+                   /* Annotations Logic */
+                   const annotations = apt.annotations || [];
                    const isEditing = editingAptId === apt.id;
 
                    return (
@@ -186,56 +197,86 @@ export const PatientHistory = () => {
                                </div>
                              )}
 
-                             {/* Description text or Edit Mode */}
-                             {isEditing ? (
-                               <textarea
-                                 ref={textareaRef}
-                                 value={noteText}
-                                 onChange={(e) => setNoteText(e.target.value)}
-                                 className="w-full p-3 rounded-md border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#141736] text-sm text-slate-700 leading-relaxed resize-y min-h-[100px]"
-                                 placeholder="Digite a nota aqui..."
-                               />
+                             {/* Annotations List */}
+                             {annotations.length > 0 ? (
+                               <div className="flex flex-col gap-3">
+                                 {annotations.map((note: any) => {
+                                   const noteDate = new Date(note.createdAt);
+                                   const noteDateFormatted = format(noteDate, "dd/MM/yyyy 'às' HH:mm");
+                                   const noteContent = note.content || "";
+                                   const isExpanded = expandedCards[note.id];
+                                   const shouldTruncate = noteContent.length > 200;
+                                   const displayedText = (isExpanded || !shouldTruncate) ? noteContent : noteContent.slice(0, 200) + "...";
+                                   
+                                   return (
+                                     <div key={note.id} className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm relative group transition-all hover:border-slate-300">
+                                       <div className="flex justify-between items-start mb-2">
+                                         <span className="text-xs text-slate-500 font-medium flex items-center gap-1">
+                                           <Clock className="w-3 h-3" />
+                                           {noteDateFormatted}
+                                         </span>
+                                         <button 
+                                           onClick={() => handleDeleteNote(note.id)}
+                                           className="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-1.5 rounded-md"
+                                           title="Excluir nota"
+                                         >
+                                           <Trash2 className="w-3.5 h-3.5" />
+                                         </button>
+                                       </div>
+                                       <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap">
+                                         {displayedText}
+                                       </p>
+                                       {shouldTruncate && (
+                                         <button 
+                                           onClick={() => toggleExpand(note.id)}
+                                           className="text-[#141736] font-bold text-sm mt-2 hover:underline block"
+                                         >
+                                           {isExpanded ? "Ler menos" : "Ler mais"}
+                                         </button>
+                                       )}
+                                     </div>
+                                   );
+                                 })}
+                               </div>
                              ) : (
-                               <>
-                                 {hasText ? (
-                                   <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-line">
-                                     {displayedText}
-                                   </p>
-                                 ) : (
-                                   <p className="text-slate-400 text-sm italic">
-                                     Sem observações.
-                                   </p>
-                                 )}
-                                 
-                                 {shouldTruncate && (
-                                   <button 
-                                     onClick={() => toggleExpand(apt.id)}
-                                     className="text-[#141736] font-bold text-sm mt-1 hover:underline block"
-                                   >
-                                     {isExpanded ? "Ler menos" : "Ler mais"}
-                                   </button>
-                                 )}
-                               </>
+                               !isEditing && (
+                                 <p className="text-slate-400 text-sm italic">
+                                   Sem observações.
+                                 </p>
+                               )
+                             )}
+
+                             {/* Edit Mode (Add Note) */}
+                             {isEditing && (
+                               <div className="mt-4">
+                                 <textarea
+                                   ref={textareaRef}
+                                   value={noteText}
+                                   onChange={(e) => setNoteText(e.target.value)}
+                                   className="w-full p-3 rounded-md border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#141736] text-sm text-slate-700 leading-relaxed resize-y min-h-[100px]"
+                                   placeholder="Digite a nota aqui..."
+                                 />
+                               </div>
                              )}
                           </div>
 
-                          <div className="flex justify-end gap-3">
+                          <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-slate-200">
                             {isEditing ? (
                               <>
                                 <Button 
                                   variant="ghost" 
                                   onClick={handleCancelEdit}
                                   className="text-slate-500 hover:text-slate-700 hover:bg-slate-100"
-                                  disabled={isUpdating}
+                                  disabled={isCreating}
                                 >
                                   Cancelar
                                 </Button>
                                 <Button 
-                                  onClick={() => handleSaveNote(apt.id)}
+                                  onClick={() => handleSaveNote(apt.id, apt.clientId)}
                                   className="bg-[#141736] text-white hover:bg-[#141736]/90 rounded-full px-6"
-                                  disabled={isUpdating}
+                                  disabled={isCreating}
                                 >
-                                  {isUpdating ? "Salvando..." : "Salvar"}
+                                  {isCreating ? "Salvando..." : "Salvar"}
                                 </Button>
                               </>
                             ) : (
@@ -245,7 +286,7 @@ export const PatientHistory = () => {
                                 className="border-[#141736] text-[#141736] hover:bg-[#141736] hover:text-white transition-colors gap-2 rounded-full px-6"
                               >
                                 <Plus className="w-4 h-4" />
-                                {hasText ? "Editar Nota" : "Adicionar Nota"}
+                                Adicionar Nota
                               </Button>
                             )}
                           </div>

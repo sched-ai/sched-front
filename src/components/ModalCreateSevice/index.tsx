@@ -5,14 +5,14 @@ import { useCreateService } from "@/hooks/api/useCreateService";
 import type { IService } from "@/hooks/api/useGetAllServices";
 import { useUpdateService } from "@/hooks/api/useEditService";
 import { useQueryClient } from "@tanstack/react-query";
-import { useListCompanyMemberships } from "@/hooks/api/useListCompanyMemberships";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+// import { useListCompanyMemberships } from "@/hooks/api/useListCompanyMemberships";
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from "@/components/ui/select";
 
 // --- Helpers ---
 
@@ -95,7 +95,7 @@ export const ModalCreateService = (props: IProps) => {
   const { isModalOpen, setIsModalOpen, service } = props;
   const isEditMode = !!service;
   const queryClient = useQueryClient();
-  const { data: professionals } = useListCompanyMemberships();
+  // const { data: professionals } = useListCompanyMemberships();
 
   const [nome, setNome] = useState("");
   const [descricao, setDescricao] = useState("");
@@ -254,7 +254,7 @@ export const ModalCreateService = (props: IProps) => {
             </div>
           </div>
 
-          <div className="space-y-1">
+          {/* <div className="space-y-1">
             <label className="text-xs text-gray-400 font-medium ml-1">
               Responsável
             </label>
@@ -274,7 +274,7 @@ export const ModalCreateService = (props: IProps) => {
                 ))}
               </SelectContent>
             </Select>
-          </div>
+          </div> */}
 
           <div className="space-y-1">
             <label className="text-xs text-gray-400 font-medium ml-1">

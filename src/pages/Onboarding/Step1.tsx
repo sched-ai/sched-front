@@ -2,6 +2,8 @@ import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import CustomRadioInput from "@/components/CustomRadioInput";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectTrigger,
@@ -17,7 +19,6 @@ interface Step1Props {
   area: string;
   setArea: (v: string) => void;
   professionalId: string;
-  setProfessionalId: (v: string) => void;
   companyName: string;
   setCompanyName: (v: string) => void;
   cnpj: string;
@@ -32,22 +33,27 @@ interface Step1Props {
   referrerOther: string;
   setReferrerOther: (v: string) => void;
   phoneNumber: string;
-  setPhoneNumber: (v: string) => void;
+  handlePhoneChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  hasCnpj: boolean;
+  setHasCnpj: (v: boolean) => void;
+  handleAutonomoDocumentChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  documentError?: string;
+  onDocumentBlur: (e: React.FocusEvent<HTMLInputElement>) => void;
+  setDocumentError: (v: string | undefined) => void;
 }
 
 export default function Step1({
   userType,
   setUserType,
-  area,
-  setArea,
+  // area,
+  // setArea,
   professionalId,
-  setProfessionalId,
   companyName,
   setCompanyName,
   cnpj,
   handleCnpjChange,
-  companyArea,
-  setCompanyArea,
+  // companyArea,
+  // setCompanyArea,
   step,
   setStep,
   prevStep,
@@ -56,7 +62,13 @@ export default function Step1({
   referrerOther,
   setReferrerOther,
   phoneNumber,
-  setPhoneNumber,
+  handlePhoneChange,
+  hasCnpj,
+  setHasCnpj,
+  handleAutonomoDocumentChange,
+  documentError,
+  onDocumentBlur,
+  setDocumentError,
 }: Step1Props) {
   const goPrev = () => {
     if (prevStep) return prevStep();
@@ -115,6 +127,7 @@ export default function Step1({
             subtitle="Para gerenciar sua agenda"
             onChange={handleUserTypeChange}
           />
+          
           <CustomRadioInput
             label="Empresa"
             htmlFor="empresa"
@@ -124,13 +137,25 @@ export default function Step1({
             checked={userType === "empresa"}
             subtitle="Para gerenciar sua empresa"
             onChange={handleUserTypeChange}
+            disabled
+            disabledTooltip="Em breve"
           />
         </div>
+        <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="hasCnpj" 
+                    checked={hasCnpj} 
+                    onCheckedChange={(checked) => setHasCnpj(checked === true)}
+                  />
+                  <Label htmlFor="hasCnpj" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    Possui CNPJ?
+                  </Label>
+                </div>  
         <div className="grid grid-cols-1 w-full justify-between gap-4 min-[1447px]:grid-cols-2">
           {userType === "autonomo" && (
             <>
               {/* left column */}
-              <div className="w-full">
+              {/* <div className="w-full">
                 <Input
                   type="text"
                   label="Sua área de atuação"
@@ -141,18 +166,26 @@ export default function Step1({
                   required
                   isRequired
                 />
-              </div>
+              </div> */}
 
-              <div className="w-full">
+                
+              <div className="w-full space-y-4">
                 <Input
-                  label="Nº de registro profissional"
+                  label={hasCnpj ? "CNPJ" : "CPF"}
                   type="text"
                   id="professionalId"
                   isRequired
                   value={professionalId}
-                  onChange={(e) => setProfessionalId(e.target.value)}
-                  placeholder="Ex: CRP 01/12345"
+                  onChange={(e) => {
+                    setDocumentError(undefined);
+                    handleAutonomoDocumentChange(e as React.ChangeEvent<HTMLInputElement>);
+                  }}
+                  onBlur={onDocumentBlur}
+                  error={documentError ? { type: "manual", message: documentError } : undefined}
+                  supportText={documentError}
+                  placeholder={hasCnpj ? "00.000.000/0001-00" : "000.000.000-00"}
                   required
+                  maxLength={hasCnpj ? 18 : 14}
                 />
               </div>
             </>
@@ -177,13 +210,19 @@ export default function Step1({
                   label="CNPJ"
                   id="cnpj"
                   value={cnpj}
-                  onChange={handleCnpjChange}
+                  onBlur={onDocumentBlur}
+                  error={documentError ? { type: "manual", message: documentError } : undefined}
+                  supportText={documentError}
                   placeholder="00.000.000/0001-00"
                   maxLength={18}
                   required
+                  onChange={(e) => {
+                    setDocumentError(undefined);
+                    handleCnpjChange(e as React.ChangeEvent<HTMLInputElement>);
+                  }}
                 />
               </div>
-              <div className="w-full">
+              {/* <div className="w-full">
                 <Input
                   type="text"
                   label="Principal área de atuação"
@@ -193,20 +232,21 @@ export default function Step1({
                   placeholder="Ex: Odontologia"
                   required
                 />
-              </div>
+              </div> */}
             </>
           )}
           
             <div className="w-full">
                 <Input
                   type="text"
-                  label="Número de telefone (Whatsapp)"
+                  label="Número de telefone"
                   id="phoneNumber"
                   value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  placeholder="Ex: (11) 91234-5678"
+                  onChange={handlePhoneChange}
+                  placeholder="(00) 00000-0000"
                   required
                   isRequired
+                  maxLength={15}
                 />
               </div>
             <div className="w-full">

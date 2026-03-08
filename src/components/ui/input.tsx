@@ -66,18 +66,18 @@ export const Input = forwardRef<unknown, IProps>((props, ref) => {
       filled: "",
       disabled:
         "cursor-not-allowed !bg-[#0505051A] !text-secondary-l !border-[#0505051A]",
-      invalid: "!border-danger-d",
+      invalid: "!border-destructive",
       leftIcon: "!pl-10",
       multiline:
         "resize-none !py-4 min-h-[66px] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar]:block overflow-y-auto [&::-webkit-scrollbar-track]:mt-2 [&::-webkit-scrollbar-track]:mb-2",
     },
     label: {
       base: "font-medium text-[16px] text-[#384455]",
-      invalid: "!text-danger-d !mb-0",
+      invalid: "!text-destructive !mb-0",
     },
     support_text: {
       base: "text-sm text-[#384455] ml-2 mt-1",
-      invalid: "!text-danger-d ",
+      invalid: "!text-destructive ",
     },
     left_icon: "absolute left-3 bottom-3",
     right_icon: {
@@ -196,11 +196,10 @@ export const Input = forwardRef<unknown, IProps>((props, ref) => {
         {label && (
           <div className="flex justify-between items-center mb-2">
             <label
-              className={classNames(styles.label.base, {
+              className={classNames(styles.label.base, "!mb-0", {
                 [styles.label.invalid]: error !== undefined,
-                "!mb-0": true,
               })}
-              htmlFor={fieldProps.name}
+              htmlFor={fieldProps.id}
             >
               {label}
               {isRequired && (
@@ -222,7 +221,7 @@ export const Input = forwardRef<unknown, IProps>((props, ref) => {
           {leftIconComponent && (
             <div className={styles.left_icon}>{leftIconComponent}</div>
           )}
-          <InputTag id={fieldProps.name} {...input_tag_props} />
+          <InputTag id={fieldProps.id} {...input_tag_props} />
           {rightIconComponent !== undefined && (
             <button
               type="button"

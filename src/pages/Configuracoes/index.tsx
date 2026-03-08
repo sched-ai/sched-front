@@ -1,10 +1,10 @@
 import { useState, useMemo, useEffect } from "react";
-import { MapPin, Users, Plus } from "lucide-react";
+import { MapPin, Plus } from "lucide-react";
 import { ClinicHeader } from "./components/ClinicHeader";
 import { SettingsInputs } from "./components/SettingsInputs";
 import { AddressCard } from "./components/AddressCard";
-import { ProfessionalCard } from "./components/ProfessionalCard";
-import { ProfessionalModal, type ProfessionalData } from "./components/ProfessionalModal";
+// import { ProfessionalCard } from "./components/ProfessionalCard";
+// import { ProfessionalModal, type ProfessionalData } from "./components/ProfessionalModal";
 import { LocationModal, type LocationData } from "./components/LocationModal";
 import { useUser } from "@/context/user";
 
@@ -78,11 +78,11 @@ const mockAddresses: LocationData[] = [
   },
 ];
 
-const mockProfessionals: ProfessionalData[] = [
-  { id: "1", name: "Felipe Carneiro", phone: "(22) 98912-4442", email: "felipe.carneiro@gmail.com", role: "Administrador" },
-  { id: "2", name: "Tiago Alves", phone: "(22) 98222-8585", email: "tiago.alves@gmail.com", role: "Profissional" },
-  { id: "3", name: "Samanta Gomes", phone: "(23) 6411-8675", email: "samanta.alves@gmail.com", role: "Assistente" },
-];
+// const mockProfessionals: ProfessionalData[] = [
+//   { id: "1", name: "Felipe Carneiro", phone: "(22) 98912-4442", email: "felipe.carneiro@gmail.com", role: "Administrador" },
+//   { id: "2", name: "Tiago Alves", phone: "(22) 98222-8585", email: "tiago.alves@gmail.com", role: "Profissional" },
+//   { id: "3", name: "Samanta Gomes", phone: "(23) 6411-8675", email: "samanta.alves@gmail.com", role: "Assistente" },
+// ];
 
 // ────────────────────────────────────────────────────────────────────────────
 
@@ -156,28 +156,27 @@ export const Configuracoes = () => {
 
   const initialAddresses = apiAddresses.length > 0 ? apiAddresses : mockAddresses;
 
-  // ── Professionals state ────────────────────────────────────
-  const [professionals, setProfessionals] = useState<ProfessionalData[]>(mockProfessionals);
-  const [isProfModalOpen, setIsProfModalOpen] = useState(false);
-  const [editingProfessional, setEditingProfessional] = useState<ProfessionalData | null>(null);
+  // const [professionals, setProfessionals] = useState<ProfessionalData[]>(mockProfessionals);
+  // const [isProfModalOpen, setIsProfModalOpen] = useState(false);
+  // const [editingProfessional, setEditingProfessional] = useState<ProfessionalData | null>(null);
 
-  const openAddProfessional = () => {
-    setEditingProfessional(null);
-    setIsProfModalOpen(true);
-  };
+  // const openAddProfessional = () => {
+  //   setEditingProfessional(null);
+  //   setIsProfModalOpen(true);
+  // };
 
-  const openEditProfessional = (pro: ProfessionalData) => {
-    setEditingProfessional(pro);
-    setIsProfModalOpen(true);
-  };
+  // const openEditProfessional = (pro: ProfessionalData) => {
+  //   setEditingProfessional(pro);
+  //   setIsProfModalOpen(true);
+  // };
 
-  const handleSaveProfessional = (data: ProfessionalData) => {
-    if (data.id) {
-      setProfessionals((prev) => prev.map((p) => (p.id === data.id ? data : p)));
-    } else {
-      setProfessionals((prev) => [...prev, { ...data, id: String(Date.now()) }]);
-    }
-  };
+  // const handleSaveProfessional = (data: ProfessionalData) => {
+  //   if (data.id) {
+  //     setProfessionals((prev) => prev.map((p) => (p.id === data.id ? data : p)));
+  //   } else {
+  //     setProfessionals((prev) => [...prev, { ...data, id: String(Date.now()) }]);
+  //   }
+  // };
 
   // ── Addresses state ────────────────────────────────────────
   const [addresses, setAddresses] = useState<LocationData[]>(() => initialAddresses);
@@ -270,7 +269,7 @@ export const Configuracoes = () => {
         <hr className="border-[#DADCE0] my-6" />
 
         {/* ── Professionals ─────────────────────────────────── */}
-        <section>
+        {/* <section>
           <div className="flex items-center gap-2 mb-4">
             <Users size={18} className="text-[#121535]" />
             <h2 className="text-lg font-semibold text-[#121535]">Profissionais</h2>
@@ -298,18 +297,16 @@ export const Configuracoes = () => {
               Adicionar profissional
             </button>
           </div>
-        </section>
-
-        <hr className="border-[#DADCE0] my-6" />
+        </section> */}
       </main>
 
       {/* ── Modals ───────────────────────────────────────────── */}
-      <ProfessionalModal
+      {/* <ProfessionalModal
         isOpen={isProfModalOpen}
         setIsOpen={setIsProfModalOpen}
         professional={editingProfessional}
         onSave={handleSaveProfessional}
-      />
+      /> */}
 
       <LocationModal
         isOpen={isLocModalOpen}

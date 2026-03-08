@@ -20,11 +20,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     return <Navigate to="/signin" replace />;
   }
   
-   if (userData && userData.onboardingStep < 6 && location.pathname !== '/onboarding') {
+   if (userData && userData.onboardingStep < 5 && location.pathname !== '/onboarding') {
      return <Navigate to="/onboarding" replace />;
    }
 
-   if (userData && userData.onboardingStep > 5 && location.pathname === '/onboarding') {
+   if (userData && userData.onboardingStep > 4 && location.pathname === '/onboarding') {
          return <Navigate to="/" replace />;
    }
 

@@ -9,6 +9,8 @@ import { type LucideProps } from "lucide-react";
 import { cn } from "@/lib/utils";
 import SharedIcon from "@/components/Icon";
 
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+
 export interface CustomRadioInputProps {
   label: string;
   htmlFor: string;
@@ -29,6 +31,8 @@ export interface CustomRadioInputProps {
   value?: string;
   onClick?: MouseEventHandler<HTMLLabelElement>;
   subtitle?: string;
+  disabled?: boolean;
+  disabledTooltip?: string;
 }
 
 const CustomRadioInput = (props: CustomRadioInputProps) => {
@@ -45,16 +49,20 @@ const CustomRadioInput = (props: CustomRadioInputProps) => {
     onChange,
     onClick,
     subtitle,
+    disabled,
+    disabledTooltip,
   } = props;
 
-  return (
+  const content = (
     <label
-      onClick={onClick}
+      onClick={!disabled ? onClick : undefined}
       htmlFor={htmlFor}
       className={cn(
-        "p-4 border-2 custom-2md:h-[81px] m-auto sm:m-0 w-full border-[#E1E1E1] rounded-md cursor-pointer h-full flex items-center relative hover:shadow-[3px_4px_35px_#1417362B] transition-all group",
+        "p-4 border-2 custom-2md:h-[81px] m-auto sm:m-0 w-full border-[#E1E1E1] rounded-md h-full flex items-center relative transition-all group",
         {
-          "border-[#141736]": checked,
+          "border-[#141736]": checked && !disabled,
+          "cursor-pointer hover:shadow-[3px_4px_35px_#1417362B]": !disabled,
+          "cursor-not-allowed opacity-50": disabled,
         }
       )}
     >
@@ -68,7 +76,7 @@ const CustomRadioInput = (props: CustomRadioInputProps) => {
         <div>
           <p
             className={cn("text-[16px]", {
-              "text-[#141736]": checked,
+              "text-[#141736]": checked && !disabled,
             })}
           >
             {label}
@@ -84,14 +92,34 @@ const CustomRadioInput = (props: CustomRadioInputProps) => {
         onChange={onChange}
         checked={checked}
         value={value}
+        disabled={disabled}
       />
       {!omit_radio && (
-        <div className="flex items-center justify-center absolute top-4 right-4 h-6 w-6 rounded-full bg-[#F9F9F9] border-2 border-gray-200  peer-checked:bg-primary group-hover:bg-primary transition-all">
+        <div
+          className={cn(
+            "flex items-center justify-center absolute top-4 right-4 h-6 w-6 rounded-full bg-[#F9F9F9] border-2 border-gray-200 transition-all",
+            {
+              "peer-checked:bg-primary group-hover:bg-primary": !disabled,
+              "bg-gray-200": disabled && checked,
+            }
+          )}
+        >
           <div className="bg-[#F9F9F9] flex h-2 w-2 rounded-full" />
         </div>
       )}
     </label>
   );
+
+  if (disabled && disabledTooltip) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>{content}</TooltipTrigger>
+        <TooltipContent>{disabledTooltip}</TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  return content;
 };
 
 export default CustomRadioInput;

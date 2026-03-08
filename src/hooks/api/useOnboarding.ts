@@ -127,3 +127,15 @@ export const useOnboarding = ({ onSuccessFn }: IUseMutationParams) => {
 		}
 	});
 };
+
+export const useCheckDocument = () => {
+	const { get } = useAPI<{ isNew: boolean }>();
+
+	return useMutation({
+		mutationFn: (document: string) => get({
+			label: 'Check Document',
+			endpoint: `/onboarding/isNewDocument/${document}`,
+			showSuccessFeedback: false,
+		}),
+	});
+};

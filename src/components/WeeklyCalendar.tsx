@@ -229,26 +229,6 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                 </div>
               </div>
 
-              {/* Current Time Indicator */}
-              {nowIndicator && (
-                <div
-                  className="absolute pointer-events-none z-30 flex items-center w-full"
-                  style={{
-                    top: `${nowIndicator.top}px`,
-                  }}
-                >
-                  <div className="w-[70px] flex justify-end pr-2 absolute left-0">
-                    {/* Text removed as requested */}
-                  </div>
-                  <div className="flex-1 relative w-full" style={{ marginLeft: '70px' }}>
-                    <div
-                      className="absolute -left-[5px] -top-1.5 w-3 h-3 rounded-full bg-red-500 ring-4 ring-red-50 shadow-sm"
-                    />
-                    <div className="h-[2px] w-full bg-gradient-to-r from-red-500/80 to-red-500/20 shadow-[0_1px_4px_rgba(239,68,68,0.3)]" />
-                  </div>
-                </div>
-              )}
-
               {/* Calendar Grid */}
               <div className="grid grid-cols-7 w-full divide-x divide-gray-200">
                 {weekDays.map((day, dayIdx) => (
@@ -258,6 +238,20 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                       dayIdx >= 5 ? "bg-gray-50/20" : ""
                     }`}
                   >
+                    {/* Current Time Indicator */}
+                    {nowIndicator && nowIndicator.dayIdx === dayIdx && (
+                      <div
+                        className="absolute pointer-events-none z-30 flex items-center w-full"
+                        style={{
+                          top: `${nowIndicator.top}px`,
+                        }}
+                      >
+                        <div
+                          className="absolute -left-[5px] -top-1.5 w-3 h-3 rounded-full bg-red-500 ring-4 ring-red-50 shadow-sm"
+                        />
+                        <div className="h-[2px] w-full bg-gradient-to-r from-red-500/80 to-red-500/20 shadow-[0_1px_4px_rgba(239,68,68,0.3)]" />
+                      </div>
+                    )}
                     {/* Grid Lines */}
                     {hours.map((hour) => (
                       <div

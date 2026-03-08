@@ -8,13 +8,14 @@ export interface IDeleteAppointmentPayload {
 
 export const useDeleteAppointment = ({ onSuccessFn }: IUseMutationParams) => {
   const queryClient = useQueryClient();
-  const { destroy } = useAPI();
+  const { patch } = useAPI();
 
   return useMutation({
     mutationFn: (id: string) =>
-      destroy({
-        endpoint: `appointment/${id}`,
-        label: "Exclusão de agendamento",
+      patch({
+        endpoint: `appointment/${id}/cancel`,
+        label: "Cancelamento de agendamento",
+        body: {}
       }),
 
     onSuccess: () => {

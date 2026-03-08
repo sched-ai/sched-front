@@ -223,9 +223,12 @@ export const Atendimentos = () => {
           </div>
 
           <div className="border bg-[#141736] text-white rounded-t-lg py-2">
-            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 items-center px-6 py-3">
+            <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 items-center px-6 py-3">
               <div className="lg:col-span-1">
                 <h3 className="font-semibold text-sm uppercase">Paciente</h3>
+              </div>
+              <div className="lg:col-span-1">
+                <h3 className="font-semibold text-sm uppercase">Serviço</h3>
               </div>
               <div className="lg:col-span-1">
                 <h3 className="font-semibold text-sm uppercase">Data</h3>
@@ -237,7 +240,7 @@ export const Atendimentos = () => {
                 <h3 className="font-semibold text-sm uppercase">Status</h3>
               </div>
               <div className="lg:col-span-1 flex justify-center">
-                <h3 className="font-semibold text-sm uppercase">Ações</h3>
+                <h3 className="font-semibold text-sm uppercase">Detalhes</h3>
               </div>
             </div>
           </div>
@@ -255,10 +258,16 @@ export const Atendimentos = () => {
                     index % 2 === 0 ? 'bg-white' : 'bg-slate-50'
                     } hover:bg-slate-100 transition-colors duration-200`}
                 >
-                    <div className={`grid grid-cols-2 lg:grid-cols-5 gap-4 items-center p-6 border border-slate-200 ${index === appointments.length - 1  ? 'rounded-b-lg' : ''}`}>
+                    <div className={`grid grid-cols-2 lg:grid-cols-6 gap-4 items-center p-6 border border-slate-200 ${index === appointments.length - 1  ? 'rounded-b-lg' : ''}`}>
                     <div className="lg:col-span-1">
                         <p className="text-slate-800 text-sm font-medium">
                         {atendimento.clientName || atendimento.client?.name || 'Sem nome'}
+                        </p>
+                    </div>
+
+                    <div className="lg:col-span-1">
+                        <p className="text-slate-600 text-sm">
+                        {atendimento.service?.name || '-'}
                         </p>
                     </div>
 

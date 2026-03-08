@@ -35,13 +35,8 @@ export const Onboarding = () => {
       title: "Expediente",
       description: "Assim podemos agendar seus atendimentos corretamente",
     },
-     {
-      step: 4,
-      title: "Colaboradores",
-      description: "Adicione sua equipe ao Sched",
-    },
     {
-      step: 5,
+      step: 4,
       title: "Serviços Oferecidos",
       description: "Defina o que oferece e seus preços",
     },

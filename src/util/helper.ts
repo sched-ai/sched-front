@@ -84,6 +84,32 @@ export const formatCnpj = (value: string) => {
     return formatted;
   };
 
+export const formatCpf = (value: string) => {
+  const cleaned = value.replace(/\D/g, "");
+  const match = cleaned.match(/^(\d{0,3})(\d{0,3})(\d{0,3})(\d{0,2})$/);
+
+  if (!match) return value;
+
+  let formatted = "";
+  if (match[1]) formatted += match[1];
+  if (match[2]) formatted += `.${match[2]}`;
+  if (match[3]) formatted += `.${match[3]}`;
+  if (match[4]) formatted += `-${match[4]}`;
+
+  return formatted;
+};
+
+
+export const formatPhone = (value: string) => {
+  const cleaned = value.replace(/\D/g, "");
+  const len = cleaned.length;
+
+  if (len === 0) return "";
+  if (len <= 2) return `(${cleaned}`;
+  if (len <= 6) return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2)}`;
+  if (len <= 10) return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 6)}-${cleaned.slice(6)}`;
+  return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 7)}-${cleaned.slice(7, 11)}`;
+};
 
 export const formatCurrency = (value: any, precision=2) => {
 	var translation = localStorage.getItem('translation');

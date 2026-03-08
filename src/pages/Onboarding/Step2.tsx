@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import CustomRadioInput from "@/components/CustomRadioInput";
 import LocationFormsToAdd from "./LocationFormsToAdd";
-import { House, MapPin, Plus, Globe} from "lucide-react";
+import { MapPin, Plus, Globe} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { Location } from "@/types";
@@ -54,16 +54,16 @@ export default function Step2({
   setEditingLocation,
   initialAttendWorkspace,
   headerLeft,
-  attendHome: propAttendHome,
-  setAttendHome: propSetAttendHome,
+  // attendHome: propAttendHome,
+  // setAttendHome: propSetAttendHome,
   attendOnline: propAttendOnline,
   setAttendOnline: propSetAttendOnline,
   attendWorkspace: propAttendWorkspace,
   setAttendWorkspace: propSetAttendWorkspace,
 }: Step2Props) {
-  const [attendHomeState, setAttendHomeState] = useState<boolean>(
-    propAttendHome ?? false
-  );
+  // const [attendHomeState, setAttendHomeState] = useState<boolean>(
+  //   propAttendHome ?? false
+  // );
   const [attendOnlineState, setAttendOnlineState] = useState<boolean>(
     propAttendOnline ?? false
   );
@@ -72,9 +72,9 @@ export default function Step2({
   );
 
   // Sync local state when parent-controlled values change
-  useEffect(() => {
-    if (propAttendHome !== undefined) setAttendHomeState(propAttendHome);
-  }, [propAttendHome]);
+  // useEffect(() => {
+  //   if (propAttendHome !== undefined) setAttendHomeState(propAttendHome);
+  // }, [propAttendHome]);
   useEffect(() => {
     if (propAttendOnline !== undefined) setAttendOnlineState(propAttendOnline);
   }, [propAttendOnline]);
@@ -84,10 +84,10 @@ export default function Step2({
   }, [propAttendWorkspace]);
 
 
-  const setAttendHome = (v: boolean) => {
-    if (typeof propSetAttendHome === "function") propSetAttendHome(v);
-    else setAttendHomeState(v);
-  };
+  // const setAttendHome = (v: boolean) => {
+  //   if (typeof propSetAttendHome === "function") propSetAttendHome(v);
+  //   else setAttendHomeState(v);
+  // };
   const setAttendOnline = (v: boolean) => {
     if (typeof propSetAttendOnline === "function") propSetAttendOnline(v);
     else setAttendOnlineState(v);
@@ -104,7 +104,7 @@ export default function Step2({
   void step;
   void setStep;
 
-  const attendHome = propAttendHome ?? attendHomeState;
+  // const attendHome = propAttendHome ?? attendHomeState;
   const attendOnline = propAttendOnline ?? attendOnlineState;
   const attendWorkspace = propAttendWorkspace ?? attendWorkspaceState;
   const visibleLocations = locations.filter(
@@ -144,20 +144,20 @@ export default function Step2({
         </div>
       </div>
       <div className="flex flex-col gap-4">
-  <div className="flex flex-col items-center gap-[25px] mt-2 mb-2 md:flex-row md:flex-wrap md:justify-between h-fit">
-          <label className={`relative flex items-start gap-2 border p-4 rounded-lg w-[80%] md:flex-1 md:min-w-[220px] md:max-w-[32%] mx-auto cursor-pointer hover:shadow-[3px_4px_35px_#0015fc2b] transition duration-200 ${attendWorkspace ? 'border-[#141736]' : 'border-gray-400'}`}>
+    <div className="flex flex-col items-center gap-[25px] mt-2 mb-2 md:flex-row md:flex-wrap md:justify-between h-fit">
+          <label className={`relative flex items-start gap-2 border p-4 rounded-lg w-full md:flex-1 md:min-w-[220px] mx-auto cursor-pointer hover:shadow-[3px_4px_35px_#0015fc2b] transition duration-200 ${attendWorkspace ? 'border-[#141736]' : 'border-gray-400'}`}>
             <Checkbox
               className="sr-only"
               checked={attendWorkspace}
               onCheckedChange={(v) => setAttendWorkspace(Boolean(v))}
             />
             <div className={`flex flex-col w-full justify-center text-center gap-4 transition-colors duration-200 ease-in-out ${attendWorkspace ? 'text-[#141736]' : 'text-[#A8A7A7]'}`}>
-              <span className="select-none font-semibold text-[20px]">Local de trabalho</span>
+              <span className="select-none font-semibold text-[20px]">Endereço Físico</span>
               <MapPin className={`self-center ${attendWorkspace ? 'text-black' : 'text[#A8A7A7]'}`} size={48} />
             </div>
             <div className={`absolute top-4 right-4 h-5 w-5 rounded-full border ${attendWorkspace ? 'bg-[#141736] border-[#141736]' : 'bg-white border-gray-500'}`} />
           </label>
-          <label className={`relative flex items-start gap-2 border p-4 rounded-lg w-[80%] md:flex-1 md:min-w-[220px] md:max-w-[32%] mx-auto cursor-pointer hover:shadow-[3px_4px_35px_#0015fc2b] transition duration-200 ${attendOnline ? 'border-[#141736]' : 'border-gray-400'}`}>
+          <label className={`relative flex items-start gap-2 border p-4 rounded-lg w-full md:flex-1 md:min-w-[220px] mx-auto cursor-pointer hover:shadow-[3px_4px_35px_#0015fc2b] transition duration-200 ${attendWorkspace ? 'border-[#141736]' : 'border-gray-400'}`}>
             <Checkbox
               className="sr-only"
               checked={attendOnline}
@@ -169,7 +169,7 @@ export default function Step2({
             </div>
             <div className={`absolute top-4 right-4 h-5 w-5 rounded-full border ${attendOnline ? 'bg-[#141736] border-[#141736]' : 'bg-white border-gray-500'}`} />
           </label>
-          <label className={`relative flex items-start gap-2 border p-4 rounded-lg w-[80%] md:flex-1 md:min-w-[220px] md:max-w-[32%] mx-auto cursor-pointer hover:shadow-[3px_4px_35px_#0015fc2b] transition duration-200 ${attendHome ? 'border-[#141736]' : 'border-gray-400'}`}>
+          {/* <label className={`relative flex items-start gap-2 border p-4 rounded-lg w-[80%] md:flex-1 md:min-w-[220px] md:max-w-[32%] mx-auto cursor-pointer hover:shadow-[3px_4px_35px_#0015fc2b] transition duration-200 ${attendHome ? 'border-[#141736]' : 'border-gray-400'}`}>
             <Checkbox
               className="sr-only"
               checked={attendHome}
@@ -180,7 +180,7 @@ export default function Step2({
               <House className={`self-center ${attendHome ? 'text-black' : 'text[#A8A7A7]'}`} size={48} />
             </div>
             <div className={`absolute top-4 right-4 h-5 w-5 rounded-full border ${attendHome ? 'bg-[#141736] border-[#141736]' : 'bg-white border-gray-500'}`} />
-          </label>
+          </label> */}
         </div>
 
         {showLocationsQuestion ? (

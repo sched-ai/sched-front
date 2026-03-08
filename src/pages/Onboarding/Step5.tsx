@@ -1,19 +1,19 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import Input from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Trash2, Info, Plus, BriefcaseBusiness } from "lucide-react";
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from "@/components/ui/select";
+import { Trash2, Plus, BriefcaseBusiness } from "lucide-react";
 import { useNextStep } from "@/hooks/api/useNextStep";
 import { useCreateService } from "@/hooks/api/useCreateService";
 import { toast } from "sonner";
-import { useUser } from "@/context/user";
-import { useListCompanyMemberships } from "@/hooks/api/useListCompanyMemberships";
+// import { useUser } from "@/context/user";
+// import { useListCompanyMemberships } from "@/hooks/api/useListCompanyMemberships";
 
 function formatBRL(value: string) {
   const onlyNums = value.replace(/[^0-9]/g, "");
@@ -36,8 +36,8 @@ type Service = {
 };
 
 export const Step5 = () => {
-  const { userData } = useUser();
-  const { data: employeeData } = useListCompanyMemberships();
+  // const { userData } = useUser();
+  // const { data: employeeData } = useListCompanyMemberships();
 
   const [services, setServices] = useState<Service[]>([
     {
@@ -90,18 +90,6 @@ export const Step5 = () => {
         agendá-los.
       </p>
 
-      <div className="px-4 py-4 bg-gradient-to-r from-slate-50 to-white border border-neutral-200 rounded-xl max-w-[900px] my-4 flex items-start gap-4">
-        <Info className="text-blue-500" size={36} />
-        <div>
-          <p className="font-medium">Organize seus serviços</p>
-          <p className="text-sm text-muted-foreground max-w-xl">
-            Crie serviços com nome, descrição, duração, preço e vincule o
-            profissional responsável. Isso ajuda clientes na hora de agendar e
-            melhora a experiência no agendamento.
-          </p>
-        </div>
-      </div>
-
       <div className="relative w-full max-h-[calc(100vh-320px)] overflow-y-auto pr-2 custom-scrollbar">
         <div className="flex flex-col gap-4 w-full">
           {services.length === 0 && (
@@ -134,8 +122,8 @@ export const Step5 = () => {
                   <div className="flex items-start">
                     <Button
                       type="button"
-                      variant="destructive"
-                      className="h-[52px] w-10 p-0 flex items-center justify-center"
+                      variant="ghost"
+                      className="h-[52px] w-10 p-0 flex items-center justify-center text-red-500 hover:text-red-600"
                       onClick={() => removeService(c.id)}
                       aria-label="Remover serviço"
                     >
@@ -172,7 +160,7 @@ export const Step5 = () => {
                     }
                   />
 
-                  {userData?.membership.company.companyType != "AUTONOMO" && (
+                  {/* {userData?.membership?.company?.companyType !== "AUTONOMO" && (
                     <div>
                       <label className="block mb-2 font-medium text-[16px] text-[#384455]">
                         Profissional Responsável
@@ -195,7 +183,7 @@ export const Step5 = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                  )}
+                  )} */}
 
                   <Input
                     id={`service-price-${c.id}`}

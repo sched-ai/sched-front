@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { capitalizeFirst } from "@/util/helper";
-import { CalendarDays, Clock, Layers, Pencil, Trash2, MapPin, X, Loader2, Timer, User } from "lucide-react";
+import { CalendarDays, Clock, Layers, Pencil, Trash2, MapPin, X, Loader2, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { EventType } from "../WeeklyCalendar";
 import { DeleteConfirmationModal } from "../DeleteConfirmationModal";
@@ -209,15 +209,6 @@ export const ScheduleViewModal = ({
                         className="flex justify-between w-full bg-[#1a1e45] text-slate-200 px-3 py-1 text-sm font-normal border-transparent rounded-md"
                       >
                         {service.name}
-                          <div className="flex gap-4">
-                            {service.duration && (
-                              <div className="flex items-center gap-1.5 text-slate-300">
-                                <Timer className="w-4 h-4 text-amber-400" />
-                                <span className="text-sm">{service.duration} min</span>
-                              </div>
-                            )}
-                           
-                          </div>
                       </Badge>
 
                   ) : details.services && details.services.length > 0 ? (

@@ -6,16 +6,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useOnboarding, type IOnboardingBody } from "@/hooks/api/useOnboarding";
-import { formatCnpj } from "@/util/helper";
+import { useOnboarding, useCheckDocument, type IOnboardingBody } from "@/hooks/api/useOnboarding";
+import { formatCnpj, formatPhone, formatCpf } from "@/util/helper";
 import { ArrowLeft } from "lucide-react";
 import type { DayKey, DaySchedule, Location, UserType } from "@/types";
 import Step3 from "./Step3";
 import Step2 from "./Step2";
 import Step1 from "./Step1";
-import Step4 from "./Step4";
 import { Step5 } from "./Step5";
 import { useNavigate } from "react-router-dom";
+import { useUser } from "@/context/user";
 
 export const RenderStep = ({
   step,
@@ -24,7 +24,7 @@ export const RenderStep = ({
   step: number;
   setStep: (step: number | ((prev: number) => number)) => void;
 }) => {
-
+  const { userData } = useUser();
 
   const { mutate: submitOnboarding } = useOnboarding({
     onSuccessFn: () => {
@@ -34,13 +34,25 @@ export const RenderStep = ({
     },
   });
 
+  const { mutateAsync: checkDocument } = useCheckDocument();
+  const [documentError, setDocumentError] = useState<string | undefined>(undefined);
+  const [isVerifyingDocument, setIsVerifyingDocument] = useState(false);
+  const [isDocumentNew, setIsDocumentNew] = useState(false);
+
   const [userType, setUserType] = useState<UserType>("autonomo");
+  const handleUserTypeChange = (type: UserType) => {
+    setUserType(type);
+    setDocumentError(undefined);
+    setProfessionalId("");
+    setCnpj("");
+  };
 
   const [area, setArea] = useState("");
   const [professionalId, setProfessionalId] = useState("");
 
   const [companyName, setCompanyName] = useState("");
   const [cnpj, setCnpj] = useState("");
+  const [hasCnpj, setHasCnpj] = useState(true);
   const [companyArea, setCompanyArea] = useState("");
   const [schedule, setSchedule] = useState<Record<DayKey, DaySchedule>>({
     segunda: { working: true, start: "09:00", end: "18:00" },
@@ -177,22 +189,6 @@ export const RenderStep = ({
     setShowLocationForm(true);
   };
 
-  const handleLocationScheduleChange = (
-    locationId: string,
-    day: keyof typeof schedule,
-    field: "working" | "start" | "end",
-    value: string | boolean
-  ) => {
-    setLocationSchedules((prev) => ({
-      ...prev,
-      [locationId]: {
-        ...prev[locationId],
-        [day]: { ...prev[locationId][day], [field]: value },
-      },
-    }));
-  };
-
-  const canProceedStep1 = userType !== "";
 
   const canProceedLocations = () => {
     const anyAttendanceSelected = attendOnline || attendHome || attendWorkspace;
@@ -252,8 +248,76 @@ export const RenderStep = ({
     );
   };
 
+  const handleLocationScheduleChange = (
+    locationId: string,
+    day: keyof typeof schedule,
+    field: "working" | "start" | "end",
+    value: string | boolean
+  ) => {
+    setLocationSchedules((prev) => ({
+      ...prev,
+      [locationId]: {
+        ...prev[locationId],
+        [day]: { ...prev[locationId][day], [field]: value },
+      },
+    }));
+  };
+
+  const canProceedStep1 = 
+    userType !== "" && 
+    !documentError && 
+    !isVerifyingDocument && 
+    isDocumentNew &&
+    phoneNumber.length >= 10 &&
+    referrer !== "";
+
   const handleCnpjChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCnpj(formatCnpj(e.target.value));
+    const formatted = formatCnpj(e.target.value);
+    setCnpj(formatted);
+    setIsDocumentNew(false);
+    verifyDocumentUniqueness(formatted);
+  };
+  
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPhoneNumber(formatPhone(e.target.value));
+  };
+
+  const handleAutonomoDocumentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const formatted = hasCnpj ? formatCnpj(value) : formatCpf(value);
+    setProfessionalId(formatted);
+    setIsDocumentNew(false);
+    verifyDocumentUniqueness(formatted);
+  };
+
+  const verifyDocumentUniqueness = async (document: string) => {
+    const cleaned = document.replace(/\D/g, "");
+    const expectedLen = userType === "empresa" ? 14 : (hasCnpj ? 14 : 11);
+
+    if (cleaned.length === expectedLen) {
+      setIsVerifyingDocument(true);
+      try {
+        const resp = await checkDocument(cleaned);
+        if (resp && !resp.isNew) {
+          setDocumentError("Documento já cadastrado");
+          setIsDocumentNew(false);
+        } else {
+          setDocumentError(undefined);
+          setIsDocumentNew(true);
+        }
+      } catch (error) {
+        console.error("Erro ao verificar documento:", error);
+      } finally {
+        setIsVerifyingDocument(false);
+      }
+    } else {
+      setDocumentError(undefined);
+    }
+  };
+
+  const handleDocumentBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    // Option to re-verify on blur if needed, but it's handled on change now.
+    verifyDocumentUniqueness(e.target.value);
   };
 
   const nextStep = () => setStep((prev: number) => prev + 1);
@@ -383,14 +447,14 @@ export const RenderStep = ({
 
     const apiPayload: IOnboardingBody = {
       type: userType === "autonomo" ? "AUTONOMO" : "EMPRESA",
-      professionalName: userType === "autonomo" ? area : undefined,
+      professionalName: userType === "autonomo" ? userData?.name : undefined,
       fieldOfWork: userType === "autonomo" ? area : companyArea,
-      professionalLicense: userType === "autonomo" ? professionalId : undefined,
+      professionalLicense: userType === "autonomo" && !hasCnpj ? professionalId.replace(/\D/g, "") : undefined,
       companyName: userType === "empresa" ? companyName : undefined,
       howFound: referrer === "outro" ? referrerOther : referrer,
-      phone: phoneNumber,
+      phone: phoneNumber.replace(/\D/g, ""),
       companyDocument:
-        userType === "empresa" ? cnpj.replace(/\D/g, "") : undefined,
+        userType === "empresa" ? cnpj.replace(/\D/g, "") : (userType === "autonomo" && hasCnpj ? professionalId.replace(/\D/g, "") : undefined),
       offersHomeVisit: attendHome,
       offersOnline: attendOnline,
       workSchedules,
@@ -481,7 +545,7 @@ export const RenderStep = ({
   const navigate = useNavigate();
 
   const renderMainContent = () => {
-    if (step > 5) {
+    if (step > 4) {
       navigate("/");
     }
 
@@ -491,11 +555,10 @@ export const RenderStep = ({
           step={step}
           setStep={setStep}
           userType={userType}
-          setUserType={setUserType}
+          setUserType={handleUserTypeChange}
           area={area}
           setArea={setArea}
           professionalId={professionalId}
-          setProfessionalId={setProfessionalId}
           companyName={companyName}
           setCompanyName={setCompanyName}
           cnpj={cnpj}
@@ -508,7 +571,18 @@ export const RenderStep = ({
           referrerOther={referrerOther}
           setReferrerOther={setReferrerOther}
           phoneNumber={phoneNumber}
-          setPhoneNumber={setPhoneNumber}
+          handlePhoneChange={handlePhoneChange}
+          hasCnpj={hasCnpj}
+          setHasCnpj={(v) => {
+            setHasCnpj(v);
+            setProfessionalId("");
+            setDocumentError(undefined);
+            setIsDocumentNew(false);
+          }}
+          handleAutonomoDocumentChange={handleAutonomoDocumentChange}
+          documentError={documentError}
+          onDocumentBlur={handleDocumentBlur}
+          setDocumentError={setDocumentError}
         />
       );
     }
@@ -555,10 +629,6 @@ export const RenderStep = ({
     }
 
       if (step === 4) {
-       return <Step4 /> 
-      }
-
-      if (step  === 5) {
         return <Step5 />
       }
 
@@ -628,7 +698,7 @@ export const RenderStep = ({
       step > 1 ? "justify-between" : "justify-end"
     }`;
 
-    if (step === 4 || step === 5) {
+    if (step === 4) {
       return <div className={containerClass} />;
     }
 
@@ -668,9 +738,7 @@ export const RenderStep = ({
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>
-                    {step === 1
-                      ? "Selecione uma opção para continuar."
-                      : "Adicione ao menos um local para continuar."}
+                    Preencha todos os campos para continuar.
                   </p>
                 </TooltipContent>
               </Tooltip>
