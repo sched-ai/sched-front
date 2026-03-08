@@ -8,6 +8,7 @@ import PatientDetails from '@/pages/Atendimentos/PatientDetails'
 import { Error } from '@/pages/Error'
 import { Servicos } from '@/pages/Servicos'
 import Pacientes from '@/pages/Pacientes'
+import CreateClient from '@/pages/Pacientes/CreateClient'
 import PatientHistory from '@/pages/Pacientes/PatientHistory'
 import LandingPage from '../pages/LandingPage'
 import LegalPage from '../pages/LegalPage'
@@ -72,6 +73,18 @@ export const routesConfig: RouteConfig[] = [
   {
     path: "/appointment/:id",
     element: <PatientDetails />,
+    template: true,
+    authRoute: true
+  },
+  {
+    path: "/patients/new",
+    element: <CreateClient />,
+    template: true,
+    authRoute: true
+  },
+  {
+    path: "/patients/:id/edit",
+    element: <CreateClient />,
     template: true,
     authRoute: true
   },

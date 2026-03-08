@@ -435,8 +435,9 @@ export const ScheduleFormModal = ({
                        {!isLoadingClients && clients && clients.length === 0 && (
                            <div 
                                className="px-4 py-3 hover:bg-white/10 cursor-pointer text-blue-400 text-sm flex items-center gap-2"
-                               onClick={() => {
-                                   navigate('/patients');
+                               onMouseDown={(e) => {
+                                   e.preventDefault();
+                                   navigate(`/patients/new?name=${encodeURIComponent(title || '')}`);
                                }}
                            >
                                <span>+ Adicionar paciente "{title}"</span>

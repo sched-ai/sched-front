@@ -29,7 +29,6 @@ import { useGetAllClients } from "@/hooks/api/useGetAllClients";
 import type { ClientAPI } from "@/hooks/api/useGetAllClients";
 import { useDeleteClient } from "@/hooks/api/useDeleteClient";
 import { format } from "date-fns";
-import { CreateClientModal } from "@/components/CreateClientModal";
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -50,8 +49,6 @@ export const Pacientes = () => {
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [itensPorPagina, setItensPorPagina] = useState(10);
   const navigate = useNavigate();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [clientToEdit, setClientToEdit] = useState<ClientAPI | null>(null);
   const [clientToDelete, setClientToDelete] = useState<ClientAPI | null>(null);
 
   const debouncedPesquisa = useDebounce(pesquisa, 500);
@@ -72,17 +69,6 @@ export const Pacientes = () => {
   const irParaPagina = (p: number) => setPaginaAtual(p);
   const irParaProximaPagina = () => { if (paginaAtual < meta.totalPages) setPaginaAtual(paginaAtual + 1); };
   const irParaPaginaAnterior = () => { if (paginaAtual > 1) setPaginaAtual(paginaAtual - 1); };
-
-  // Edit handlers
-  const handleEditClick = (client: ClientAPI) => {
-    setClientToEdit(client);
-    setIsModalOpen(true);
-  };
-
-  const handleModalClose = () => {
-    setIsModalOpen(false);
-    setClientToEdit(null);
-  };
 
   // Delete handlers
   const handleDeleteClick = (client: ClientAPI) => {
@@ -129,7 +115,7 @@ export const Pacientes = () => {
 
             <Button 
                 className="bg-[#121535] text-white px-8 py-2 hover:bg-[#1f2347] transition-colors" 
-                onClick={() => { setClientToEdit(null); setIsModalOpen(true); }}
+                onClick={() => navigate('/patients/new')}
             >
               + Adicionar paciente
             </Button>
@@ -182,7 +168,7 @@ export const Pacientes = () => {
                       variant="ghost"
                       size="sm"
                       className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 h-8 w-8 p-0"
-                      onClick={() => handleEditClick(p)}
+                      onClick={() => navigate(`/patients/${p.id}/edit`)}
                       title="Editar paciente"
                     >
                       <Pencil className="w-4 h-4" />
@@ -235,8 +221,6 @@ export const Pacientes = () => {
           {tooltip.visible && <div className="fixed z-50 max-w-xs bg-black text-white text-sm px-2 py-1 rounded shadow-lg pointer-events-none" style={{ left: tooltip.x, top: tooltip.y }}>{tooltip.text}</div>}
         </div>
       </div>
-
-      <CreateClientModal isOpen={isModalOpen} onClose={handleModalClose} clientToEdit={clientToEdit} />
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={!!clientToDelete} onOpenChange={(open) => { if (!open) setClientToDelete(null); }}>
