@@ -252,13 +252,15 @@ export function AppSidebar() {
                   href="/appointment"
                   isSidebarOpen={isSidebarOpen}
                 />
+              </SidebarGroup>
+              <SidebarGroup title="Pacientes">
                 <NavItem
                   title="Pacientes"
                   icon={Users}
                   iconSize={isSidebarOpen ? 24 : 28}
                   href="/patients"
                   isSidebarOpen={isSidebarOpen}
-                />
+                  />
               </SidebarGroup>
               <SidebarGroup title="Serviços" className="p-0 gap-2">
                 <NavItem
