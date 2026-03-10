@@ -6,19 +6,6 @@ import { useUpdateAppointment } from "@/hooks/api/useUpdateAppointment";
 import { useGetAppointment } from "@/hooks/api/useGetAppointment";
 import { useGetClient } from "@/hooks/api/useGetClient";
 
-function formatTime(totalSeconds: number) {
-  const h = Math.floor(totalSeconds / 3600)
-    .toString()
-    .padStart(2, "0");
-  const m = Math.floor((totalSeconds % 3600) / 60)
-    .toString()
-    .padStart(2, "0");
-  const s = Math.floor(totalSeconds % 60)
-    .toString()
-    .padStart(2, "0");
-  return `${h}:${m}:${s}`;
-}
-
 function calculateAge(birthDate: string | undefined): number | undefined {
   if (!birthDate) return undefined;
   const dob = new Date(birthDate);
@@ -27,19 +14,6 @@ function calculateAge(birthDate: string | undefined): number | undefined {
   const ageDt = new Date(diffMs); 
   return Math.abs(ageDt.getUTCFullYear() - 1970);
 }
-
-// function formatTime(totalSeconds: number) {
-//   const h = Math.floor(totalSeconds / 3600)
-//     .toString()
-//     .padStart(2, "0");
-//   const m = Math.floor((totalSeconds % 3600) / 60)
-//     .toString()
-//     .padStart(2, "0");
-//   const s = Math.floor(totalSeconds % 60)
-//     .toString()
-//     .padStart(2, "0");
-//   return `${h}:${m}:${s}`;
-// }
 
 export const PatientDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -84,14 +58,6 @@ export const PatientDetails: React.FC = () => {
     }
   }, [atendimentoState]);
 
-  const [timerSeconds, setTimerSeconds] = useState(30 * 60); // default 30 minutes
-  const [running, setRunning] = useState(false);
-  // timer editing / initial value
-  const [initialSeconds, setInitialSeconds] = useState(timerSeconds);
-  const [editingTime, setEditingTime] = useState(false);
-  const [timeInput, setTimeInput] = useState(() => formatTime(timerSeconds));
-  
-  
   type CardType = {
     id: string;
     title: string;
@@ -176,60 +142,6 @@ export const PatientDetails: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    let timer: number | undefined;
-    if (running && timerSeconds > 0) {
-      timer = window.setInterval(() => {
-        setTimerSeconds((s) => Math.max(0, s - 1));
-      }, 1000);
-    }
-    return () => {
-      if (timer) window.clearInterval(timer);
-    };
-  }, [running, timerSeconds]);
-
-  // stop running when reaches zero
-  useEffect(() => {
-    if (timerSeconds === 0 && running) setRunning(false);
-    setTimeInput(formatTime(timerSeconds));
-  }, [timerSeconds]);
-
-  const parseTimeInput = (val: string) => {
-    const clean = val.trim();
-    // hh:mm:ss
-    const parts = clean.split(":").map((p) => p.trim());
-    let seconds = 0;
-    if (parts.length === 3) {
-      const [hh, mm, ss] = parts.map((p) => parseInt(p || "0", 10));
-      if (!isNaN(hh) && !isNaN(mm) && !isNaN(ss)) seconds = hh * 3600 + mm * 60 + ss;
-    } else if (parts.length === 2) {
-      const [mm, ss] = parts.map((p) => parseInt(p || "0", 10));
-      if (!isNaN(mm) && !isNaN(ss)) seconds = mm * 60 + ss;
-    } else {
-      const minutes = parseInt(clean, 10);
-      if (!isNaN(minutes)) seconds = minutes * 60;
-    }
-    return Math.max(0, seconds);
-  };
-
-  const applyTimeInput = () => {
-    const seconds = parseTimeInput(timeInput);
-    setTimerSeconds(seconds);
-    setInitialSeconds(seconds);
-    setEditingTime(false);
-  };
-
-    console.log("VARIAVEIS NAO UTILIZADAS:", initialSeconds, editingTime, applyTimeInput);
-  // const handleStart = () => {
-  //   setInitialSeconds(timerSeconds);
-  //   setRunning(true);
-  // };
-
-  // const handleReset = () => {
-  //   setRunning(false);
-  //   setTimerSeconds(initialSeconds);
-  // };
-
   return (
     <div className="w-full flex flex-col h-full">
       <main className="flex-1 p-6">
@@ -272,11 +184,6 @@ export const PatientDetails: React.FC = () => {
             </div>
           </div>
         </div>
-
-        
-        
-
-
 
         {/* Consultations list - dynamic cards with local save */}
         <div className="space-y-6">

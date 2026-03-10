@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -9,97 +9,141 @@ import {
   useSidebar,
 } from "../../components/ui/sidebar";
 import { NavItem } from "../NavItem";
-import { BriefcaseBusiness, CalendarFold, LogOut, NotepadText, ArrowLeft, Users, Clock, Settings } from "lucide-react";
+import { BriefcaseBusiness, CalendarFold, LogOut, NotepadText, ArrowLeft, Users, Settings, Play, RotateCcw } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { logout } from "@/services/storage";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useUser } from "@/context/user";
 import { useGetAppointment } from "@/hooks/api/useGetAppointment";
 import { useGetClient } from "@/hooks/api/useGetClient";
-// icons imported above
+import { useGetService } from "@/hooks/api/useGetService";
 
-function formatTime(totalSeconds: number) {
-  const h = Math.floor(totalSeconds / 3600)
-    .toString()
-    .padStart(2, "0");
-  const m = Math.floor((totalSeconds % 3600) / 60)
-    .toString()
-    .padStart(2, "0");
-  const s = Math.floor(totalSeconds % 60)
-    .toString()
-    .padStart(2, "0");
+function formatHHMMSS(totalSeconds: number) {
+  const h = Math.floor(totalSeconds / 3600).toString().padStart(2, "0");
+  const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, "0");
+  const s = Math.floor(totalSeconds % 60).toString().padStart(2, "0");
   return `${h}:${m}:${s}`;
 }
 
-function PatientTimer() {
-  const [timerSeconds, setTimerSeconds] = useState(30 * 60);
+function PatientTimer({ serviceId, startDate, endDate }: { serviceId?: string | null; startDate?: string; endDate?: string }) {
+  const { data: service, isLoading } = useGetService(serviceId ?? "", !!serviceId);
+
+  // Derive duration once and store in state so it's stable across renders
+  const [initialSeconds, setInitialSeconds] = useState(0);
+  const [timerSeconds, setTimerSeconds] = useState(0);
   const [running, setRunning] = useState(false);
-  const [editingTime, setEditingTime] = useState(false);
-  const [timeInput, setTimeInput] = useState(() => formatTime(30 * 60));
+  const intervalRef = useRef<number | null>(null);
+  const runningRef = useRef(false);
 
+  // Keep runningRef in sync
+  runningRef.current = running;
+
+  // Compute duration from service or dates
   useEffect(() => {
-    let timer: number | undefined;
-    if (running && timerSeconds > 0) {
-      timer = window.setInterval(() => setTimerSeconds((s) => Math.max(0, s - 1)), 1000);
+    let minutes = 0;
+    if (service?.duration) {
+      minutes = service.duration;
+    } else if (startDate && endDate) {
+      const s = new Date(startDate).getTime();
+      const e = new Date(endDate).getTime();
+      if (!isNaN(s) && !isNaN(e) && e > s) {
+        minutes = Math.round((e - s) / 60000);
+      }
     }
-    return () => { if (timer) window.clearInterval(timer); };
-  }, [running, timerSeconds]);
+    if (minutes > 0) {
+      const secs = minutes * 60;
+      setInitialSeconds(secs);
+      // Only update display if timer is NOT running
+      if (!runningRef.current) {
+        setTimerSeconds(secs);
+      }
+    }
+  }, [service?.duration, startDate, endDate]);
 
+  // Cleanup interval on unmount
   useEffect(() => {
-    if (timerSeconds === 0 && running) setRunning(false);
-    setTimeInput(formatTime(timerSeconds));
-  }, [timerSeconds]);
+    return () => {
+      if (intervalRef.current !== null) {
+        window.clearInterval(intervalRef.current);
+      }
+    };
+  }, []);
 
-  const parseTimeInput = (val: string) => {
-    const clean = val.trim();
-    const parts = clean.split(":").map((p) => p.trim());
-    let seconds = 0;
-    if (parts.length === 3) {
-      const [hh, mm, ss] = parts.map((p) => parseInt(p || "0", 10));
-      if (!isNaN(hh) && !isNaN(mm) && !isNaN(ss)) seconds = hh * 3600 + mm * 60 + ss;
-    } else if (parts.length === 2) {
-      const [mm, ss] = parts.map((p) => parseInt(p || "0", 10));
-      if (!isNaN(mm) && !isNaN(ss)) seconds = mm * 60 + ss;
-    } else {
-      const minutes = parseInt(clean, 10);
-      if (!isNaN(minutes)) seconds = minutes * 60;
+  const stopInterval = useCallback(() => {
+    if (intervalRef.current !== null) {
+      window.clearInterval(intervalRef.current);
+      intervalRef.current = null;
     }
-    return Math.max(0, seconds);
-  };
+  }, []);
 
-  const applyTimeInput = () => {
-    const seconds = parseTimeInput(timeInput);
-    setTimerSeconds(seconds);
-    setEditingTime(false);
-  };
+  const handleIniciar = useCallback(() => {
+    if (running) return;
+    if (initialSeconds === 0) return; // prevent starting when no duration available
+    // If timer was at 0, reset to full duration before starting
+    setTimerSeconds((prev) => {
+      if (prev === 0) return initialSeconds;
+      return prev;
+    });
+    setRunning(true);
+
+    stopInterval();
+    intervalRef.current = window.setInterval(() => {
+      setTimerSeconds((s) => {
+        const next = s - 1;
+        if (next <= 0) {
+          // Stop when reaching 0
+          if (intervalRef.current !== null) {
+            window.clearInterval(intervalRef.current);
+            intervalRef.current = null;
+          }
+          setRunning(false);
+          return 0;
+        }
+        return next;
+      });
+    }, 1000);
+  }, [running, initialSeconds, stopInterval]);
+
+  const handleReset = useCallback(() => {
+    stopInterval();
+    setRunning(false);
+    setTimerSeconds(initialSeconds);
+  }, [initialSeconds, stopInterval]);
 
   return (
-    <div className="flex flex-col items-start gap-3">
-      <div className="bg-white text-[#0b3b8c] rounded-lg shadow-custom px-4 py-3 flex items-center justify-between w-full max-w-[220px]">
-        <div className="text-2xl font-mono cursor-pointer" onClick={() => setEditingTime(true)}>
-          {editingTime ? (
-            <input
-              autoFocus
-              value={timeInput}
-              onChange={(e) => setTimeInput(e.target.value)}
-              onBlur={applyTimeInput}
-              onKeyDown={(e) => { if (e.key === "Enter") applyTimeInput(); }}
-              className="w-32 bg-white text-[#0b3b8c] text-2xl font-mono outline-none"
-            />
+    <div className="flex flex-col items-start gap-3 w-full">
+      <div className="bg-white text-[#0b3b8c] rounded-lg shadow-custom px-4 py-3 flex items-center gap-3 w-full max-w-[220px]">
+        <button
+          onClick={handleIniciar}
+          disabled={running || initialSeconds === 0}
+          className={`w-9 h-9 flex items-center justify-center rounded-full transition-colors cursor-pointer ${
+            (running || initialSeconds === 0) ? "bg-slate-200 text-slate-400 cursor-not-allowed" : "bg-[#0b3b8c] text-white hover:bg-[#093077]"
+          }`}
+          title="Iniciar"
+        >
+          <Play className="w-4 h-4 fill-current" />
+        </button>
+        <div className="text-2xl font-mono flex-1 text-center select-none">
+          {isLoading ? (
+            <span className="text-base text-slate-400">...</span>
+          ) : initialSeconds === 0 ? (
+            <span className="text-base text-slate-400">--:--:--</span>
           ) : (
-            <span>{formatTime(timerSeconds)}</span>
+            <span>{formatHHMMSS(timerSeconds)}</span>
           )}
         </div>
-        <div className="ml-3 text-slate-500"><Clock className="w-5 h-5" /></div>
+        <button
+          onClick={handleReset}
+          disabled={!running && timerSeconds === initialSeconds}
+          className={`w-9 h-9 flex items-center justify-center rounded-full transition-colors cursor-pointer ${
+            !running && timerSeconds === initialSeconds ? "bg-slate-200 text-slate-400 cursor-not-allowed" : "bg-amber-500 text-white hover:bg-amber-600"
+          }`}
+          title="Zerar"
+        >
+          <RotateCcw className="w-4 h-4" />
+        </button>
       </div>
-
-      <button
-        onClick={() => setRunning(true)}
-        className="bg-white text-[#0b3b8c] border border-[#e2e8f0] px-3 py-2 rounded-md shadow-sm flex items-center gap-2 w-full max-w-[220px] cursor-pointer"
-      >
-        <span className="w-3 h-3 bg-[#0b3b8c] rounded-full inline-block mr-1" />
-        Iniciar Atendimento
-      </button>
+      {/* service name removed as requested */}
     </div>
   );
 }
@@ -212,11 +256,15 @@ export function AppSidebar() {
                 </div>
               </div>
 
-              {/* Timer (below patient card) */}
+              {/* Timer (below patient card) — read-only, derived from service */}
               {/^\/appointment\/[^/]+$/.test(location.pathname) && (
                 <div className="mt-4">
-                  <div className="text-sm text-[#6b7280] mb-2">Duração da consulta</div>
-                  <PatientTimer />
+                  <div className="text-sm font-semibold text-white mb-2">Duração da consulta</div>
+                  <PatientTimer
+                    serviceId={fetchedAppointment?.serviceId || (location.state as any)?.atendimento?.serviceId || (location.state as any)?.atendimento?.service?.id}
+                    startDate={fetchedAppointment?.startDate || (location.state as any)?.atendimento?.startDate}
+                    endDate={fetchedAppointment?.endDate || (location.state as any)?.atendimento?.endDate}
+                  />
                 </div>
               )}
             </div>
