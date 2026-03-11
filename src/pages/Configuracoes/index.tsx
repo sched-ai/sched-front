@@ -212,7 +212,7 @@ export const Configuracoes = () => {
   };
 
   return (
-    <div className="bg-[#F8F9FA] min-h-screen">
+    <div className="min-h-screen">
       {/* Page header */}
       <header className="border-b border-b-[#DADCE0] h-full max-h-[80px] p-4 bg-white">
         <h1 className="text-2xl font-medium text-[#121535]">Configurações</h1>
@@ -251,7 +251,6 @@ export const Configuracoes = () => {
                 city={(addr as LocationData & { city?: string }).city ?? (addr.id === "1" ? "Belo Horizonte" : "Florianópolis")}
                 state={(addr as LocationData & { state?: string }).state ?? (addr.id === "1" ? "MG" : "SC")}
                 schedule={toCardSchedule(addr)}
-                online
                 homeVisit={addr.id === "1"}
                 onEdit={() => openEditLocation(addr)}
               />

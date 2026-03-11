@@ -99,7 +99,7 @@ export const Servicos = () => {
   );
 
   return (
-    <div className="bg-[#F8F9FA] min-h-screen">
+    <div className="min-h-screen">
       <header className="border-b border-b-[#DADCE0] h-full max-h-[80px] p-4 bg-white">
         <h1 className="text-2xl font-medium">Serviços</h1>
       </header>

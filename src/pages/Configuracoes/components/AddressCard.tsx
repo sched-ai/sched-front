@@ -1,4 +1,4 @@
-import { MapPin, Pencil, Globe, Home } from "lucide-react";
+import { MapPin, Globe, Home } from "lucide-react";
 
 type DayKey = "Dom" | "Seg" | "Ter" | "Qua" | "Qui" | "Sex" | "Sáb";
 
@@ -39,7 +39,7 @@ export const AddressCard = ({
   onEdit,
 }: AddressCardProps) => {
   const isOnline = nickname?.toLowerCase() === "online";
-
+  onEdit
   return (
     <div className="flex flex-col md:flex-row gap-6 py-5 border-b border-[#DADCE0] last:border-0">
       {/* Left: location info */}
@@ -53,13 +53,13 @@ export const AddressCard = ({
           <span className="text-[#121535] font-semibold text-sm">
             {isOnline ? "Atendimento Online" : locationName}
           </span>
-          <button
+          {/* <button
             onClick={onEdit}
             className="text-gray-400 hover:text-[#121535] transition-colors cursor-pointer"
             aria-label={`Editar ${locationName}`}
           >
             <Pencil size={13} />
-          </button>
+          </button> */}
         </div>
         {isOnline ? (
           <div className="text-gray-500 text-sm pl-6">

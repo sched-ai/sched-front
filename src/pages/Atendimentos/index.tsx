@@ -21,7 +21,6 @@ import {
 } from "lucide-react";
 import { useGetAllAppointments, type AppointmentAPI } from "@/hooks/api/useGetAllAppointments";
 import { format } from "date-fns";
-import { useUser } from "@/context/user";
 
 // Helper to debounce value
 function useDebounce<T>(value: T, delay: number): T {
@@ -132,8 +131,6 @@ export const Atendimentos = () => {
     }
   };
 
-  const { userData } = useUser();
-  console.log(userData);
 
   return (
     <div className="w-full flex flex-col h-full">
@@ -234,7 +231,7 @@ export const Atendimentos = () => {
                 <h3 className="font-semibold text-sm uppercase">Data</h3>
               </div>
               <div className="lg:col-span-1">
-                <h3 className="font-semibold text-sm uppercase">Hora</h3>
+                <h3 className="font-semibold text-sm uppercase">Horário</h3>
               </div>
               <div className="lg:col-span-1">
                 <h3 className="font-semibold text-sm uppercase">Status</h3>
