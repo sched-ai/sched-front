@@ -69,7 +69,7 @@ export const PatientDetails: React.FC = () => {
 
   const [cards, setCards] = useState<CardType[]>([]);
   // We use useGetAppointment to fetch fresh data
-  const { data: fetchedAppointment, refetch: refetchAppointment } = useGetAppointment(id || "", !!id);
+  const { data: fetchedAppointment, refetch: refetchAppointment, isLoading } = useGetAppointment(id || "", !!id);
 
   // Derive clientId from appointment, then fetch the FULL client record directly by ID
   const clientId = fetchedAppointment?.clientId || fetchedAppointment?.client?.id || patient.clientId || "";
@@ -141,6 +141,40 @@ export const PatientDetails: React.FC = () => {
        console.error("Failed to save note", error);
     }
   };
+
+  const isCancelledState = patient.status && ['cancelado', 'cancelled'].includes(patient.status.toLowerCase());
+  const isCancelledFetched = fetchedAppointment?.status && ['cancelado', 'cancelled'].includes(fetchedAppointment.status.toLowerCase());
+  const isCancelled = isCancelledState || isCancelledFetched;
+
+  if (isLoading && !fetchedAppointment && !patient.status) {
+    return (
+      <div className="w-full flex flex-col h-full flex-1 items-center justify-center p-6">
+         <p className="text-slate-500 text-lg">Carregando...</p>
+      </div>
+    );
+  }
+
+  if (isCancelled) {
+    return (
+      <div className="w-full flex flex-col h-full flex-1 items-center justify-center p-6">
+        <div className="bg-white rounded-[20px] shadow-custom p-8 text-center max-w-md w-full border-t-4 border-red-500">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-[#141736] mb-2">Atendimento Cancelado</h2>
+          <p className="text-slate-500 mb-8">Não é possível visualizar os detalhes de um atendimento que foi cancelado.</p>
+          <Button 
+            className="bg-[#141736] hover:bg-[#282d64] text-white w-full h-[48px] text-base rounded-[8px]"
+            onClick={() => navigate(-1)}
+          >
+            Voltar
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full flex flex-col h-full">

@@ -223,8 +223,7 @@ export const Configuracoes = () => {
         <ClinicHeader
           name={clinicName}
           category={companyType}
-          cnpj="45.646.498/0001-00"
-          area="Odontologia"
+          cnpj={userData?.membership?.company?.document ?? ""}
         />
 
         {/* ── Settings Inputs ────────────────────────────────── */}

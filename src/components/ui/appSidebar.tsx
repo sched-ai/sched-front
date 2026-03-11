@@ -301,7 +301,7 @@ export function AppSidebar() {
                   isSidebarOpen={isSidebarOpen}
                 />
               </SidebarGroup>
-              <SidebarGroup title="Pacientes">
+              <SidebarGroup title="Pacientes" className="p-0">
                 <NavItem
                   title="Pacientes"
                   icon={Users}

@@ -315,6 +315,7 @@ export const Atendimentos = () => {
                               : { id: atendimento.clientId, name: atendimento.clientName }
                           } 
                         })}
+                        disabled={['cancelado', 'cancelled'].includes(atendimento.status?.toLowerCase() || '')}
                         >
                         Ver
                         <ArrowRight className="w-4 h-4 ml-2" />

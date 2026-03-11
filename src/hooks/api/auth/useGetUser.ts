@@ -14,7 +14,8 @@ export interface IMembership {
     id: string;
     name: string;
     phone?: string;
-    companyType: 'EMPRESA' | 'AUTONOMO'; 
+    companyType: 'EMPRESA' | 'AUTONOMO';
+    document?: string | null;
     workplaces: {
       address: string;
       city: string;
