@@ -99,7 +99,7 @@ export const Configuracoes = () => {
 
   /**
    * Convert API workplaces → LocationData[].
-   * Each workplace becomes one LocationData entry using its scheduleEntries
+   * Each workplace becomes one LocationData entry using its schedule JSON
    * to build a flexible schedule (minutes → HH:mm).
    */
   const apiAddresses = useMemo<LocationData[]>(() => {
@@ -128,9 +128,10 @@ export const Configuracoes = () => {
         Sáb: { ...defaultSlot },
       };
 
-      for (const entry of wp.scheduleEntries ?? []) {
-        const key = DOW_TO_KEY[Number(entry.day)];
-        if (key) {
+      const scheduleData = wp.schedule ?? {};
+      for (const [dayKey, entry] of Object.entries(scheduleData)) {
+        const key = DOW_TO_KEY[Number(dayKey)];
+        if (key && entry) {
           flexible[key] = {
             active: true,
             start: minutesToTime(entry.startMinute),

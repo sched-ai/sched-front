@@ -23,11 +23,7 @@ export interface IMembership {
       id: string;
       nickname: string;
       number: string;
-      scheduleEntries: { 
-        day: string;
-        startMinute: number;
-        endMinute: number;
-      }[];
+      schedule: Record<string, { startMinute: number; endMinute: number }> | null;
       state: string;
     }[];
   };
