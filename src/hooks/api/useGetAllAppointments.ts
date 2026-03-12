@@ -6,12 +6,12 @@ export interface AppointmentAPI {
   startDate: string;
   endDate: string;
   status: string;
-  professionalId: string | null;
+  employeeId: string | null;
   clientId: string | null;
   clientName: string | null;
   workplaceId: string | null;
   serviceId: string | null;
-  professional?: { user?: { name: string } | null } | null;
+  employee?: { name: string } | null;
   client?: { 
     id?: string;
     name: string; 

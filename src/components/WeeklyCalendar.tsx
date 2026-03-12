@@ -28,7 +28,7 @@ export type EventType = {
   serviceId?: string;
 	services?: string[];
 	type?: 'consulta' | 'bloqueio';
-	professionalId?: string;
+	employeeId?: string;
 	professionalName?: string;
 };
 
@@ -285,12 +285,12 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                       // Get events for this day
                       const dayEvents = eventMap.filter((ev) => ev.dayIdx === dayIdx);
 
-                      // Build a map of professionalId → color index
+                      // Build a map of employeeId → color index
                       const profColorMap = new Map<string, number>();
                       let colorIdx = 0;
                       for (const ev of dayEvents) {
-                        if (ev.professionalId && !profColorMap.has(ev.professionalId)) {
-                          profColorMap.set(ev.professionalId, colorIdx % PROFESSIONAL_COLORS.length);
+                        if (ev.employeeId && !profColorMap.has(ev.employeeId)) {
+                          profColorMap.set(ev.employeeId, colorIdx % PROFESSIONAL_COLORS.length);
                           colorIdx++;
                         }
                       }
@@ -343,7 +343,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                         
                         // Get color for this event
                         const color = isConsultation
-                          ? (ev.professionalId ? PROFESSIONAL_COLORS[profColorMap.get(ev.professionalId) ?? 0] : PROFESSIONAL_COLORS[0])
+                          ? (ev.employeeId ? PROFESSIONAL_COLORS[profColorMap.get(ev.employeeId) ?? 0] : PROFESSIONAL_COLORS[0])
                           : BLOCK_COLOR;
 
                         // Calculate width and left position

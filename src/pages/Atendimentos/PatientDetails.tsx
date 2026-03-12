@@ -36,7 +36,7 @@ export const PatientDetails: React.FC = () => {
     especialidade: atendimentoState?.especialidade || atendimentoState?.specialty || "",
     data: atendimentoState?.startDate?.split('T')[0] || atendimentoState?.data || atendimentoState?.date || "",
     hora: atendimentoState?.startDate?.split('T')[1]?.substring(0,5) || atendimentoState?.hora || atendimentoState?.time || "",
-    medico: atendimentoState?.professional?.user?.name || atendimentoState?.medico || "",
+    medico: atendimentoState?.employee?.name || atendimentoState?.medico || "",
     status: atendimentoState?.status || "",
     tipoConsulta: atendimentoState?.service?.name || atendimentoState?.tipoConsulta || "",
   }));

@@ -25,7 +25,7 @@ interface AppointmentAPI {
   serviceId?: string | null;
   workplaceId?: string | null;
   workplaceName?: string | null;
-  professionalId?: string | null;
+  employeeId?: string | null;
   professionalName?: string | null;
 }
 
@@ -81,7 +81,7 @@ const toAppointmentEvent = (a: AppointmentAPI): EventType => {
     workplaceId: a.workplaceId ?? undefined,
     workplaceName: a.workplaceName ?? undefined,
     serviceId: a.serviceId ?? undefined,
-    professionalId: a.professionalId ?? undefined,
+    employeeId: a.employeeId ?? undefined,
     professionalName: a.professionalName ?? undefined,
     day: weekDaysPt[dayIdx],
     dayNumber: start.getUTCDate(),

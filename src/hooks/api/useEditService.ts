@@ -9,7 +9,7 @@ export interface IUpdateServicePayload {
   price?: number | null;
   type?: 'SERVICE' | 'PACKAGE';
   department?: string | null;
-  professionalId?: string | null;
+  employeeId?: string | null;
 }
 
 interface IUpdateMutationFnParams {

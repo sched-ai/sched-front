@@ -168,7 +168,7 @@ export const ScheduleFormModal = ({
         setActiveTab(selectedEvent.type || "consulta");
         setLocation(selectedEvent.workplaceId || "");
         setService("");
-        setProfessional(selectedEvent.professionalId || "");
+        setProfessional(selectedEvent.employeeId || "");
         setRepeatEnabled(false);
         setWeekDays([false, false, false, false, false, false, false]);
         setEndOption("never");

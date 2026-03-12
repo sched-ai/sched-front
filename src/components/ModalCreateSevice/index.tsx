@@ -117,7 +117,7 @@ export const ModalCreateService = (props: IProps) => {
               }).format(Number(service.price))
             : ""
         );
-        setResponsavel(service.professional?.id || "");
+        setResponsavel(service.employee?.id || "");
         setDuration(
           service.duration !== undefined && service.duration !== null
             ? minutesToHHMM(Number(service.duration))
@@ -174,7 +174,7 @@ export const ModalCreateService = (props: IProps) => {
       name: nome,
       description: descricao,
       type: "SERVICE" as const,
-      professionalId: responsavel || null,
+      employeeId: responsavel || null,
       department: null,
       price: parseBRL(price),
       duration: durationInMinutes,

@@ -3,7 +3,7 @@ import useAPI from "./useAPI";
 import type { IUseMutationParams } from "@/types";
 
 export interface ICreateServicePayload {
-  professionalId?: string;
+  employeeId?: string;
   clientId?: string | null;
   serviceId?: string | null;
   workplaceId?: string | null;

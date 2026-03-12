@@ -18,7 +18,7 @@ interface Step1Props {
   setUserType: (v: UserType) => void;
   area: string;
   setArea: (v: string) => void;
-  professionalId: string;
+  employeeId: string;
   companyName: string;
   setCompanyName: (v: string) => void;
   cnpj: string;
@@ -47,7 +47,7 @@ export default function Step1({
   setUserType,
   // area,
   // setArea,
-  professionalId,
+  employeeId,
   companyName,
   setCompanyName,
   cnpj,
@@ -173,9 +173,9 @@ export default function Step1({
                 <Input
                   label={hasCnpj ? "CNPJ" : "CPF"}
                   type="text"
-                  id="professionalId"
+                  id="employeeId"
                   isRequired
-                  value={professionalId}
+                  value={employeeId}
                   onChange={(e) => {
                     setDocumentError(undefined);
                     handleAutonomoDocumentChange(e as React.ChangeEvent<HTMLInputElement>);

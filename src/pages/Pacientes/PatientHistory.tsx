@@ -157,7 +157,7 @@ export const PatientHistory = () => {
                    const time = format(dateObj, "HH:mm");
                    
                    const serviceName = apt.service?.name || "Atendimento";
-                   const doctorName = apt.professional?.user?.name || "Dr. Desconhecido";
+                   const doctorName = apt.employee?.name || "Dr. Desconhecido";
 
                    /* Annotations Logic */
                    const annotations = apt.annotations || [];

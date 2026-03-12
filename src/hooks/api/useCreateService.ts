@@ -9,7 +9,7 @@ export interface ICreateServicePayload {
   price?: number | null; 
   type?: 'SERVICE' | 'PACKAGE';
   department?: string | null;
-  professionalId?: string | null;
+  employeeId?: string | null;
 }
 
 export const useCreateService = ({ onSuccessFn }: IUseMutationParams) => {

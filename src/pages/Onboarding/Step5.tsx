@@ -283,7 +283,7 @@ function ActionButtons({ services }: { services: Service[] }) {
           duration: durationToMinutes(s.duration) ?? null,
           price: parseBRL(s.price ?? null),
           type: "SERVICE" as const,
-          professionalId: s.professional ?? null,
+          employeeId: s.professional ?? null,
         };
 
         return createService.mutateAsync(payload);

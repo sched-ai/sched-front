@@ -2,11 +2,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import useAPI from "./useAPI";
 
-export interface IProfessional {
+export interface IEmployee {
   id: string;
-  user: {
-    name: string;
-  };
+  name: string;
 }
 
 export interface IService {
@@ -17,7 +15,7 @@ export interface IService {
   price: string | null;
   type: 'SERVICE' | 'PACKAGE';
   department: string | null;
-  professional: IProfessional | null;
+  employee: IEmployee | null;
 }
 
 interface UseGetAllServicesProps {

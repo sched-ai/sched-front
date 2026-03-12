@@ -48,7 +48,7 @@ export const RenderStep = ({
   };
 
   const [area, setArea] = useState("");
-  const [professionalId, setProfessionalId] = useState("");
+  const [employeeId, setProfessionalId] = useState("");
 
   const [companyName, setCompanyName] = useState("");
   const [cnpj, setCnpj] = useState("");
@@ -466,12 +466,12 @@ export const RenderStep = ({
       type: userType === "autonomo" ? "AUTONOMO" : "EMPRESA",
       professionalName: userType === "autonomo" ? userData?.name : undefined,
       fieldOfWork: userType === "autonomo" ? area : companyArea,
-      professionalLicense: userType === "autonomo" && !hasCnpj ? professionalId.replace(/\D/g, "") : undefined,
+      professionalLicense: userType === "autonomo" && !hasCnpj ? employeeId.replace(/\D/g, "") : undefined,
       companyName: userType === "empresa" ? companyName : undefined,
       howFound: referrer === "outro" ? referrerOther : referrer,
       phone: phoneNumber.replace(/\D/g, ""),
       companyDocument:
-        userType === "empresa" ? cnpj.replace(/\D/g, "") : (userType === "autonomo" && hasCnpj ? professionalId.replace(/\D/g, "") : undefined),
+        userType === "empresa" ? cnpj.replace(/\D/g, "") : (userType === "autonomo" && hasCnpj ? employeeId.replace(/\D/g, "") : undefined),
       offersHomeVisit: attendHome,
       offersOnline: attendOnline,
       workSchedules,
@@ -581,7 +581,7 @@ export const RenderStep = ({
           setUserType={handleUserTypeChange}
           area={area}
           setArea={setArea}
-          professionalId={professionalId}
+          employeeId={employeeId}
           companyName={companyName}
           setCompanyName={setCompanyName}
           cnpj={cnpj}
