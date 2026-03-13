@@ -32,6 +32,14 @@ interface AppointmentAPI {
 interface ICalendar {
   timeBlocks: TimeBlockOccurrenceAPI[];
   appointments: AppointmentAPI[];
+  availableHours?: Record<string, { startMinute: number | null; endMinute: number | null }>;
+}
+
+export type AvailableHours = Record<string, { startMinute: number | null; endMinute: number | null }>;
+
+interface CalendarResponse {
+  events: EventType[];
+  availableHours?: AvailableHours;
 }
 
 const weekDaysPt = [
@@ -99,16 +107,16 @@ export const useGetCalendar = ({ referenceDate, month, year, enabled = true }: U
   const m = month ?? (referenceDate ? Number(format(referenceDate, "MM")) : Number(format(new Date(), "MM")));
   const y = year ?? (referenceDate ? Number(format(referenceDate, "yyyy")) : Number(format(new Date(), "yyyy")));
 
-  return useQuery<EventType[], Error>({
+  return useQuery<CalendarResponse, Error>({
     queryKey: ["calendar", m, y],
     enabled,
     queryFn: async () => {
       const q = `calendar?month=${m}&year=${y}`;
       const resp = await get({ endpoint: q, label: "Calendário", showSuccessFeedback: false });
 
-      if (!resp) return [];
+      if (!resp) return { events: [] };
 
-      const { timeBlocks = [], appointments = [] } = resp;
+      const { timeBlocks = [], appointments = [], availableHours } = resp;
 
       const tbEvents: EventType[] = Array.isArray(timeBlocks) ? timeBlocks.map(toTimeBlockEvent) : [];
       const apptEvents: EventType[] = Array.isArray(appointments) ? appointments.map(toAppointmentEvent) : [];
@@ -123,7 +131,7 @@ export const useGetCalendar = ({ referenceDate, month, year, enabled = true }: U
         return aH !== bH ? aH - bH : aM - bM;
       });
 
-      return combined;
+      return { events: combined, availableHours };
     },
   });
 };

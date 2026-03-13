@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { formatPhone } from "@/util/helper";
 
 const maskPhone = (v: string) => {
   return v
@@ -26,7 +27,10 @@ export const SettingsInputs = ({
   onPhoneChange,
 }: SettingsInputsProps) => {
   const [localDescription, setLocalDescription] = useState(description);
-  const [localPhone, setLocalPhone] = useState(phone);
+  const [localPhone, setLocalPhone] = useState(() => formatPhone(phone || ""));
+  useEffect(() => {
+    setLocalPhone(formatPhone(phone || ""));
+  }, [phone]);
   const [localEmail, setLocalEmail] = useState(email);
 
   const inputBase =

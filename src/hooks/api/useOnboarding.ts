@@ -32,6 +32,7 @@ export interface IOnboardingBody {
 			complement?: string;
 			schedules?: Array<{
 				dayOfWeek?: number;
+				day?: number;
 				startTime?: string;
 				endTime?: string;
 			}>;
@@ -62,7 +63,7 @@ export const useOnboarding = ({ onSuccessFn }: IUseMutationParams) => {
 						city: loc.city,
 						state: loc.state,
 						complement: loc.complement,
-						schedules: loc.schedules ? loc.schedules.map(s => ({ day: s.dayOfWeek, startTime: s.startTime, endTime: s.endTime })) : [],
+						schedules: loc.schedules ? loc.schedules.map(s => ({ day: s.dayOfWeek ?? s.day, startTime: s.startTime, endTime: s.endTime })) : [],
 					}));
 
 				if (body.workSchedules && body.workSchedules.length > 0) {
@@ -105,16 +106,44 @@ export const useOnboarding = ({ onSuccessFn }: IUseMutationParams) => {
 					howFound: body.howFound,
 					offersHomeVisit: !!body.offersHomeVisit,
 					offersOnline: !!body.offersOnline,
-					locations: mappedLocations.map(l => ({
-						nickname: l.nickname,
-						address: l.address,
-						neighborhood: l.neighborhood,
-						state: l.state,
-						city: l.city,
-						number: l.number,
-						complement: l.complement,
-						schedules: (l.schedules || []).map(s => ({ day: s.day, startTime: s.startTime, endTime: s.endTime }))
-					})),
+					locations: mappedLocations.map(l => {
+						const schedule: Record<string, { startMinute: number | null; endMinute: number | null }> = {
+							"0": { startMinute: null, endMinute: null },
+							"1": { startMinute: null, endMinute: null },
+							"2": { startMinute: null, endMinute: null },
+							"3": { startMinute: null, endMinute: null },
+							"4": { startMinute: null, endMinute: null },
+							"5": { startMinute: null, endMinute: null },
+							"6": { startMinute: null, endMinute: null },
+						};
+						const timeToMinutes = (timeStr?: string) => {
+							if (!timeStr) return null;
+							const parts = timeStr.split(':');
+							const h = parseInt(parts[0], 10) || 0;
+							const m = parseInt(parts[1], 10) || 0;
+							return h * 60 + m;
+						};
+
+						for (const s of l.schedules) {
+							if (s.day == null) continue;
+							const sMin = timeToMinutes(s.startTime);
+							const eMin = timeToMinutes(s.endTime);
+							if (sMin !== null && eMin !== null) {
+								schedule[String(s.day)] = { startMinute: sMin, endMinute: eMin };
+							}
+						}
+
+						return {
+							nickname: l.nickname,
+							address: l.address,
+							neighborhood: l.neighborhood,
+							state: l.state,
+							city: l.city,
+							number: l.number,
+							complement: l.complement,
+							schedule
+						};
+					}),
 				};
 			})()
 		}),

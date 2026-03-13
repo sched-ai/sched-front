@@ -63,7 +63,7 @@ export const Home = () => {
   
 
 
-  const { data: calendarData = [], isLoading } = useGetCalendar({
+  const { data = { events: [] }, isLoading } = useGetCalendar({
     referenceDate: currentDate,
   });
 
@@ -278,7 +278,8 @@ export const Home = () => {
             </div>
           ) : (
             <WeeklyCalendar
-              events={calendarData}
+              events={data.events}
+              availableHours={data.availableHours}
               currentDate={currentDate}
               onDateClick={handleDateClick}
               onEventClick={handleEventClick}

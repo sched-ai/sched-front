@@ -1,4 +1,5 @@
 import { Pencil } from "lucide-react";
+import { formatPhone } from "@/util/helper";
 
 type Role = "Administrador" | "Profissional" | "Assistente" | string;
 
@@ -21,7 +22,7 @@ export const ProfessionalCard = ({
     <div className="flex items-start justify-between gap-4 border border-[#DADCE0] rounded-lg p-4 bg-white shadow-sm min-w-[200px] flex-1">
       <div className="flex flex-col gap-0.5 min-w-0">
         <span className="text-[#121535] font-semibold text-sm truncate">{name}</span>
-        <span className="text-gray-500 text-xs truncate">{phone}</span>
+        <span className="text-gray-500 text-xs truncate">{phone ? formatPhone(phone) : '-'}</span>
         <span className="text-gray-500 text-xs truncate">{email}</span>
         <span className="text-gray-400 text-xs mt-1">{role}</span>
       </div>

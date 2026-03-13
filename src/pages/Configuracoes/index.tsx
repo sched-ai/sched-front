@@ -224,7 +224,7 @@ export const Configuracoes = () => {
         <ClinicHeader
           name={clinicName}
           category={companyType}
-          cnpj={userData?.membership?.company?.document ?? ""}
+          document={userData?.membership?.company?.document ?? ""}
         />
 
         {/* ── Settings Inputs ────────────────────────────────── */}
@@ -243,7 +243,7 @@ export const Configuracoes = () => {
             {addresses.map((addr) => (
               <AddressCard
                 key={addr.id}
-                nickname={(addr as any).nickname}
+                nickname={(addr).nickname}
                 locationName={addr.complement ? addr.address.split(",")[0] : addr.address}
                 street={addr.address}
                 neighborhood={addr.neighborhood}

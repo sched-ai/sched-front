@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { format, startOfWeek, addDays, isSameDay } from "date-fns";
 import { Plus } from "lucide-react";
+import type { AvailableHours } from "@/hooks/api/useGetCalendar";
 
 const weekDays = [
   "Domingo",
@@ -38,6 +39,7 @@ interface WeeklyCalendarProps {
 	onDateClick?: (date: { day: number; month: number; year: number }, hour: string, rect?: DOMRect) => void;
 	onEventClick?: (event: EventType, rect: DOMRect) => void;
 	filterType?: 'all' | 'consulta' | 'bloqueio';
+	availableHours?: AvailableHours;
 }
 
 function getHourPosition(time: string) {
@@ -56,7 +58,8 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
   currentDate,
   onDateClick,
   onEventClick,
-  filterType = 'all'
+  filterType = 'all',
+  availableHours
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 	const leftColumnRef = useRef<HTMLDivElement>(null);
@@ -253,20 +256,49 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                       </div>
                     )}
                     {/* Grid Lines */}
-                    {hours.map((hour) => (
+                    {hours.map((hour, hourIdx) => {
+                      let isAllowed = true;
+                      
+                      const cellDate = new Date(weekDates[dayIdx]);
+                      cellDate.setHours(hourIdx, 0, 0, 0);
+                      const now = new Date();
+
+                      if (cellDate < now) {
+                        isAllowed = false;
+                      } else if (availableHours) {
+                        const dayData = availableHours[String(dayIdx)];
+                        // dayData has startMinute: null if no work
+                        if (!dayData || dayData.startMinute === null || dayData.endMinute === null) {
+                          isAllowed = false;
+                        } else {
+                          const blockStartMin = hourIdx * 60;
+                          const blockEndMin = (hourIdx + 1) * 60;
+                          if (blockEndMin <= dayData.startMinute || blockStartMin >= dayData.endMinute) {
+                            isAllowed = false;
+                          }
+                        }
+                      }
+                      
+                      return (
                       <div
                         key={hour}
-                        className="h-[80px] border-b border-gray-200 relative group transition-colors hover:bg-blue-50/20 cursor-pointer"
-                        onClick={(e) => handleCellClick(dayIdx, hour, e)}
+                        className={`h-[80px] border-b border-gray-200 relative group transition-colors ${
+                          isAllowed ? 'hover:bg-blue-50/20 cursor-pointer' : 'cursor-not-allowed bg-[#f5f5f5]'
+                        }`}
+                        onClick={(e) => {
+                          if (isAllowed) handleCellClick(dayIdx, hour, e);
+                        }}
                       >
                         {/* Hover Plus Icon */}
-                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                            <div className="w-8 h-8 rounded-full bg-blue-50/80 flex items-center justify-center backdrop-blur-sm shadow-sm ring-1 ring-blue-100">
-                              <Plus className="w-5 h-5 text-blue-500" />
-                            </div>
-                        </div>
+                        {isAllowed && (
+                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                              <div className="w-8 h-8 rounded-full bg-blue-50/80 flex items-center justify-center backdrop-blur-sm shadow-sm ring-1 ring-blue-100">
+                                <Plus className="w-5 h-5 text-blue-500" />
+                              </div>
+                          </div>
+                        )}
                       </div>
-                    ))}
+                    )})}
 
                     {/* Events */}
                     {(() => {

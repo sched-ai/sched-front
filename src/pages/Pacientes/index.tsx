@@ -29,6 +29,7 @@ import { useGetAllClients } from "@/hooks/api/useGetAllClients";
 import type { ClientAPI } from "@/hooks/api/useGetAllClients";
 import { useDeleteClient } from "@/hooks/api/useDeleteClient";
 import { format } from "date-fns";
+import { formatPhone, formatCpf } from "@/util/helper";
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -147,8 +148,8 @@ export const Pacientes = () => {
                   <div className="lg:col-span-1">
                     <p className="text-slate-800 text-sm font-medium truncate" onMouseEnter={(e) => handleMouseEnter(e, p.name)} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}>{p.name}</p>
                   </div>
-                  <div className="lg:col-span-1"><p className="text-slate-600 text-sm truncate">{p.cpf}</p></div>
-                  <div className="lg:col-span-1"><p className="text-slate-600 text-sm truncate">{p.phone || '-'}</p></div>
+                  <div className="lg:col-span-1"><p className="text-slate-600 text-sm truncate">{p.cpf ? formatCpf(p.cpf) : '-'}</p></div>
+                  <div className="lg:col-span-1"><p className="text-slate-600 text-sm truncate">{p.phone ? formatPhone(p.phone) : '-'}</p></div>
                   <div className="lg:col-span-1">
                     <p className="text-slate-600 text-sm truncate" onMouseEnter={(e) => handleMouseEnter(e, p.email || '-')} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}>{p.email || '-'}</p>
                   </div>

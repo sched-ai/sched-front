@@ -26,6 +26,7 @@ const DAY_FULL: Record<DayKey, string> = {
 export interface LocationData {
   id?: string;
   address: string;
+  nickname?: string;
   neighborhood: string;
   complement: string;
   rooms: string;

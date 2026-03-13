@@ -31,8 +31,11 @@ const formatCPFForDisplay = (cpf: string) => {
 };
 
 const formatPhoneForDisplay = (phone: string) => {
-  const clean = phone.replace(/\D/g, "");
+  let clean = phone.replace(/\D/g, "");
   if (!clean) return "";
+  if (clean.startsWith("55") && clean.length > 11) {
+    clean = clean.substring(2);
+  }
   return maskPhone(clean);
 };
 
@@ -100,7 +103,7 @@ const CreateClient = () => {
       const payload = {
         name: formData.name,
         cpf: formData.cpf,
-        phone: formData.phone,
+        phone: formData.phone ? `55${formData.phone.replace(/\D/g, "")}` : "",
         email: formData.email,
         gender: gender,
         photoUrl: "",
@@ -197,16 +200,21 @@ const CreateClient = () => {
                     {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
                 </div>
 
-                 <div className="space-y-2">
+                     <div className="space-y-2">
                     <label className="text-sm font-medium text-slate-700">Telefone (whatsapp)</label>
-                    <input 
-                        value={formData.phone} 
-                        onChange={e => handleInputChange('phone', e.target.value)} 
-                        className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all"
-                        placeholder="(00) 00000-0000"
-                        maxLength={15}
-                        type="text"
-                    />
+                    <div className="flex items-center w-full bg-white border border-slate-300 rounded-lg px-3 py-0.5 text-sm transition-all focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 overflow-hidden">
+                        <div className="flex items-center gap-2 border-r border-slate-200 text-slate-500 select-none w-fit pr-1">
+                            <p className="font-medium leading-none text-[14px]">+55</p>
+                        </div>
+                        <input 
+                            value={formData.phone} 
+                            onChange={e => handleInputChange('phone', e.target.value)} 
+                            className="w-full bg-transparent pl-1 pr-3 py-2.5 text-slate-900 placeholder:text-slate-400 focus:outline-none"
+                            placeholder="(00) 00000-0000"
+                            maxLength={15}
+                            type="text"
+                        />
+                    </div>
                 </div>
 
                 <div className="space-y-2">

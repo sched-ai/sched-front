@@ -1,16 +1,26 @@
+import { formatCpf, formatCnpj } from "@/util/helper";
+
 interface ClinicHeaderProps {
   name?: string;
   category?: string;
-  cnpj?: string | null;
+  document?: string | null;
   photoUrl?: string;
 }
 
 export const ClinicHeader = ({
   name,
   category,
-  cnpj,
+  document,
   photoUrl,
 }: ClinicHeaderProps) => {
+  const formatDocumentDisplay = (doc?: string | null) => {
+    if (!doc) return "";
+    const cleanDoc = doc.replace(/\D/g, "");
+    if (cleanDoc.length === 11) return formatCpf(cleanDoc);
+    if (cleanDoc.length === 14) return formatCnpj(cleanDoc);
+    return doc;
+  };
+
   return (
     <div className="flex items-center gap-6 py-4">
       {/* Avatar */}
@@ -36,7 +46,7 @@ export const ClinicHeader = ({
           <h2 className="text-[#121535] text-xl font-semibold">{name}</h2>
         </div>
         <p className="text-gray-500 text-sm">
-         {category}&nbsp;&nbsp;|&nbsp;&nbsp;Documento: {cnpj}&nbsp;&nbsp;
+         Tipo de usuário: {category}&nbsp;&nbsp;|&nbsp;&nbsp;Documento: {formatDocumentDisplay(document)}&nbsp;&nbsp;
         </p>
       </div>
     </div>
