@@ -44,9 +44,11 @@ export const PatientHistory = () => {
   });
 
   // Extract appointments list
-  const appointments = Array.isArray(appointmentsResponse) 
+  const rawAppointments = Array.isArray(appointmentsResponse) 
     ? appointmentsResponse 
     : (appointmentsResponse?.data || []);
+    
+  const appointments = rawAppointments.filter((apt: any) => apt.status !== 'cancelled');
 
   const hasAppointments = !isLoading && appointments.length > 0;
   const displayAppointments = hasAppointments ? appointments : [];

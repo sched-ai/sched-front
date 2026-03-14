@@ -178,7 +178,21 @@ export const AppoimentContent = ({
                 style={{ colorScheme: "auto" }}
                 className="bg-transparent border-b border-gray-600 focus:border-blue-500 text-white p-1 w-24 text-center focus:outline-none"
                 value={startHour}
-                onChange={(e) => setStartHour(e.target.value)}
+                onChange={(e) => {
+                  const newStart = e.target.value;
+                  setStartHour(newStart);
+                  if (service && services && newStart) {
+                    const selectedService = services.find((s: any) => String(s.id) === String(service));
+                    if (selectedService?.duration) {
+                      const [hStr, mStr] = newStart.split(":");
+                      const startMs = new Date(1970, 0, 1, Number(hStr), Number(mStr)).getTime();
+                      const endDate = new Date(startMs + selectedService.duration * 60000);
+                      const endH = String(endDate.getHours()).padStart(2, '0');
+                      const endM = String(endDate.getMinutes()).padStart(2, '0');
+                      setEndHour(`${endH}:${endM}`);
+                    }
+                  }
+                }}
               />
               <span className="text-gray-400">-</span>
               <input
@@ -227,7 +241,20 @@ export const AppoimentContent = ({
         <div className="flex-1">
           <Select
             value={service}
-            onValueChange={(val: string) => setService(val)}
+            onValueChange={(val: string) => {
+              setService(val);
+              if (services && startHour) {
+                const selectedService = services.find((s: any) => String(s.id) === String(val));
+                if (selectedService?.duration) {
+                  const [hStr, mStr] = startHour.split(":");
+                  const startMs = new Date(1970, 0, 1, Number(hStr), Number(mStr)).getTime();
+                  const endDate = new Date(startMs + selectedService.duration * 60000);
+                  const endH = String(endDate.getHours()).padStart(2, '0');
+                  const endM = String(endDate.getMinutes()).padStart(2, '0');
+                  setEndHour(`${endH}:${endM}`);
+                }
+              }
+            }}
             disabled={services?.length === 0 || !services}
           >
             {(!services || services.length === 0) ? (

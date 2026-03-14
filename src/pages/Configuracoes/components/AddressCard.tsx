@@ -84,7 +84,7 @@ export const AddressCard = ({
         <div className="flex flex-wrap gap-2">
           {DAY_LABELS.map((day) => {
             const info = schedule[day];
-            const active = info?.active ?? false;
+            const active = info != null ? info.active : false;
             return (
               <div
                 key={day}

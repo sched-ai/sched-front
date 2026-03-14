@@ -132,10 +132,11 @@ export const Configuracoes = () => {
       for (const [dayKey, entry] of Object.entries(scheduleData)) {
         const key = DOW_TO_KEY[Number(dayKey)];
         if (key && entry) {
+          const isActive = entry.startMinute !== null && entry.endMinute !== null;
           flexible[key] = {
-            active: true,
-            start: minutesToTime(entry.startMinute),
-            end: minutesToTime(entry.endMinute),
+            active: isActive,
+            start: isActive ? minutesToTime(entry.startMinute) : "00:00",
+            end: isActive ? minutesToTime(entry.endMinute) : "00:00",
           };
         }
       }
