@@ -76,14 +76,15 @@ export const PatientHistory = () => {
     setNoteText("");
   };
 
-  const handleSaveNote = async (aptId: string, clientId: string) => {
+  const handleSaveNote = async (apt: any) => {
     if (!noteText.trim()) return;
     try {
       await createAnnotation({
-        appointmentId: aptId,
-        clientId: clientId,
+        appointmentId: apt.id,
+        clientId: apt.clientId,
         content: noteText
       });
+
       setEditingAptId(null);
       setNoteText("");
     } catch (error) {
@@ -163,6 +164,9 @@ export const PatientHistory = () => {
 
                    /* Annotations Logic */
                    const annotations = apt.annotations || [];
+                   const latestAnnotation = annotations.length > 0
+                     ? [...annotations].sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0]
+                     : null;
                    const isEditing = editingAptId === apt.id;
 
                    return (
@@ -200,9 +204,9 @@ export const PatientHistory = () => {
                              )}
 
                              {/* Annotations List */}
-                             {annotations.length > 0 ? (
+                             {latestAnnotation ? (
                                <div className="flex flex-col gap-3">
-                                 {annotations.map((note: any) => {
+                                 {[latestAnnotation].map((note: any) => {
                                    const noteDate = new Date(note.createdAt);
                                    const noteDateFormatted = format(noteDate, "dd/MM/yyyy 'às' HH:mm");
                                    const noteContent = note.content || "";
@@ -274,14 +278,14 @@ export const PatientHistory = () => {
                                   Cancelar
                                 </Button>
                                 <Button 
-                                  onClick={() => handleSaveNote(apt.id, apt.clientId)}
+                                  onClick={() => handleSaveNote(apt)}
                                   className="bg-[#141736] text-white hover:bg-[#141736]/90 rounded-full px-6"
                                   disabled={isCreating}
                                 >
                                   {isCreating ? "Salvando..." : "Salvar"}
                                 </Button>
                               </>
-                            ) : (
+                            ) : annotations.length === 0 ? (
                               <Button 
                                 variant="outline" 
                                 onClick={() => handleStartEdit(apt)}
@@ -290,7 +294,7 @@ export const PatientHistory = () => {
                                 <Plus className="w-4 h-4" />
                                 Adicionar Nota
                               </Button>
-                            )}
+                            ) : null}
                           </div>
                         </div>
                      </div>

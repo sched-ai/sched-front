@@ -23,6 +23,11 @@ export interface AppointmentAPI {
   } | null;
   service?: { name: string } | null;
   description?: string;
+  annotations?: Array<{
+    id: string;
+    content: string;
+    createdAt: string;
+  }>;
 }
 
 export interface AppointmentsResponse {

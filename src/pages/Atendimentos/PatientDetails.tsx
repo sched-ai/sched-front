@@ -1,10 +1,11 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Eye, User } from "lucide-react";
-import { useUpdateAppointment } from "@/hooks/api/useUpdateAppointment";
+import { Eye, User, Play, RotateCcw } from "lucide-react";
+import { useCreateAnnotation } from "@/hooks/api/useCreateAnnotation";
 import { useGetAppointment } from "@/hooks/api/useGetAppointment";
 import { useGetClient } from "@/hooks/api/useGetClient";
+import { useGetService } from "@/hooks/api/useGetService";
 
 function calculateAge(birthDate: string | undefined): number | undefined {
   if (!birthDate) return undefined;
@@ -13,6 +14,144 @@ function calculateAge(birthDate: string | undefined): number | undefined {
   const diffMs = Date.now() - dob.getTime();
   const ageDt = new Date(diffMs); 
   return Math.abs(ageDt.getUTCFullYear() - 1970);
+}
+
+function formatHHMMSS(totalSeconds: number) {
+  const h = Math.floor(totalSeconds / 3600).toString().padStart(2, "0");
+  const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, "0");
+  const s = Math.floor(totalSeconds % 60).toString().padStart(2, "0");
+  return `${h}:${m}:${s}`;
+}
+
+function ConsultationTimer({ serviceId, startDate, endDate }: { serviceId?: string | null; startDate?: string; endDate?: string }) {
+  const { data: service, isLoading } = useGetService(serviceId ?? "", !!serviceId);
+
+  const [initialSeconds, setInitialSeconds] = useState(0);
+  const [timerSeconds, setTimerSeconds] = useState(0);
+  const [running, setRunning] = useState(false);
+  const intervalRef = useRef<number | null>(null);
+  const runningRef = useRef(false);
+
+  runningRef.current = running;
+
+  useEffect(() => {
+    let minutes = 0;
+    if (service?.duration) {
+      minutes = service.duration;
+    } else if (startDate && endDate) {
+      const s = new Date(startDate).getTime();
+      const e = new Date(endDate).getTime();
+      if (!isNaN(s) && !isNaN(e) && e > s) {
+        minutes = Math.round((e - s) / 60000);
+      }
+    }
+
+    if (minutes > 0) {
+      const secs = minutes * 60;
+      setInitialSeconds(secs);
+      if (!runningRef.current) {
+        setTimerSeconds(secs);
+      }
+    }
+  }, [service?.duration, startDate, endDate]);
+
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current !== null) {
+        window.clearInterval(intervalRef.current);
+      }
+    };
+  }, []);
+
+  const stopInterval = useCallback(() => {
+    if (intervalRef.current !== null) {
+      window.clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, []);
+
+  const handleIniciar = useCallback(() => {
+    if (running || initialSeconds === 0) return;
+
+    setTimerSeconds((prev) => (prev === 0 ? initialSeconds : prev));
+    setRunning(true);
+
+    stopInterval();
+    intervalRef.current = window.setInterval(() => {
+      setTimerSeconds((s) => {
+        const next = s - 1;
+        if (next <= 0) {
+          if (intervalRef.current !== null) {
+            window.clearInterval(intervalRef.current);
+            intervalRef.current = null;
+          }
+          setRunning(false);
+          return 0;
+        }
+        return next;
+      });
+    }, 1000);
+  }, [running, initialSeconds, stopInterval]);
+
+  const handleReset = useCallback(() => {
+    stopInterval();
+    setRunning(false);
+    setTimerSeconds(initialSeconds);
+  }, [initialSeconds, stopInterval]);
+
+  return (
+    <div className="relative w-full max-w-[560px] rounded-xl border border-[#d7e3ff] bg-gradient-to-r from-white to-[#f4f8ff] shadow-[0_16px_40px_-14px_rgba(11,59,140,0.45)] px-5 py-3.5">
+      <div className="pointer-events-none absolute -inset-1 -z-10 rounded-2xl bg-[#0b3b8c]/10 blur-md" />
+      <div className="flex items-center justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">
+            Duração da consulta
+          </p>
+          <div className="font-mono text-2xl leading-tight text-[#0b3b8c] mt-1 select-none">
+            {isLoading ? (
+              <span className="text-lg text-slate-400">...</span>
+            ) : initialSeconds === 0 ? (
+              <span className="text-lg text-slate-400">--:--:--</span>
+            ) : (
+              <span>{formatHHMMSS(timerSeconds)}</span>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleIniciar}
+            disabled={running || initialSeconds === 0}
+            className={`w-9 h-9 flex items-center justify-center rounded-full transition-colors cursor-pointer ${
+              (running || initialSeconds === 0)
+                ? "bg-slate-200 text-slate-400 cursor-not-allowed"
+                : "bg-[#0b3b8c] text-white hover:bg-[#093077]"
+            }`}
+            title="Iniciar"
+          >
+            <Play className="w-4 h-4 fill-current" />
+          </button>
+
+          <button
+            onClick={handleReset}
+            disabled={!running && timerSeconds === initialSeconds}
+            className={`w-9 h-9 flex items-center justify-center rounded-full transition-colors cursor-pointer ${
+              !running && timerSeconds === initialSeconds
+                ? "bg-slate-200 text-slate-400 cursor-not-allowed"
+                : "bg-amber-500 text-white hover:bg-amber-600"
+            }`}
+            title="Zerar"
+          >
+            <RotateCcw className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {!isLoading && initialSeconds === 0 && (
+        <p className="text-xs text-slate-500 mt-2">Sem duração configurada para este atendimento.</p>
+      )}
+    </div>
+  );
 }
 
 export const PatientDetails: React.FC = () => {
@@ -58,16 +197,7 @@ export const PatientDetails: React.FC = () => {
     }
   }, [atendimentoState]);
 
-  type CardType = {
-    id: string;
-    title: string;
-    date: string;
-    time: string;
-    summary: string;
-    notes: string;
-  };
-
-  const [cards, setCards] = useState<CardType[]>([]);
+  const [annotationText, setAnnotationText] = useState<string>("");
   // We use useGetAppointment to fetch fresh data
   const { data: fetchedAppointment, refetch: refetchAppointment, isLoading } = useGetAppointment(id || "", !!id);
 
@@ -75,7 +205,7 @@ export const PatientDetails: React.FC = () => {
   const clientId = fetchedAppointment?.clientId || fetchedAppointment?.client?.id || patient.clientId || "";
   const { data: fullClientData } = useGetClient(clientId, !!clientId);
 
-  const { mutateAsync: updateAppointment } = useUpdateAppointment({
+  const { mutateAsync: createAnnotation, isPending: isCreatingAnnotation } = useCreateAnnotation({
     onSuccessFn: () => {
       refetchAppointment();
     }
@@ -106,41 +236,13 @@ export const PatientDetails: React.FC = () => {
          clientId: fetchedAppointment.clientId || fetchedAppointment.client?.id || prev.clientId,
          name: fetchedAppointment.client?.name || fetchedAppointment.clientName || prev.name,
        }));
-
-       // Update cards
-       const newCard: CardType = {
-        id: fetchedAppointment.id,
-        title: fetchedAppointment.service?.name || "Atendimento",
-        date: fetchedAppointment.startDate ? fetchedAppointment.startDate.split('T')[0] : "",
-        time: fetchedAppointment.startDate ? fetchedAppointment.startDate.split('T')[1]?.substring(0,5) : "",
-        summary: fetchedAppointment.description || "Sem obs.",
-        notes: fetchedAppointment.description || ""
-       };
-       setCards([newCard]);
     }
   }, [fetchedAppointment]);
 
-  const handleNoteChange = (cardId: string, value: string) => {
-    setCards((prev) => prev.map((c) => (c.id === cardId ? { ...c, notes: value } : c)));
-  };
-
-  const handleSave = async (cardId: string) => {
-    const card = cards.find(c => c.id === cardId);
-    if (!card) return;
-
-    try {
-      await updateAppointment({
-        id: cardId,
-        payload: {
-          description: card.notes
-        }
-      });
-      const el = document.getElementById(`note-${cardId}`) as HTMLTextAreaElement | null;
-      if (el) el.blur();
-    } catch (error) {
-       console.error("Failed to save note", error);
-    }
-  };
+  useEffect(() => {
+    const firstAnnotation = fetchedAppointment?.annotations?.[0];
+    setAnnotationText(firstAnnotation?.content || "");
+  }, [fetchedAppointment]);
 
   const isCancelledState = patient.status && ['cancelado', 'cancelled'].includes(patient.status.toLowerCase());
   const isCancelledFetched = fetchedAppointment?.status && ['cancelado', 'cancelled'].includes(fetchedAppointment.status.toLowerCase());
@@ -196,22 +298,22 @@ export const PatientDetails: React.FC = () => {
                   </p>
                 </div>
              </div>
-             <div>
+             <div className="shrink-0">
               <Button
                 size="sm"
-                className="bg-[#121535] text-white px-3 py-2 w-[170px] relative overflow-hidden flex items-center justify-center cursor-pointer"
+                className="bg-[#121535] text-white px-4 py-2 w-[170px] relative overflow-hidden flex items-center justify-center cursor-pointer"
                 onClick={() => {
-                   const clientId = patient.clientId || fetchedAppointment?.clientId || fetchedAppointment?.client?.id || (location.state as any)?.atendimento?.clientId || (location.state as any)?.paciente?.id;
-                   
-                   if (clientId) {
-                     navigate(`/patients/${clientId}/history`, { state: { paciente: patient } });
-                   } else {
-                     console.warn("Client ID not found for navigation. Check fetchedAppointment object.", { fetchedAppointment, patient, state: location.state });
-                   }
+                  const selectedClientId = patient.clientId || fetchedAppointment?.clientId || fetchedAppointment?.client?.id || (location.state as any)?.atendimento?.clientId || (location.state as any)?.paciente?.id;
+
+                  if (selectedClientId) {
+                    navigate(`/patients/${selectedClientId}/history`, { state: { paciente: patient } });
+                  } else {
+                    console.warn("Client ID not found for navigation. Check fetchedAppointment object.", { fetchedAppointment, patient, state: location.state });
+                  }
                 }}
               >
                 <span className="w-4 h-4 mr-2 flex-shrink-0 flex items-center justify-center">
-                   <Eye className="w-4 h-4" />
+                  <Eye className="w-4 h-4" />
                 </span>
                 <span>Ver Histórico</span>
               </Button>
@@ -219,41 +321,76 @@ export const PatientDetails: React.FC = () => {
           </div>
         </div>
 
-        {/* Consultations list - dynamic cards with local save */}
+        <div className="mb-6 bg-[#F6F8FB] rounded-[14px] border border-slate-200 p-4 flex items-center justify-center">
+          <div className="w-full lg:w-auto flex flex-col items-center">
+            <ConsultationTimer
+              serviceId={fetchedAppointment?.serviceId || (location.state as any)?.atendimento?.serviceId || (location.state as any)?.atendimento?.service?.id}
+              startDate={fetchedAppointment?.startDate || (location.state as any)?.atendimento?.startDate}
+              endDate={fetchedAppointment?.endDate || (location.state as any)?.atendimento?.endDate}
+            />
+          </div>
+        </div>
+
+        {/* Consultation card with single annotation input */}
         <div className="space-y-6">
-          {cards.map((card) => (
-            <div key={card.id} className="bg-white rounded-[10px] shadow-custom p-6 border-2">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <div className="text-base text-[#0f1724] italic">{card.title}</div>
+          <div className="bg-white rounded-[10px] shadow-custom p-6 border-2">
+            <div className="flex items-start justify-between mb-3">
+              <div>
+                <div className="text-base text-[#0f1724] italic">
+                  {fetchedAppointment?.service?.name || "Atendimento"}
                 </div>
-                <div className="text-sm text-slate-600">{card.date} • {card.time}</div>
               </div>
-
-              <div className="bg-[#D9D9D9] p-3 rounded mb-3 border border-[#cfcfcf]">
-                <div className="text-sm text-slate-700">{card.summary}</div>
-              </div>
-
-              <div className="flex items-center gap-2 mb-2 text-[#121535]">
-                <button className="px-2 py-1 text-sm font-semibold">B</button>
-                <button className="px-2 py-1 text-sm font-semibold">I</button>
-                <button className="px-2 py-1 text-sm font-semibold">U</button>
-                <div className="ml-2 border-l border-slate-300 pl-3 text-sm text-slate-600">• • •</div>
-              </div>
-
-              <textarea
-                id={`note-${card.id}`}
-                value={card.notes}
-                onChange={(e) => handleNoteChange(card.id, e.target.value)}
-                className="w-full min-h-[240px] p-4 rounded bg-white border border-slate-200 text-slate-800"
-                placeholder="Adicionar descrição da consulta"
-              />
-
-              <div className="flex justify-end mt-4">
-                <Button onClick={() => handleSave(card.id)} className="bg-[#121535] text-white px-4 py-2 rounded-[8px]">Salvar</Button>
+              <div className="text-sm text-slate-600">
+                {(fetchedAppointment?.startDate?.split('T')[0] || patient.data || "")} • {(fetchedAppointment?.startDate?.split('T')[1]?.substring(0,5) || patient.hora || "")}
               </div>
             </div>
-          ))}
+
+            <div className="bg-[#D9D9D9] p-3 rounded mb-3 border border-[#cfcfcf]">
+              <div className="text-sm text-slate-700">{fetchedAppointment?.description || "Sem obs."}</div>
+            </div>
+
+            <div className="mt-4 bg-white p-4 rounded-md border border-slate-200">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-sm font-semibold text-[#141736]">Notas do Atendimento</h4>
+              </div>
+              <textarea
+                value={annotationText}
+                onChange={(e) => setAnnotationText(e.target.value)}
+                className="w-full p-3 rounded-md border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#141736] text-sm text-slate-700 leading-relaxed resize-y min-h-[120px]"
+                placeholder="Adicionar nota do atendimento..."
+              />
+              <div className="flex justify-end gap-3 mt-3">
+                <Button
+                  variant="ghost"
+                  onClick={() => setAnnotationText("")}
+                  className="text-slate-600 hover:text-slate-800"
+                >
+                  Limpar
+                </Button>
+                <Button
+                  onClick={async () => {
+                    if (!annotationText.trim()) return;
+                    const appointmentId = fetchedAppointment?.id || id || "";
+                    const selectedClientId = patient.clientId || clientId || fetchedAppointment?.clientId || fetchedAppointment?.client?.id || "";
+                    if (!appointmentId || !selectedClientId) return;
+                    try {
+                      await createAnnotation({
+                        appointmentId,
+                        clientId: selectedClientId,
+                        content: annotationText.trim(),
+                      });
+                    } catch (err) {
+                      console.error("Failed to create annotation", err);
+                    }
+                  }}
+                  className="bg-[#141736] text-white px-4 py-2 rounded-[8px]"
+                  disabled={isCreatingAnnotation}
+                >
+                  {isCreatingAnnotation ? "Salvando..." : "Salvar"}
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
     </div>
