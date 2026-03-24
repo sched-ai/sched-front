@@ -31,7 +31,9 @@ export type EventType = {
 	type?: 'consulta' | 'bloqueio';
 	employeeId?: string;
 	professionalName?: string;
+	isRecurring?: boolean;
 };
+
 
 interface WeeklyCalendarProps {
 	events: EventType[];

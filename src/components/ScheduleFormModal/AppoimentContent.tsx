@@ -113,12 +113,12 @@ export const AppoimentContent = ({
     }
 
     const [startH, startM] = startHour.split(":").map((s) => Number(s));
-    const startDate = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day), startH ?? 0, startM ?? 0));
+    const startDate = new Date(Number(year), Number(month) - 1, Number(day), startH ?? 0, startM ?? 0);
 
     let duration: number | undefined = undefined;
     if (endHour) {
       const [endH, endM] = endHour.split(":").map((s) => Number(s));
-      const endDate = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day), endH ?? 0, endM ?? 0));
+      const endDate = new Date(Number(year), Number(month) - 1, Number(day), endH ?? 0, endM ?? 0);
       const diffMs = endDate.getTime() - startDate.getTime();
       if (diffMs > 0) {
         duration = Math.floor(diffMs / 60000); // minutes

@@ -108,6 +108,7 @@ export const ScheduleFormModal = ({
   const [endOption, setEndOption] = useState<"never" | "onDate" | "afterOccurrences">("never");
   const [endDate, setEndDate] = useState<string | undefined>(undefined);
   const [occurrences, setOccurrences] = useState<number | undefined>(1);
+  const [frequency, setFrequency] = useState<"DAILY" | "WEEKLY" | "MONTHLY">("DAILY");
   const [clientId, setClientId] = useState<string | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
@@ -133,6 +134,7 @@ export const ScheduleFormModal = ({
     };
 
     const resetAll = (keepEndDate?: boolean) => {
+      setFrequency("DAILY");
       // Default to current time for 'Agendar' flow
       const now = new Date();
       const h = now.getHours();
@@ -307,6 +309,8 @@ export const ScheduleFormModal = ({
     occurrences,
     setEndDate,
     setOccurrences,
+    frequency,
+    setFrequency,
     onClose,
     timeBlockId: selectedEvent?.type === 'bloqueio' ? String(selectedEvent.id) : undefined
   };

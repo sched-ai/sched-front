@@ -11,6 +11,9 @@ export type DayOfWeek =
   | "FRIDAY" 
   | "SATURDAY";
 
+export type RecurrenceFrequency = "DAILY" | "WEEKLY" | "MONTHLY";
+
+
 export interface ICreateTimeBlockPayload {
   startDate: string | Date;
   endDate: string | Date;
@@ -18,7 +21,10 @@ export interface ICreateTimeBlockPayload {
   isInfiniteRecurring?: boolean;
   recurringUntilDate?: string | Date | null;
   recurringOccurrences?: number | null;
+  frequency?: RecurrenceFrequency | null;
+  days_of_week?: number[];
 }
+
 
 export const useCreateTimeBlock = ({ onSuccessFn }: IUseMutationParams) => {
   const queryClient = useQueryClient();
