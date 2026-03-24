@@ -3,7 +3,6 @@ import { Pencil } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { formatPhone } from "@/util/helper";
-import { isValidPhone } from "@/util/validation";
 import { ConfirmPhoneUpdateModal } from "./ConfirmPhoneUpdateModal";
 
 const maskPhone = (value: string) => {
@@ -51,7 +50,7 @@ export const SettingsInputs = ({
   const cleanOriginalPhone = (phone || "").replace(/\D/g, "");
   const cleanLocalPhone = localPhone.replace(/\D/g, "");
   const isPhoneDirty = cleanLocalPhone !== cleanOriginalPhone;
-  const isPhoneValid = isValidPhone(cleanLocalPhone);
+  const isPhoneValid = cleanLocalPhone.length === 11;
   const canSubmitPhone = isPhoneDirty && isPhoneValid && !isPhonePending;
 
   const inputBase =

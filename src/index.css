@@ -267,3 +267,23 @@ select:-webkit-autofill:focus {
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
+.toast-progress-success {
+  background: #121535 !important;
+}
+
+.toast-progress-default {
+  background: #1f2937 !important;
+}
+
+.toast-progress-error {
+  background: #ef4444 !important;
+}
+
+.toast-progress-info {
+  background: #1e40af !important;
+}
+
+.toast-progress-warning {
+  background: #d97706 !important;
+}
