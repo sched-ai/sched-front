@@ -15,7 +15,10 @@ interface TimeBlockOccurrenceAPI {
   startDate: string;
   endDate: string;
   reason?: string | null;
+  frequency?: string | null;
+  isInfiniteRecurring?: boolean;
 }
+
 
 interface AppointmentAPI {
   id: string;
@@ -53,32 +56,34 @@ const weekDaysPt = [
 ] as const;
 
 const pad = (v: number) => String(v).padStart(2, "0");
-const timeFromUTC = (d: Date) => `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
-const monthFromUTC = (d: Date) => pad(d.getUTCMonth() + 1);
-const yearFromUTC = (d: Date) => d.getUTCFullYear();
+const timeFromLocal = (d: Date) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+const monthFromLocal = (d: Date) => pad(d.getMonth() + 1);
+const yearFromLocal = (d: Date) => d.getFullYear();
 
 const toTimeBlockEvent = (tb: TimeBlockOccurrenceAPI): EventType => {
   const start = new Date(tb.startDate);
   const end = new Date(tb.endDate);
-  const dayIdx = start.getUTCDay();
+  const dayIdx = start.getDay();
 
   return {
     id: tb.id,
     title: tb.reason || "Bloqueio",
     day: weekDaysPt[dayIdx],
-    dayNumber: start.getUTCDate(),
-    start: timeFromUTC(start),
-    end: timeFromUTC(end),
-    month: monthFromUTC(start),
-    year: yearFromUTC(start),
+    dayNumber: start.getDate(),
+    start: timeFromLocal(start),
+    end: timeFromLocal(end),
+    month: monthFromLocal(start),
+    year: yearFromLocal(start),
     type: "bloqueio",
+    isRecurring: !!tb.frequency || !!tb.isInfiniteRecurring,
   };
 };
+
 
 const toAppointmentEvent = (a: AppointmentAPI): EventType => {
   const start = new Date(a.startDate);
   const end = new Date(a.endDate);
-  const dayIdx = start.getUTCDay();
+  const dayIdx = start.getDay();
 
   const titleParts: string[] = [];
   if (a.clientName) titleParts.push(a.clientName);
@@ -92,11 +97,11 @@ const toAppointmentEvent = (a: AppointmentAPI): EventType => {
     employeeId: a.employeeId ?? undefined,
     professionalName: a.professionalName ?? undefined,
     day: weekDaysPt[dayIdx],
-    dayNumber: start.getUTCDate(),
-    start: timeFromUTC(start),
-    end: timeFromUTC(end),
-    month: monthFromUTC(start),
-    year: yearFromUTC(start),
+    dayNumber: start.getDate(),
+    start: timeFromLocal(start),
+    end: timeFromLocal(end),
+    month: monthFromLocal(start),
+    year: yearFromLocal(start),
     type: "consulta",
   };
 };

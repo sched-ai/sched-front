@@ -32,7 +32,10 @@ export interface ITimeBlock {
   recurringDays?: DayOfWeek[];
   recurringUntilDate?: string | Date | null;
   recurringOccurrences?: number | null;
+  frequency?: "DAILY" | "WEEKLY" | "MONTHLY" | null;
+  days_of_week?: number[];
 }
+
 
 export interface IUseForm<T>{
 	schema?: Record<string, any>,

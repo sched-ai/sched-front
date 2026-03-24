@@ -280,12 +280,47 @@
 				});
 			}
 		};
+
+		const destroyWithBody = async <TBody>(options: IUseApiOptions<TBody>) => {
+			const {
+				errorMessage,
+				showErrorFeedback = true,
+				successMessage,
+				showSuccessFeedback = true,
+				label = '',
+				autoClose,
+				endpoint,
+				body
+			} = options;
+
+			try {
+				const resp = await axiosInstance.delete<TAxiosResponse<T>>(`${ endpoint }`, { data: body });
+				feedbackHandler({
+					label,
+					message: label!=='' ? successMessage || resp.data.message  || `${ label.charAt(0).toUpperCase() + label.slice(1) } processado com sucesso!` : '',
+					toastId: 'success-delete-body-toast',
+					type: 'success',
+					autoClose,
+					showFeedback: showSuccessFeedback
+				});
+				return resp.data;
+			} catch (error: any) {
+				errorHandler({
+					label,
+					error,
+					message: errorMessage || `Erro ao processar ${ label.toLocaleLowerCase() }!`,
+					showErrorFeedback
+				});
+			}
+		};
+
 		return {
 			get,
 			post,
 			patch,
 			update,
 			destroy,
+			destroyWithBody
 		};
 	};
 

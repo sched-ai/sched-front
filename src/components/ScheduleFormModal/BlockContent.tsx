@@ -35,9 +35,12 @@ interface IProps {
   setEndDate: (val: string | undefined) => void;
   occurrences: number | undefined;
   setOccurrences: (val: number | undefined) => void;
+  frequency: "DAILY" | "WEEKLY" | "MONTHLY";
+  setFrequency: (val: "DAILY" | "WEEKLY" | "MONTHLY") => void;
   onClose?: () => void;
   timeBlockId?: string;
 }
+
 
 export const BlockContent = ({
   title,
@@ -50,15 +53,16 @@ export const BlockContent = ({
   repeatEnabled,
   setRepeatEnabled,
   weekDays,
+  setWeekDays,
   endOption,
-  setEndOption,
   endDate,
   occurrences,
-  setEndDate,
-  setOccurrences,
+  frequency,
+  setFrequency,
   onClose,
   timeBlockId
 }: IProps) => {
+
   const { mutate: createTimeBlock, isPending: isCreating, error: createError } = useCreateTimeBlock({
     onSuccessFn: () => {
       if (onClose) onClose();
@@ -125,32 +129,37 @@ export const BlockContent = ({
     const [startHStr = "0", startMStr = "0"] = (startHour || "00:00").split(":");
     const [endHStr = "0", endMStr = "0"] = (endHour || "00:00").split(":");
 
-    const startDateUtc = new Date(Date.UTC(
+    const startDateLocal = new Date(
       Number(yearStr),
       Number(monthStr) - 1,
       Number(dayStr),
       Number(startHStr) ?? 0,
       Number(startMStr) ?? 0,
-    ));
+    );
 
-    const endDateUtc = new Date(Date.UTC(
+    const endDateLocal = new Date(
       Number(yearStr),
       Number(monthStr) - 1,
       Number(dayStr),
       Number(endHStr) ?? 0,
       Number(endMStr) ?? 0,
-    ));
+    );
 
     const payload = {
-      startDate: startDateUtc,
-      endDate: endDateUtc,
+      startDate: startDateLocal,
+      endDate: endDateLocal,
       reason: title,
-      isInfiniteRecurring: Boolean(repeatEnabled && endOption === "never"),
+      isInfiniteRecurring: repeatEnabled,
+      frequency: repeatEnabled ? frequency : null,
+      days_of_week: repeatEnabled && frequency === "WEEKLY" 
+        ? weekDays.map((isSelected, i) => (isSelected ? i : -1)).filter((i) => i !== -1)
+        : [],
       recurringUntilDate:
         endOption === "onDate" && endDate ? convertDateFormat(endDate) : null,
       recurringOccurrences:
         endOption === "afterOccurrences" ? occurrences : null,
     };
+
 
     if (timeBlockId) {
       updateTimeBlock({ id: timeBlockId, payload });
@@ -229,65 +238,52 @@ export const BlockContent = ({
             <div className="pl-0 animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="border-l-2 border-gray-700 pl-4 space-y-4">
                  <div>
-                    <label className="text-sm text-gray-400 mb-2 block">Encerra</label>
-                    <div className="flex flex-col gap-3">
-                      <label className="flex items-center gap-2 cursor-pointer group">
-                        <input
-                          type="radio"
-                          name="endOption"
-                          checked={endOption === "never"}
-                          onChange={() => setEndOption("never")}
-                          className="accent-blue-600 w-4 h-4 cursor-pointer"
-                        />
-                        <span className="ml-2 text-white group-hover:text-blue-400 transition-colors">Nunca</span>
-                      </label>
+                    <label className="text-sm text-gray-400 mb-2 block">Frequência</label>
+                    <div className="flex flex-col gap-4">
+                      <div className="flex gap-2">
+                        {(["DAILY", "WEEKLY", "MONTHLY"] as const).map((opt) => (
+                           <Button
+                              key={opt}
+                              type="button"
+                              onClick={() => setFrequency(opt)}
+                              className={`rounded-full px-4 h-8 text-xs font-medium transition-all ${
+                                frequency === opt 
+                                ? "bg-blue-600 text-white hover:bg-blue-700" 
+                                : "bg-gray-800 text-gray-400 hover:bg-gray-700 border border-gray-700"
+                              }`}
+                           >
+                              {opt === 'DAILY' ? 'Diário' : opt === 'WEEKLY' ? 'Semanal' : 'Mensal'}
+                           </Button>
+                        ))}
+                      </div>
 
-                      <label className="flex items-center gap-2 cursor-pointer group">
-                         <div className="flex items-center">
-                            <input
-                              type="radio"
-                              name="endOption"
-                              checked={endOption === "onDate"}
-                              onChange={() => setEndOption("onDate")}
-                              className="accent-blue-600 w-4 h-4 cursor-pointer"
-                            />
-                            <span className="ml-2 mr-2 text-white group-hover:text-blue-400 transition-colors">Em</span>
-                         </div>
-                        <DatePicker
-                          initialValue={endDate}
-                          onChange={(val?: string) => setEndDate(val)}
-                        />
-                      </label>
-
-                      <label className="flex items-center gap-2 cursor-pointer group">
-                        <div className="flex items-center">
-                            <input
-                              type="radio"
-                              name="endOption"
-                              checked={endOption === "afterOccurrences"}
-                              onChange={() => setEndOption("afterOccurrences")}
-                              className="accent-blue-600 w-4 h-4 cursor-pointer"
-                            />
-                            <span className="ml-2 mr-2 text-white group-hover:text-blue-400 transition-colors">Após</span>
+                      {frequency === "WEEKLY" && (
+                        <div className="flex flex-col gap-2 animate-in fade-in zoom-in-95 duration-200">
+                          <label className="text-xs text-gray-400">Repetir em:</label>
+                          <div className="flex gap-1.5 flex-wrap">
+                            {["D", "S", "T", "Q", "Q", "S", "S"].map((day, i) => (
+                              <button
+                                key={i}
+                                type="button"
+                                onClick={() => {
+                                  setWeekDays(prev => {
+                                    const next = [...prev];
+                                    next[i] = !next[i];
+                                    return next;
+                                  });
+                                }}
+                                className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-bold transition-all duration-200 ${
+                                  weekDays[i]
+                                    ? "bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-900/40 transform scale-110"
+                                    : "bg-gray-800/40 border-gray-700 text-gray-500 hover:border-gray-500 hover:text-gray-300"
+                                }`}
+                              >
+                                {day}
+                              </button>
+                            ))}
+                          </div>
                         </div>
-                        <input
-                          type="number"
-                          value={occurrences ?? ""}
-                          min={1}
-                          onChange={(e) => {
-                            const v = e.target.value;
-                            if (!v) {
-                              setOccurrences(undefined);
-                              return;
-                            }
-                            const n = Number(v);
-                            setOccurrences(Number.isNaN(n) || n <= 0 ? 1 : n);
-                          }}
-                          disabled={endOption !== "afterOccurrences"}
-                          className="bg-transparent border-b border-gray-600 focus:border-blue-500 text-white w-12 text-center focus:outline-none disabled:opacity-50"
-                        />
-                        <span className="text-white text-sm">ocorrências</span>
-                      </label>
+                      )}
                     </div>
                  </div>
               </div>
