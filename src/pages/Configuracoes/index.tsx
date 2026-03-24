@@ -7,6 +7,7 @@ import { AddressCard } from "./components/AddressCard";
 // import { ProfessionalModal, type ProfessionalData } from "./components/ProfessionalModal";
 import { LocationModal, type LocationData } from "./components/LocationModal";
 import { useUser } from "@/context/user";
+import { useUpdateCompanyPhone } from "@/hooks/api/useUpdateCompanyPhone";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -89,13 +90,22 @@ const mockAddresses: LocationData[] = [
 // ────────────────────────────────────────────────────────────────────────────
 
 export const Configuracoes = () => {
-  const { userData } = useUser();
+  const { userData, refreshUser } = useUser();
+  const {
+    mutateAsync: updateCompanyPhone,
+    isPending: isUpdatingCompanyPhone,
+  } = useUpdateCompanyPhone();
 
   // ── Derived real data from userData ───────────────────────
   const clinicName = userData?.membership?.company?.name ?? "Clínica Bem Estar";
   const companyType = userData?.membership?.company?.companyType === "AUTONOMO" ? "Autônomo" : "Empresa";
   const companyPhone = userData?.membership?.company?.phone ?? "";
   const userEmail = userData?.email ?? "bem.estar@gmail.com";
+
+  const handleConfirmPhoneUpdate = async (phone: string) => {
+    await updateCompanyPhone(phone);
+    refreshUser();
+  };
 
   /**
    * Convert API workplaces → LocationData[].
@@ -229,7 +239,12 @@ export const Configuracoes = () => {
         />
 
         {/* ── Settings Inputs ────────────────────────────────── */}
-        <SettingsInputs email={userEmail} phone={companyPhone} />
+        <SettingsInputs
+          email={userEmail}
+          phone={companyPhone}
+          isPhonePending={isUpdatingCompanyPhone}
+          onPhoneConfirm={handleConfirmPhoneUpdate}
+        />
 
         <hr className="border-[#DADCE0] my-6" />
 

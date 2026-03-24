@@ -46,8 +46,13 @@ interface UseGetUserProps {
   enabled?: boolean;
 }
 
+type UserEnvelope = {
+  ok?: boolean;
+  data?: IUser;
+} & Partial<IUser>;
+
 export const useGetUser = ({ onSuccessFn, enabled = true }: UseGetUserProps = {}) => {
-  const { get } = useAPI<IUser>();
+  const { get } = useAPI<UserEnvelope>();
 
   const query = useQuery<IUser, Error, IUser>({
     queryKey: ["user"],
@@ -58,10 +63,15 @@ export const useGetUser = ({ onSuccessFn, enabled = true }: UseGetUserProps = {}
         showSuccessFeedback: false,
         endpoint: "user/me",
       }).then((response) => {
-        if (!response) {
+        const payload =
+          response?.data && typeof response.data === "object"
+            ? response.data
+            : response;
+
+        if (!payload) {
           throw new Error("Empty response");
         }
-        return response;
+        return payload as IUser;
       }),
     enabled,
   });
