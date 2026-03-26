@@ -71,11 +71,10 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 		left: number;
 	} | null>(null);
 	const CELL_HEIGHT = 80;
-  const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
-  
-  const weekDates = Array.from({ length: 7 }, (_, index) => 
-    addDays(weekStart, index)
-  );
+  const weekDates = React.useMemo(() => {
+    const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
+    return Array.from({ length: 7 }, (_, index) => addDays(weekStart, index));
+  }, [currentDate]);
 
   useEffect(() => {
     if (scrollContainerRef.current) {
@@ -84,30 +83,30 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
     }
   }, [currentDate]);
 
-	useEffect(() => {
-		let mounted = true;
-		const updateNow = () => {
-			const now = new Date();
-			const dayIdxNow = weekDates.findIndex((d) => isSameDay(d, now));
-			if (dayIdxNow === -1) {
-				if (mounted) setNowIndicator(null);
-				return;
-			}
-			const timeStr = format(now, "HH:mm");
-			const pos = getHourPosition(timeStr);
-			const left = leftColumnRef.current?.offsetWidth ?? 80;
-			if (mounted)
-				setNowIndicator({ top: pos.totalPosition * CELL_HEIGHT, dayIdx: dayIdxNow, left });
-		};
+  useEffect(() => {
+    let mounted = true;
+    const updateNow = () => {
+      const now = new Date();
+      const dayIdxNow = weekDates.findIndex((d) => isSameDay(d, now));
+      if (dayIdxNow === -1) {
+        if (mounted) setNowIndicator(null);
+        return;
+      }
+      const timeStr = format(now, "HH:mm");
+      const pos = getHourPosition(timeStr);
+      const left = leftColumnRef.current?.offsetWidth ?? 80;
+      if (mounted)
+        setNowIndicator({ top: pos.totalPosition * CELL_HEIGHT, dayIdx: dayIdxNow, left });
+    };
 
-		updateNow();
-		const id = setInterval(updateNow, 30 * 1000);
-		return () => {
-			mounted = false;
-			clearInterval(id);
-		};
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+    updateNow();
+    const id = setInterval(updateNow, 30 * 1000);
+    return () => {
+      mounted = false;
+      clearInterval(id);
+    };
+
+  }, [weekDates]);
 
 	// Filtra eventos para a semana exibida (não apenas por mês/ano)
 	const filteredEventsByWeek = events.filter((event) => {
@@ -180,6 +179,8 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 		if (onEventClick) {
 			onEventClick(event, e.currentTarget.getBoundingClientRect());
 		}
+  
+  
 	};
 
 		return (
