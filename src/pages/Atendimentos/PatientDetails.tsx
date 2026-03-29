@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Eye, User, Play, RotateCcw } from "lucide-react";
+import { Eye, User, Play, Pause, RotateCcw } from "lucide-react";
 import { useCreateAnnotation } from "@/hooks/api/useCreateAnnotation";
 import { useGetAppointment } from "@/hooks/api/useGetAppointment";
 import { useGetClient } from "@/hooks/api/useGetClient";
@@ -21,6 +21,23 @@ function formatHHMMSS(totalSeconds: number) {
   const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, "0");
   const s = Math.floor(totalSeconds % 60).toString().padStart(2, "0");
   return `${h}:${m}:${s}`;
+}
+
+function formatDisplayDate(dateValue?: string) {
+  if (!dateValue) return "";
+
+  const dateOnly = dateValue.split("T")[0];
+  const isoMatch = dateOnly.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+  if (isoMatch) {
+    const [, year, month, day] = isoMatch;
+    return `${day}/${month}/${year}`;
+  }
+
+  const parsedDate = new Date(dateValue);
+  if (Number.isNaN(parsedDate.getTime())) return dateValue;
+
+  return parsedDate.toLocaleDateString("pt-BR");
 }
 
 function ConsultationTimer({ serviceId, startDate, endDate }: { serviceId?: string | null; startDate?: string; endDate?: string }) {
@@ -70,12 +87,7 @@ function ConsultationTimer({ serviceId, startDate, endDate }: { serviceId?: stri
     }
   }, []);
 
-  const handleIniciar = useCallback(() => {
-    if (running || initialSeconds === 0) return;
-
-    setTimerSeconds((prev) => (prev === 0 ? initialSeconds : prev));
-    setRunning(true);
-
+  const startTimer = useCallback(() => {
     stopInterval();
     intervalRef.current = window.setInterval(() => {
       setTimerSeconds((s) => {
@@ -91,7 +103,21 @@ function ConsultationTimer({ serviceId, startDate, endDate }: { serviceId?: stri
         return next;
       });
     }, 1000);
-  }, [running, initialSeconds, stopInterval]);
+  }, [stopInterval]);
+
+  const handleToggleTimer = useCallback(() => {
+    if (initialSeconds === 0) return;
+
+    if (running) {
+      stopInterval();
+      setRunning(false);
+      return;
+    }
+
+    setTimerSeconds((prev) => (prev === 0 ? initialSeconds : prev));
+    setRunning(true);
+    startTimer();
+  }, [running, initialSeconds, startTimer, stopInterval]);
 
   const handleReset = useCallback(() => {
     stopInterval();
@@ -105,7 +131,7 @@ function ConsultationTimer({ serviceId, startDate, endDate }: { serviceId?: stri
       <div className="flex items-center justify-between gap-4">
         <div className="min-w-0">
           <p className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">
-            Duração da consulta
+            DuraÃ§Ã£o da consulta
           </p>
           <div className="font-mono text-2xl leading-tight text-[#0b3b8c] mt-1 select-none">
             {isLoading ? (
@@ -120,16 +146,20 @@ function ConsultationTimer({ serviceId, startDate, endDate }: { serviceId?: stri
 
         <div className="flex items-center gap-2">
           <button
-            onClick={handleIniciar}
-            disabled={running || initialSeconds === 0}
+            onClick={handleToggleTimer}
+            disabled={initialSeconds === 0}
             className={`w-9 h-9 flex items-center justify-center rounded-full transition-colors cursor-pointer ${
-              (running || initialSeconds === 0)
+              initialSeconds === 0
                 ? "bg-slate-200 text-slate-400 cursor-not-allowed"
                 : "bg-[#0b3b8c] text-white hover:bg-[#093077]"
             }`}
-            title="Iniciar"
+            title={running ? "Pausar" : "Iniciar"}
           >
-            <Play className="w-4 h-4 fill-current" />
+            {running ? (
+              <Pause className="w-4 h-4 fill-current" />
+            ) : (
+              <Play className="w-4 h-4 fill-current" />
+            )}
           </button>
 
           <button
@@ -148,7 +178,7 @@ function ConsultationTimer({ serviceId, startDate, endDate }: { serviceId?: stri
       </div>
 
       {!isLoading && initialSeconds === 0 && (
-        <p className="text-xs text-slate-500 mt-2">Sem duração configurada para este atendimento.</p>
+        <p className="text-xs text-slate-500 mt-2">Sem duraÃ§Ã£o configurada para este atendimento.</p>
       )}
     </div>
   );
@@ -266,7 +296,7 @@ export const PatientDetails: React.FC = () => {
             </svg>
           </div>
           <h2 className="text-2xl font-bold text-[#141736] mb-2">Atendimento Cancelado</h2>
-          <p className="text-slate-500 mb-8">Não é possível visualizar os detalhes de um atendimento que foi cancelado.</p>
+          <p className="text-slate-500 mb-8">NÃ£o Ã© possÃ­vel visualizar os detalhes de um atendimento que foi cancelado.</p>
           <Button 
             className="bg-[#141736] hover:bg-[#282d64] text-white w-full h-[48px] text-base rounded-[8px]"
             onClick={() => navigate(-1)}
@@ -315,7 +345,7 @@ export const PatientDetails: React.FC = () => {
                 <span className="w-4 h-4 mr-2 flex-shrink-0 flex items-center justify-center">
                   <Eye className="w-4 h-4" />
                 </span>
-                <span>Ver Histórico</span>
+                <span>Ver HistÃ³rico</span>
               </Button>
             </div>
           </div>
@@ -336,17 +366,13 @@ export const PatientDetails: React.FC = () => {
           <div className="bg-white rounded-[10px] shadow-custom p-6 border-2">
             <div className="flex items-start justify-between mb-3">
               <div>
-                <div className="text-base text-[#0f1724] italic">
+                <div className="text-lg font-bold text-[#0f1724]">
                   {fetchedAppointment?.service?.name || "Atendimento"}
                 </div>
               </div>
               <div className="text-sm text-slate-600">
-                {(fetchedAppointment?.startDate?.split('T')[0] || patient.data || "")} • {(fetchedAppointment?.startDate?.split('T')[1]?.substring(0,5) || patient.hora || "")}
+                {formatDisplayDate(fetchedAppointment?.startDate || patient.data || "")} • {(fetchedAppointment?.startDate?.split('T')[1]?.substring(0,5) || patient.hora || "")}
               </div>
-            </div>
-
-            <div className="bg-[#D9D9D9] p-3 rounded mb-3 border border-[#cfcfcf]">
-              <div className="text-sm text-slate-700">{fetchedAppointment?.description || "Sem obs."}</div>
             </div>
 
             <div className="mt-4 bg-white p-4 rounded-md border border-slate-200">
