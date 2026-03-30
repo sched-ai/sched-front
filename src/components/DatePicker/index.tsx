@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { ChevronDownIcon } from "lucide-react"
+import type { Matcher } from "react-day-picker"
 
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
@@ -12,7 +13,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 
-export function DatePicker({ initialValue, onChange }: { initialValue?: string; onChange?: (val?: string) => void }) {
+export function DatePicker({ initialValue, onChange, disabled }: { initialValue?: string; onChange?: (val?: string) => void; disabled?: Matcher | Matcher[] }) {
   const parseDate = (val?: string) => {
     if (!val) return undefined;
     const [d, m, y] = val.split("/").map(Number);
@@ -45,6 +46,7 @@ export function DatePicker({ initialValue, onChange }: { initialValue?: string; 
             mode="single"
             selected={date}
             captionLayout="dropdown"
+            disabled={disabled}
             onSelect={(date) => {
               setDate(date)
               setOpen(false)

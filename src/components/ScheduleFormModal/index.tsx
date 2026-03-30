@@ -1,5 +1,6 @@
 import { X, GripHorizontal } from "lucide-react";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
+import type { SetStateAction } from "react";
 import { Button } from "../ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DndContext, useDraggable } from "@dnd-kit/core";
@@ -10,9 +11,25 @@ import { BlockContent } from "./BlockContent";
 import { AppoimentContent } from "./AppoimentContent";
 import { useSearchClients } from "@/hooks/api/useSearchClients";
 import { useNavigate } from "react-router-dom";
+import type { AvailableHours } from "@/hooks/api/useGetCalendar";
 
 const MODAL_WIDTH = 400;
 const MODAL_HEIGHT = 600;
+const MINUTES_IN_DAY = 24 * 60;
+
+const timeToMinutes = (time?: string) => {
+  if (!time || !time.includes(":")) return null;
+  const [h, m] = time.split(":").map(Number);
+  if (Number.isNaN(h) || Number.isNaN(m)) return null;
+  return h * 60 + m;
+};
+
+const minutesToTime = (minutes: number) => {
+  const safeMinutes = Math.max(0, Math.min(MINUTES_IN_DAY - 1, minutes));
+  const h = Math.floor(safeMinutes / 60);
+  const m = safeMinutes % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+};
 
 interface FormModalProps {
   isOpen?: boolean;
@@ -25,6 +42,16 @@ interface FormModalProps {
   selectedEvent?: EventType | null;
   onClose?: () => void;
   clickPosition?: { x: number; y: number } | null;
+  onDraftChange?: (draft: {
+    day: number;
+    month: number;
+    year: number;
+    startHour: string;
+    endHour?: string;
+    type?: 'consulta' | 'bloqueio';
+  } | null) => void;
+  availableHours?: AvailableHours;
+  onNavigateWeekToDate?: (date: { day: number; month: number; year: number }) => void;
 }
 
 const DraggableModalContent = ({
@@ -85,7 +112,10 @@ export const ScheduleFormModal = ({
   selectedDateTime = null,
   selectedEvent = null,
   onClose = () => {},
-  clickPosition
+  clickPosition,
+  onDraftChange,
+  availableHours,
+  onNavigateWeekToDate,
 }: FormModalProps) => {
   function getEndHour(startHour: string | undefined) {
     if (!startHour) return "";
@@ -111,8 +141,56 @@ export const ScheduleFormModal = ({
   const [frequency, setFrequency] = useState<"DAILY" | "WEEKLY" | "MONTHLY">("DAILY");
   const [clientId, setClientId] = useState<string | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const wasOpenRef = useRef(false);
+  const initSourceKeyRef = useRef<string | null>(null);
 
   const navigate = useNavigate();
+
+  const getDayAvailability = useCallback((date: Date) => {
+    const dayData = availableHours?.[String(date.getDay())];
+    if (!dayData || dayData.startMinute === null || dayData.endMinute === null) return null;
+    if (dayData.endMinute <= dayData.startMinute) return null;
+    return { startMinute: dayData.startMinute, endMinute: dayData.endMinute };
+  }, [availableHours]);
+
+  const getEffectiveBounds = useCallback((date: Date) => {
+    const availability = getDayAvailability(date);
+    if (!availability) return null;
+
+    const now = new Date();
+    const isToday =
+      date.getDate() === now.getDate() &&
+      date.getMonth() === now.getMonth() &&
+      date.getFullYear() === now.getFullYear();
+
+    if (!isToday) return availability;
+
+    const nowMinute = now.getHours() * 60 + now.getMinutes();
+    const startMinute = Math.max(availability.startMinute, nowMinute);
+    if (startMinute >= availability.endMinute) return null;
+    return { startMinute, endMinute: availability.endMinute };
+  }, [getDayAvailability]);
+
+  const isDateSelectable = useCallback((date: Date) => {
+    const candidate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const today = new Date();
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+    if (candidate < todayStart) return false;
+    return Boolean(getEffectiveBounds(candidate));
+  }, [getEffectiveBounds]);
+
+  const findNextAvailableDate = useCallback((from: Date) => {
+    const base = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+    for (let i = 0; i <= 365; i++) {
+      const candidate = new Date(base);
+      candidate.setDate(base.getDate() + i);
+      if (isDateSelectable(candidate)) {
+        return candidate;
+      }
+    }
+    return null;
+  }, [isDateSelectable]);
 
   // Search clients when tab is 'consulta' and we have a title
   const { data: clients, isLoading: isLoadingClients } = useSearchClients({
@@ -135,17 +213,19 @@ export const ScheduleFormModal = ({
 
     const resetAll = (keepEndDate?: boolean) => {
       setFrequency("DAILY");
-      // Default to current time for 'Agendar' flow
       const now = new Date();
-      const h = now.getHours();
-      const m = now.getMinutes();
-      // Round to next 30 minutes or hour? Just use current time nicely formatted
-      const startStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-      const endH = h + 1 > 23 ? 23 : h + 1;
-      const endStr = `${String(endH).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-      
-      setStartHour(startStr);
-      setEndHour(endStr);
+      const fallbackDate = findNextAvailableDate(now) ?? now;
+      const bounds = getEffectiveBounds(fallbackDate);
+      const fallbackStart = bounds
+        ? minutesToTime(bounds.startMinute)
+        : `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+      const fallbackEndMinute = bounds
+        ? Math.min(bounds.endMinute, bounds.startMinute + 60)
+        : Math.min(MINUTES_IN_DAY - 1, now.getHours() * 60 + now.getMinutes() + 60);
+      const fallbackEnd = minutesToTime(Math.max((timeToMinutes(fallbackStart) ?? 0) + 1, fallbackEndMinute));
+
+      setStartHour(fallbackStart);
+      setEndHour(fallbackEnd);
       setTitle("");
       setLocation("");
       setService("");
@@ -154,96 +234,154 @@ export const ScheduleFormModal = ({
       setRepeatEnabled(false);
       setWeekDays([false, false, false, false, false, false, false]);
       setEndOption("never");
-      if (!keepEndDate) setEndDate(formatDate(new Date()));
+      if (!keepEndDate) setEndDate(formatDate(fallbackDate));
       setOccurrences(1);
       setClientId(null);
       setShowSuggestions(false);
-      
-      setSelectedDateState({ day: now.getDate(), month: now.getMonth() + 1, year: now.getFullYear() });
+      setSelectedDateState({
+        day: fallbackDate.getDate(),
+        month: fallbackDate.getMonth() + 1,
+        year: fallbackDate.getFullYear(),
+      });
     };
 
-    if (isOpen) {
-      if (selectedEvent) {
-        setTitle(selectedEvent.title);
-        setStartHour(selectedEvent.start);
-        setEndHour(selectedEvent.end);
-        setActiveTab(selectedEvent.type || "consulta");
-        setLocation(selectedEvent.workplaceId || "");
-        setService("");
-        setProfessional(selectedEvent.employeeId || "");
-        setRepeatEnabled(false);
-        setWeekDays([false, false, false, false, false, false, false]);
-        setEndOption("never");
-        setOccurrences(1);
-        setClientId((selectedEvent as any).clientId || null); // Attempt to get clientId if available
-        setShowSuggestions(false);
-        
-        // Date Logic for Event
-        if (
-          (typeof selectedEvent.day !== "undefined" || typeof selectedEvent.dayNumber !== "undefined") &&
-          typeof selectedEvent.month !== "undefined" &&
-          typeof selectedEvent.year !== "undefined"
-        ) {
-          const d = typeof selectedEvent.dayNumber === 'number' ? selectedEvent.dayNumber : Number(selectedEvent.day);
-          const m = Number(selectedEvent.month);
-          const y = Number(selectedEvent.year);
-          
-          if (!Number.isNaN(d) && !Number.isNaN(m) && !Number.isNaN(y)) {
-            setSelectedDateState({ day: d, month: m, year: y });
-            setEndDate(`${String(d).padStart(2, "0")}/${String(m).padStart(2, "0")}/${y}`);
-          } else {
-             const today = new Date();
-             setSelectedDateState({ day: today.getDate(), month: today.getMonth() + 1, year: today.getFullYear() });
-             setEndDate(formatDate(today)); 
-          }
-        } else {
-           const today = new Date();
-           setSelectedDateState({ day: today.getDate(), month: today.getMonth() + 1, year: today.getFullYear() });
-           setEndDate(formatDate(today));
-        }
+    const selectedEventKey = selectedEvent
+      ? `event:${String(selectedEvent.id)}:${selectedEvent.start}:${selectedEvent.end}:${selectedEvent.dayNumber ?? selectedEvent.day}:${selectedEvent.month}:${selectedEvent.year}:${selectedEvent.type ?? "consulta"}`
+      : null;
+    const selectedDateTimeKey = selectedDateTime
+      ? `date:${selectedDateTime.day}:${selectedDateTime.month ?? ""}:${selectedDateTime.year ?? ""}:${selectedDateTime.hour}`
+      : null;
+    const sourceKey = selectedEventKey ?? selectedDateTimeKey ?? "new";
 
-      } else if (selectedDateTime) {
-        setStartHour(selectedDateTime.hour);
-        setEndHour(getEndHour(selectedDateTime.hour));
-        setTitle("");
-        setLocation("");
-        setService("");
-        setProfessional("");
-        setActiveTab("consulta");
-        setRepeatEnabled(false);
-        setWeekDays([false, false, false, false, false, false, false]);
-        setEndOption("never");
-        setOccurrences(1);
-        setClientId(null);
-        setShowSuggestions(false);
-        
-        // Date Logic for DateTime (Prop)
-        if (
-          typeof selectedDateTime.day !== "undefined" &&
-          typeof selectedDateTime.month !== "undefined" &&
-          typeof selectedDateTime.year !== "undefined"
-        ) {
-           setSelectedDateState({ 
-             day: selectedDateTime.day, 
-             month: selectedDateTime.month!, 
-             year: selectedDateTime.year! 
-           });
-           setEndDate(`${String(selectedDateTime.day).padStart(2, "0")}/${String(selectedDateTime.month).padStart(2, "0")}/${selectedDateTime.year}`);
-        } else {
-           const today = new Date();
-           setSelectedDateState({ day: today.getDate(), month: today.getMonth() + 1, year: today.getFullYear() });
-           setEndDate(formatDate(today));
-        }
-      } else {
-        // No event, no date (Add button scenario)
-        resetAll();
-      }
-    } else {
+    const justOpened = isOpen && !wasOpenRef.current;
+    wasOpenRef.current = isOpen;
+
+    if (!isOpen) {
+      initSourceKeyRef.current = null;
       resetAll();
+      return;
     }
 
+    if (!justOpened && initSourceKeyRef.current === sourceKey) {
+      return;
+    }
 
-  }, [isOpen, selectedDateTime, selectedEvent]);
+    initSourceKeyRef.current = sourceKey;
+
+    if (selectedEvent) {
+      setTitle(selectedEvent.title);
+      setStartHour(selectedEvent.start);
+      setEndHour(selectedEvent.end);
+      setActiveTab(selectedEvent.type || "consulta");
+      setLocation(selectedEvent.workplaceId || "");
+      setService("");
+      setProfessional(selectedEvent.employeeId || "");
+      setRepeatEnabled(false);
+      setWeekDays([false, false, false, false, false, false, false]);
+      setEndOption("never");
+      setOccurrences(1);
+      setClientId((selectedEvent as EventType & { clientId?: string }).clientId || null);
+      setShowSuggestions(false);
+
+      if (
+        (typeof selectedEvent.day !== "undefined" || typeof selectedEvent.dayNumber !== "undefined") &&
+        typeof selectedEvent.month !== "undefined" &&
+        typeof selectedEvent.year !== "undefined"
+      ) {
+        const d = typeof selectedEvent.dayNumber === "number" ? selectedEvent.dayNumber : Number(selectedEvent.day);
+        const m = Number(selectedEvent.month);
+        const y = Number(selectedEvent.year);
+
+        if (!Number.isNaN(d) && !Number.isNaN(m) && !Number.isNaN(y)) {
+          setSelectedDateState({ day: d, month: m, year: y });
+          setEndDate(`${String(d).padStart(2, "0")}/${String(m).padStart(2, "0")}/${y}`);
+        } else {
+          const today = new Date();
+          setSelectedDateState({ day: today.getDate(), month: today.getMonth() + 1, year: today.getFullYear() });
+          setEndDate(formatDate(today));
+        }
+      } else {
+        const today = new Date();
+        setSelectedDateState({ day: today.getDate(), month: today.getMonth() + 1, year: today.getFullYear() });
+        setEndDate(formatDate(today));
+      }
+
+      return;
+    }
+
+    if (selectedDateTime) {
+      setStartHour(selectedDateTime.hour);
+      setEndHour(getEndHour(selectedDateTime.hour));
+      setTitle("");
+      setLocation("");
+      setService("");
+      setProfessional("");
+      setActiveTab("consulta");
+      setRepeatEnabled(false);
+      setWeekDays([false, false, false, false, false, false, false]);
+      setEndOption("never");
+      setOccurrences(1);
+      setClientId(null);
+      setShowSuggestions(false);
+
+      if (
+        typeof selectedDateTime.day !== "undefined" &&
+        typeof selectedDateTime.month !== "undefined" &&
+        typeof selectedDateTime.year !== "undefined"
+      ) {
+        setSelectedDateState({
+          day: selectedDateTime.day,
+          month: selectedDateTime.month!,
+          year: selectedDateTime.year!,
+        });
+        setEndDate(`${String(selectedDateTime.day).padStart(2, "0")}/${String(selectedDateTime.month).padStart(2, "0")}/${selectedDateTime.year}`);
+      } else {
+        const today = new Date();
+        setSelectedDateState({ day: today.getDate(), month: today.getMonth() + 1, year: today.getFullYear() });
+        setEndDate(formatDate(today));
+      }
+
+      return;
+    }
+
+    resetAll();
+  }, [findNextAvailableDate, getEffectiveBounds, isOpen, selectedDateTime, selectedEvent]);
+
+  useEffect(() => {
+    if (!isOpen || !selectedDateState) return;
+
+    const selectedDate = new Date(selectedDateState.year, selectedDateState.month - 1, selectedDateState.day);
+
+    if (!isDateSelectable(selectedDate)) {
+      const nextAvailable = findNextAvailableDate(new Date());
+      if (!nextAvailable) return;
+
+      setSelectedDateState({
+        day: nextAvailable.getDate(),
+        month: nextAvailable.getMonth() + 1,
+        year: nextAvailable.getFullYear(),
+      });
+      return;
+    }
+
+    const bounds = getEffectiveBounds(selectedDate);
+    if (!bounds) return;
+
+    const rawStartMinutes = timeToMinutes(startHour) ?? bounds.startMinute;
+    const startMinutes = Math.min(Math.max(rawStartMinutes, bounds.startMinute), bounds.endMinute - 1);
+
+    if (startMinutes !== rawStartMinutes) {
+      setStartHour(minutesToTime(startMinutes));
+    }
+
+    const rawEndMinutes = timeToMinutes(endHour) ?? Math.min(bounds.endMinute, startMinutes + 60);
+    const safeEndFloor = Math.min(bounds.endMinute, startMinutes + 1);
+    const endMinutes = Math.min(Math.max(rawEndMinutes, safeEndFloor), bounds.endMinute);
+
+    if (endMinutes !== rawEndMinutes) {
+      setEndHour(minutesToTime(endMinutes));
+    }
+  }, [endHour, findNextAvailableDate, getEffectiveBounds, isDateSelectable, isOpen, selectedDateState, startHour]);
 
   useEffect(() => {
     if (clickPosition) {
@@ -280,6 +418,32 @@ export const ScheduleFormModal = ({
     }
   }, [clickPosition, isOpen]);
 
+  useEffect(() => {
+    if (!onDraftChange) return;
+
+    if (!isOpen) {
+      onDraftChange(null);
+      return;
+    }
+
+    if (!selectedDateState || !startHour) return;
+
+    onDraftChange({
+      day: selectedDateState.day,
+      month: selectedDateState.month,
+      year: selectedDateState.year,
+      startHour,
+      endHour,
+      type: activeTab === 'bloqueio' ? 'bloqueio' : 'consulta',
+    });
+  }, [activeTab, endHour, isOpen, onDraftChange, selectedDateState, startHour]);
+
+  useEffect(() => {
+    return () => {
+      onDraftChange?.(null);
+    };
+  }, [onDraftChange]);
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { delta } = event;
     setPosition((prev) => ({
@@ -290,11 +454,35 @@ export const ScheduleFormModal = ({
 
   if (!isOpen) return null;
 
+  const handleSelectedDateChange = (next: SetStateAction<{ day: number; month: number; year: number } | null>) => {
+    setSelectedDateState((prev) => {
+      const resolvedNext = typeof next === "function" ? next(prev) : next;
+      if (resolvedNext) {
+        onNavigateWeekToDate?.(resolvedNext);
+      }
+      return resolvedNext;
+    });
+  };
+
+  const selectedDateAsDate = selectedDateState
+    ? new Date(selectedDateState.year, selectedDateState.month - 1, selectedDateState.day)
+    : null;
+
+  const selectedBounds = selectedDateAsDate ? getEffectiveBounds(selectedDateAsDate) : null;
+  const startMinutes = timeToMinutes(startHour) ?? selectedBounds?.startMinute ?? 0;
+
+  const startMinTime = selectedBounds ? minutesToTime(selectedBounds.startMinute) : undefined;
+  const startMaxTime = selectedBounds ? minutesToTime(Math.max(selectedBounds.startMinute, selectedBounds.endMinute - 1)) : undefined;
+  const endMinTime = selectedBounds
+    ? minutesToTime(Math.min(selectedBounds.endMinute, Math.max(selectedBounds.startMinute + 1, startMinutes + 1)))
+    : undefined;
+  const endMaxTime = selectedBounds ? minutesToTime(selectedBounds.endMinute) : undefined;
+
   const blockProps = {
     title,
     setTitle,
     selectedDateTime: selectedDateState,
-    setSelectedDateTime: setSelectedDateState,
+  setSelectedDateTime: handleSelectedDateChange,
     startHour,
     setStartHour,
     endHour,
@@ -312,14 +500,19 @@ export const ScheduleFormModal = ({
     frequency,
     setFrequency,
     onClose,
-    timeBlockId: selectedEvent?.type === 'bloqueio' ? String(selectedEvent.id) : undefined
+    timeBlockId: selectedEvent?.type === 'bloqueio' ? String(selectedEvent.id) : undefined,
+    disableDate: (date: Date) => !isDateSelectable(date),
+    startMinTime,
+    startMaxTime,
+    endMinTime,
+    endMaxTime,
   };
 
   const appointmentProps = {
     title,
     setTitle,
     selectedDateTime: selectedDateState,
-    setSelectedDateTime: setSelectedDateState,
+  setSelectedDateTime: handleSelectedDateChange,
     startHour,
     setStartHour,
     endHour,
@@ -332,7 +525,12 @@ export const ScheduleFormModal = ({
     setProfessional,
     onClose,
     appointmentId: selectedEvent?.type === 'consulta' ? String(selectedEvent.id) : undefined,
-    clientId
+    clientId,
+    disableDate: (date: Date) => !isDateSelectable(date),
+    startMinTime,
+    startMaxTime,
+    endMinTime,
+    endMaxTime,
   };
 
   return (

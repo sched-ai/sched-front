@@ -42,6 +42,15 @@ interface WeeklyCalendarProps {
 	onEventClick?: (event: EventType, rect: DOMRect) => void;
 	filterType?: 'all' | 'consulta' | 'bloqueio';
 	availableHours?: AvailableHours;
+  isDraftVisible?: boolean;
+  draftEvent?: {
+    day: number;
+    month: number;
+    year: number;
+    startHour: string;
+    endHour?: string;
+    type?: 'consulta' | 'bloqueio';
+  } | null;
 }
 
 function getHourPosition(time: string) {
@@ -61,16 +70,26 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
   onDateClick,
   onEventClick,
   filterType = 'all',
-  availableHours
+  availableHours,
+  isDraftVisible = true,
+  draftEvent = null,
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-	const leftColumnRef = useRef<HTMLDivElement>(null);
-	const [nowIndicator, setNowIndicator] = useState<{
-		top: number;
-		dayIdx: number;
-		left: number;
-	} | null>(null);
-	const CELL_HEIGHT = 80;
+  const leftColumnRef = useRef<HTMLDivElement>(null);
+  const [nowIndicator, setNowIndicator] = useState<{
+    top: number;
+    dayIdx: number;
+    left: number;
+  } | null>(null);
+  const [tempBox, setTempBox] = useState<{
+    dayIdx: number;
+    startHour: string;
+    endHour: string;
+    date: Date;
+    type?: 'consulta' | 'bloqueio';
+  } | null>(null);
+  const [blink, setBlink] = useState(false);
+  const CELL_HEIGHT = 80;
   const weekDates = React.useMemo(() => {
     const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
     return Array.from({ length: 7 }, (_, index) => addDays(weekStart, index));
@@ -78,10 +97,95 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 
   useEffect(() => {
     if (scrollContainerRef.current) {
-			const scrollPosition = 6 * CELL_HEIGHT;
+      const scrollPosition = 6 * CELL_HEIGHT;
       scrollContainerRef.current.scrollTop = scrollPosition;
     }
   }, [currentDate]);
+
+  const isCellAllowed = React.useCallback((dayIdx: number, hourIdx: number) => {
+    const cellDate = new Date(weekDates[dayIdx]);
+    cellDate.setHours(hourIdx, 0, 0, 0);
+    const now = new Date();
+
+    if (cellDate < now) {
+      return false;
+    }
+
+    if (availableHours) {
+      const dayData = availableHours[String(dayIdx)];
+      if (!dayData || dayData.startMinute === null || dayData.endMinute === null) {
+        return false;
+      }
+
+      const blockStartMin = hourIdx * 60;
+      const blockEndMin = (hourIdx + 1) * 60;
+      if (blockEndMin <= dayData.startMinute || blockStartMin >= dayData.endMinute) {
+        return false;
+      }
+    }
+
+    return true;
+  }, [availableHours, weekDates]);
+
+  const controlledTempBox = React.useMemo(() => {
+    if (!draftEvent) return null;
+
+    const dayIdx = weekDates.findIndex((d) =>
+      d.getDate() === draftEvent.day &&
+      d.getMonth() + 1 === draftEvent.month &&
+      d.getFullYear() === draftEvent.year,
+    );
+
+    if (dayIdx === -1) return null;
+
+    const startPos = getHourPosition(draftEvent.startHour);
+    const endPos = getHourPosition(draftEvent.endHour ?? draftEvent.startHour);
+    if (Number.isNaN(startPos.totalPosition) || Number.isNaN(endPos.totalPosition)) return null;
+
+    const previewHourIdx = Math.floor(startPos.totalPosition);
+    if (!isCellAllowed(dayIdx, previewHourIdx)) return null;
+
+    const endHour = endPos.totalPosition > startPos.totalPosition
+      ? (draftEvent.endHour ?? draftEvent.startHour)
+      : `${String(Math.min(23, startPos.hourIndex + 1)).padStart(2, "0")}:00`;
+
+    return {
+      dayIdx,
+      startHour: draftEvent.startHour,
+      endHour,
+      date: weekDates[dayIdx],
+      type: draftEvent.type,
+    };
+  }, [draftEvent, isCellAllowed, weekDates]);
+
+  const tempBoxInCurrentWeek = React.useMemo(() => {
+    if (!tempBox) return null;
+    const isInWeek = weekDates.some((d) => isSameDay(d, tempBox.date));
+    return isInWeek ? tempBox : null;
+  }, [tempBox, weekDates]);
+
+  const renderedTempBox = isDraftVisible ? (controlledTempBox ?? tempBoxInCurrentWeek) : null;
+
+  useEffect(() => {
+    if (!isDraftVisible && tempBox) {
+      setTempBox(null);
+    }
+  }, [isDraftVisible, tempBox]);
+
+  useEffect(() => {
+    if (tempBox && !tempBoxInCurrentWeek) {
+      setTempBox(null);
+    }
+  }, [tempBox, tempBoxInCurrentWeek]);
+
+  // Efeito para piscar a caixinha temporária
+  useEffect(() => {
+    if (renderedTempBox) {
+      setBlink(true);
+      const timeout = setTimeout(() => setBlink(false), 600);
+      return () => clearTimeout(timeout);
+    }
+  }, [renderedTempBox]);
 
   useEffect(() => {
     let mounted = true;
@@ -158,21 +262,24 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 		};
 	});
 
-	const handleCellClick = (dayIdx: number, hour: string, e: React.MouseEvent<HTMLDivElement>) => {
-		if (onDateClick) {
-			const dateObj = weekDates[dayIdx];
-			const rect = e.currentTarget.getBoundingClientRect();
-			onDateClick(
-				{
-					day: dateObj.getDate(),
-					month: dateObj.getMonth() + 1,
-					year: dateObj.getFullYear(),
-				},
-				hour,
-				rect
-			);
-		}
-	};
+  const handleCellClick = (dayIdx: number, hour: string, e: React.MouseEvent<HTMLDivElement>) => {
+    const dateObj = weekDates[dayIdx];
+    const startPos = getHourPosition(hour);
+    const defaultEndHour = `${String(Math.min(23, startPos.hourIndex + 1)).padStart(2, "0")}:${String(startPos.minuteOffset * 60).padStart(2, "0")}`;
+    setTempBox({ dayIdx, startHour: hour, endHour: defaultEndHour, date: dateObj, type: 'consulta' });
+    if (onDateClick) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      onDateClick(
+        {
+          day: dateObj.getDate(),
+          month: dateObj.getMonth() + 1,
+          year: dateObj.getFullYear(),
+        },
+        hour,
+        rect
+      );
+    }
+  };
 
 	const handleEventClick = (event: EventType, e: React.MouseEvent<HTMLDivElement>) => {
 		e.stopPropagation();
@@ -244,6 +351,30 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                       dayIdx >= 5 ? "bg-gray-50/20" : ""
                     }`}
                   >
+                    {/* Temporary blinking box (Google Calendar style) */}
+                    {renderedTempBox && renderedTempBox.dayIdx === dayIdx && (
+                      (() => {
+                        const startPos = getHourPosition(renderedTempBox.startHour);
+                        const endPos = getHourPosition(renderedTempBox.endHour);
+                        const previewHeight = Math.max((endPos.totalPosition - startPos.totalPosition) * CELL_HEIGHT - 4, 28);
+                        return (
+                      <div
+                        className={`absolute left-0 w-full z-30 pointer-events-none transition-all duration-200 
+                          ${blink ? 'animate-pulse' : ''}`}
+                        style={{
+                          top: `${startPos.totalPosition * CELL_HEIGHT + 2}px`,
+                          height: `${previewHeight}px`,
+                          background: renderedTempBox.type === 'bloqueio' ? 'rgba(71, 85, 105, 0.18)' : 'rgba(37, 99, 235, 0.18)',
+                          border: renderedTempBox.type === 'bloqueio' ? '2px solid #475569' : '2px solid #2563eb',
+                          borderRadius: '0.6rem',
+                          boxShadow: renderedTempBox.type === 'bloqueio'
+                            ? '0 2px 12px 0 rgba(71,85,105,0.10)'
+                            : '0 2px 12px 0 rgba(37,99,235,0.10)',
+                        }}
+                      />
+                        );
+                      })()
+                    )}
                     {/* Current Time Indicator */}
                     {nowIndicator && nowIndicator.dayIdx === dayIdx && (
                       <div
@@ -260,27 +391,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                     )}
                     {/* Grid Lines */}
                     {hours.map((hour, hourIdx) => {
-                      let isAllowed = true;
-                      
-                      const cellDate = new Date(weekDates[dayIdx]);
-                      cellDate.setHours(hourIdx, 0, 0, 0);
-                      const now = new Date();
-
-                      if (cellDate < now) {
-                        isAllowed = false;
-                      } else if (availableHours) {
-                        const dayData = availableHours[String(dayIdx)];
-                        // dayData has startMinute: null if no work
-                        if (!dayData || dayData.startMinute === null || dayData.endMinute === null) {
-                          isAllowed = false;
-                        } else {
-                          const blockStartMin = hourIdx * 60;
-                          const blockEndMin = (hourIdx + 1) * 60;
-                          if (blockEndMin <= dayData.startMinute || blockStartMin >= dayData.endMinute) {
-                            isAllowed = false;
-                          }
-                        }
-                      }
+                      const isAllowed = isCellAllowed(dayIdx, hourIdx);
                       
                       return (
                       <div

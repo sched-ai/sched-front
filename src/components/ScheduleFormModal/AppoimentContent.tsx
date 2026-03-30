@@ -20,6 +20,7 @@ import {
 import { useGetAllServices } from "@/hooks/api/useGetAllServices";
 import { useCreateAppointment } from "@/hooks/api/useCreateAppointment";
 import { useUpdateAppointment } from "@/hooks/api/useUpdateAppointment";
+import type { Matcher } from "react-day-picker";
 
 interface IProps {
   title: string | undefined;
@@ -43,6 +44,11 @@ interface IProps {
   onClose?: () => void;
   appointmentId?: string;
   clientId?: string | null;
+  disableDate?: Matcher | Matcher[];
+  startMinTime?: string;
+  startMaxTime?: string;
+  endMinTime?: string;
+  endMaxTime?: string;
 }
 
 export const AppoimentContent = ({
@@ -59,7 +65,12 @@ export const AppoimentContent = ({
   professional,
   onClose,
   appointmentId,
-  clientId
+  clientId,
+  disableDate,
+  startMinTime,
+  startMaxTime,
+  endMinTime,
+  endMaxTime,
 }: IProps) => {
   const { userData, userLoading } = useUser();
   const { data: services } = useGetAllServices();
@@ -170,6 +181,7 @@ export const AppoimentContent = ({
                     setSelectedDateTime({ day: d, month: m, year: y });
                 }
               }}
+              disabled={disableDate}
             />
             <div className="flex items-center gap-2">
               <input
@@ -178,6 +190,8 @@ export const AppoimentContent = ({
                 style={{ colorScheme: "auto" }}
                 className="bg-transparent border-b border-gray-600 focus:border-blue-500 text-white p-1 w-24 text-center focus:outline-none"
                 value={startHour}
+                min={startMinTime}
+                max={startMaxTime}
                 onChange={(e) => {
                   const newStart = e.target.value;
                   setStartHour(newStart);
@@ -201,6 +215,8 @@ export const AppoimentContent = ({
                 style={{ colorScheme: "auto" }}
                 className="bg-transparent border-b border-gray-600 focus:border-blue-500 text-white p-1 w-24 text-center focus:outline-none"
                 value={endHour}
+                min={endMinTime}
+                max={endMaxTime}
                 onChange={(e) => setEndHour(e.target.value)}
               />
             </div>

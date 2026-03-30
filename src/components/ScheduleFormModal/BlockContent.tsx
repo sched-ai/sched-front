@@ -6,6 +6,7 @@ import { Clock, Repeat } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import { useCreateTimeBlock, type DayOfWeek } from "@/hooks/api/useCreateTimeBlock";
 import { useUpdateTimeBlock } from "@/hooks/api/useUpdateTimeBlock";
+import type { Matcher } from "react-day-picker";
 
 interface IProps {
   title: string | undefined;
@@ -39,6 +40,11 @@ interface IProps {
   setFrequency: (val: "DAILY" | "WEEKLY" | "MONTHLY") => void;
   onClose?: () => void;
   timeBlockId?: string;
+  disableDate?: Matcher | Matcher[];
+  startMinTime?: string;
+  startMaxTime?: string;
+  endMinTime?: string;
+  endMaxTime?: string;
 }
 
 
@@ -60,7 +66,12 @@ export const BlockContent = ({
   frequency,
   setFrequency,
   onClose,
-  timeBlockId
+  timeBlockId,
+  disableDate,
+  startMinTime,
+  startMaxTime,
+  endMinTime,
+  endMaxTime,
 }: IProps) => {
 
   const { mutate: createTimeBlock, isPending: isCreating, error: createError } = useCreateTimeBlock({
@@ -196,6 +207,7 @@ export const BlockContent = ({
                     setSelectedDateTime({ day: d, month: m, year: y });
                 }
               }}
+              disabled={disableDate}
             />
             <div className="flex items-center gap-2">
               <input
@@ -204,6 +216,8 @@ export const BlockContent = ({
                 style={{ colorScheme: "dark" }}
                 className="lightInput bg-transparent border-b border-gray-600 focus:border-blue-500 text-white p-1 w-24 text-center focus:outline-none"
                 value={startHour}
+                min={startMinTime}
+                max={startMaxTime}
                 onChange={(e) => setStartHour(e.target.value)}
               />
               <span className="text-gray-400">-</span>
@@ -212,6 +226,8 @@ export const BlockContent = ({
                 style={{ colorScheme: "dark" }}
                 className="lightInput bg-transparent border-b border-gray-600 focus:border-blue-500 text-white p-1 w-24 text-center focus:outline-none"
                 value={endHour}
+                min={endMinTime}
+                max={endMaxTime}
                 onChange={(e) => setEndHour(e.target.value)}
               />
             </div>

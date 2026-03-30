@@ -42,6 +42,14 @@ export const Home = () => {
     year: number;
     hour: string;
   } | null>(null);
+  const [scheduleDraftEvent, setScheduleDraftEvent] = useState<{
+    day: number;
+    month: number;
+    year: number;
+    startHour: string;
+    endHour?: string;
+    type?: 'consulta' | 'bloqueio';
+  } | null>(null);
 
   const [isScheduleViewOpen, setIsScheduleViewOpen] = useState(false);
   const [scheduleViewDetails, setScheduleViewDetails] = useState<{
@@ -73,6 +81,10 @@ export const Home = () => {
     rect?: DOMRect
   ) => {
     setScheduleFormSelectedDateTime({ ...date, hour });
+  const [startH = "0", startM = "0"] = hour.split(":");
+  const nextHour = Math.min(23, Number(startH) + 1);
+  const defaultEnd = `${String(nextHour).padStart(2, "0")}:${startM}`;
+  setScheduleDraftEvent({ ...date, startHour: hour, endHour: defaultEnd, type: 'consulta' });
     setSelectedEvent(null);
     
     if (rect) {
@@ -100,6 +112,7 @@ export const Home = () => {
   const handleCloseFormModal = () => {
     setIsScheduleFormOpen(false);
     setScheduleFormSelectedDateTime(null);
+    setScheduleDraftEvent(null);
     setSelectedEvent(null);
   };
 
@@ -157,6 +170,7 @@ export const Home = () => {
     }); 
 
     setSelectedEvent(event);
+  setScheduleDraftEvent(null);
     
     // Position Logic
     const targetRect = rect || {
@@ -284,6 +298,8 @@ export const Home = () => {
               onDateClick={handleDateClick}
               onEventClick={handleEventClick}
               filterType={filterType}
+              isDraftVisible={isScheduleFormOpen}
+              draftEvent={scheduleDraftEvent}
             />
           )}
         </div>
@@ -294,6 +310,11 @@ export const Home = () => {
         selectedEvent={selectedEvent}
         onClose={handleCloseFormModal}
         clickPosition={scheduleFormPosition}
+        onDraftChange={setScheduleDraftEvent}
+        availableHours={data.availableHours}
+        onNavigateWeekToDate={(date) => {
+          setCurrentDate(new Date(date.year, date.month - 1, date.day));
+        }}
       />
       <ScheduleViewModal {...scheduleViewModalProps} />
     </div>
