@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
-  User, 
   Clock,
   Plus,
   FolderOpen,
@@ -13,22 +12,25 @@ import { ptBR } from "date-fns/locale";
 import { useGetAllAppointments } from "@/hooks/api/useGetAllAppointments";
 import { useCreateAnnotation } from "@/hooks/api/useCreateAnnotation";
 import { DeleteNoteModal } from "@/components/DeleteNoteModal";
+import { useGetClient } from "@/hooks/api/useGetClient";
+import { PatientHeader } from "@/components/PatientHeader";
 
 export const PatientHistory = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const initialPatientData = location.state?.paciente || {};
+  const { data: fullClientData } = useGetClient(id || "", !!id);
   
   const patient = {
     id: id,
-    name: initialPatientData.name || "Paciente",
+    name: fullClientData?.name || initialPatientData.name || "Paciente",
     age: initialPatientData.age || "", 
-    gender: initialPatientData.gender || "",
-    cpf: initialPatientData.cpf || "",
-    phone: initialPatientData.phone || "",
-    email: initialPatientData.email || "",
+    gender: fullClientData?.gender || initialPatientData.gender || "",
+    cpf: fullClientData?.cpf || initialPatientData.cpf || "",
+    phone: fullClientData?.phone || initialPatientData.phone || "",
+    email: fullClientData?.email || initialPatientData.email || "",
     address: initialPatientData.address || "",
-    birthDate: initialPatientData.birthDate || "",
+    birthDate: (fullClientData as any)?.birthDate || initialPatientData.birthDate || "",
   };
 
   // Fetch appointments for this patient
@@ -118,23 +120,14 @@ export const PatientHistory = () => {
         <div className="flex flex-col gap-8">
             
             {/* Top Header Card */}
-            <div className="bg-white rounded-[20px] shadow-custom p-6 flex items-center relative overflow-hidden">
-               <div className="absolute left-0 top-0 bottom-0 w-3 bg-[#141736]"></div>
-               <div className="flex items-center gap-6 ml-4">
-                  <div className="w-20 h-20 rounded-full border-4 border-[#141736] flex items-center justify-center bg-white text-[#141736]"> 
-                    <User className="w-10 h-10" />
-                  </div>
-                  <div>
-                    <h1 className="text-2xl font-bold text-[#141736]">{patient.name}</h1>
-                    <p className="text-slate-600 mt-1">
-                      {patient.age ? `Idade: ${patient.age} anos | ` : ''} 
-                      {patient.gender ? `${patient.gender} | ` : ''} 
-                      {patient.cpf ? `CPF: ${patient.cpf} | ` : ''} 
-                      {patient.phone ? `Tel: ${patient.phone}` : ''}
-                    </p>
-                  </div>
-               </div>
-            </div>
+            <PatientHeader
+              name={patient.name}
+              age={patient.age}
+              birthDate={patient.birthDate}
+              gender={patient.gender}
+              cpf={patient.cpf}
+              phone={patient.phone}
+            />
 
             {/* Timeline Section */}
             <div className="relative pl-4">
