@@ -66,6 +66,33 @@
   background: #f1f1f1;
 }
 
+.patient-form-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(18, 21, 53, 0.32) transparent;
+  scrollbar-gutter: stable;
+}
+
+.patient-form-scroll::-webkit-scrollbar {
+  width: 12px;
+}
+
+.patient-form-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.patient-form-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(18, 21, 53, 0.18) 0%, rgba(18, 21, 53, 0.42) 100%);
+  border: 4px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+  min-height: 56px;
+}
+
+.patient-form-scroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(18, 21, 53, 0.28) 0%, rgba(18, 21, 53, 0.56) 100%);
+  background-clip: padding-box;
+}
+
 body {
   min-height: 100vh;
   height: 100%;
