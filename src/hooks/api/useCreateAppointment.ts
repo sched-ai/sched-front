@@ -12,7 +12,22 @@ export interface ICreateServicePayload {
   description?: string;
 }
 
-export const useCreateAppointment = ({ onSuccessFn }: IUseMutationParams) => {
+export const getAppointmentErrorMessage = (error: unknown, defaultMessage: string) => {
+  const knownError = error as {
+    response?: { data?: { error?: string; detail?: string; message?: string } };
+    message?: string;
+  };
+
+  return (
+    knownError.response?.data?.error ||
+    knownError.response?.data?.detail ||
+    knownError.response?.data?.message ||
+    knownError.message ||
+    defaultMessage
+  );
+};
+
+export const useCreateAppointment = ({ onSuccessFn, onErrorFn }: IUseMutationParams) => {
   const queryClient = useQueryClient();
   
   const { post } = useAPI<ICreateServicePayload>();
@@ -22,7 +37,8 @@ export const useCreateAppointment = ({ onSuccessFn }: IUseMutationParams) => {
       post({
         endpoint: "appointment",
         body: serviceData,
-        label: "Criação de Consulta",
+        label: "Consulta",
+        getErrorMessage: getAppointmentErrorMessage,
       }),
     
     onSuccess: () => {
@@ -33,8 +49,9 @@ export const useCreateAppointment = ({ onSuccessFn }: IUseMutationParams) => {
       }
     },
 
-    onError: (error) => {
-      console.error("Erro ao criar o serviço:", error);
+    onError: (error: unknown) => {
+      console.error("Erro ao criar consulta:", error);
+      onErrorFn?.(error);
     },
   });
 };

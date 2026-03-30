@@ -73,9 +73,10 @@ export interface IUseDataTable extends IUseDataTableParamsState {
  * @type {IUseApiOptions}
  */
 
-export interface IUseApiOptions<T = any> {
+export interface IUseApiOptions<T = unknown> {
 	successMessage?: string;
 	errorMessage?: string;
+	getErrorMessage?: (error: unknown, defaultMessage: string)=> string | undefined;
 	label?: string;
 	showSuccessFeedback?: boolean;
 	showErrorFeedback?: boolean;

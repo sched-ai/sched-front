@@ -17,7 +17,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useGetAllServices } from "@/hooks/api/useGetAllServices";
+import { useGetAllServices, type IService } from "@/hooks/api/useGetAllServices";
 import { useCreateAppointment } from "@/hooks/api/useCreateAppointment";
 import { useUpdateAppointment } from "@/hooks/api/useUpdateAppointment";
 import type { Matcher } from "react-day-picker";
@@ -75,7 +75,7 @@ export const AppoimentContent = ({
   const { userData, userLoading } = useUser();
   const { data: services } = useGetAllServices();
   // const { data: professionals } = useListCompanyMemberships();
-  const { mutate: createAppointment, isPending: isCreating, error: createError } = useCreateAppointment({
+  const { mutate: createAppointment, isPending: isCreating } = useCreateAppointment({
       onSuccessFn: () => {
         if (onClose) {
           onClose();
@@ -83,15 +83,13 @@ export const AppoimentContent = ({
       },
     });
 
-  const { mutate: updateAppointment, isPending: isUpdating, error: updateError } = useUpdateAppointment({
+  const { mutate: updateAppointment, isPending: isUpdating } = useUpdateAppointment({
     onSuccessFn: () => {
       if (onClose) {
         onClose();
       }
     },
   });
-
-  const error = createError || updateError;
 
   const isPending = isCreating || isUpdating;
 
@@ -196,7 +194,7 @@ export const AppoimentContent = ({
                   const newStart = e.target.value;
                   setStartHour(newStart);
                   if (service && services && newStart) {
-                    const selectedService = services.find((s: any) => String(s.id) === String(service));
+                    const selectedService = services.find((s: IService) => String(s.id) === String(service));
                     if (selectedService?.duration) {
                       const [hStr, mStr] = newStart.split(":");
                       const startMs = new Date(1970, 0, 1, Number(hStr), Number(mStr)).getTime();
@@ -260,7 +258,7 @@ export const AppoimentContent = ({
             onValueChange={(val: string) => {
               setService(val);
               if (services && startHour) {
-                const selectedService = services.find((s: any) => String(s.id) === String(val));
+                const selectedService = services.find((s: IService) => String(s.id) === String(val));
                 if (selectedService?.duration) {
                   const [hStr, mStr] = startHour.split(":");
                   const startMs = new Date(1970, 0, 1, Number(hStr), Number(mStr)).getTime();
@@ -299,13 +297,6 @@ export const AppoimentContent = ({
       </div>
 
       <div className="mt-4 flex flex-col gap-2">
-        <div className="h-[60px] w-full flex items-center justify-center">
-        {error ? (
-            <div className="bg-red-900/20 border border-red-900/50 rounded-md p-3 text-sm text-red-400 w-full leading-tight">
-              {(error as any)?.response?.data?.error || (error as any)?.response?.data?.message || (error as any)?.message || "Ocorreu um erro"}
-            </div>
-          ) : null}
-        </div>
         <div className="flex justify-end">
           <Button
             type="submit"

@@ -19,6 +19,7 @@
 		label: string;
 		showErrorFeedback?: boolean;
 		message: string;
+		getErrorMessage?: (error: unknown, defaultMessage: string)=> string | undefined;
 		autoClose?: number | false | undefined;
 	}
 
@@ -40,7 +41,12 @@
 				error,
 				message: errorMessage,
 				showErrorFeedback = true,
+				getErrorMessage,
 			} = params;
+
+			const resolveErrorMessage = (defaultMessage: string) => {
+				return getErrorMessage?.(error, defaultMessage) || defaultMessage;
+			};
 
 			const autoClose = false;
 
@@ -55,9 +61,10 @@
 			}
 
 			if( error?.response?.status >= 500 || error?.code === 'ERR_NETWORK' ){
+				const defaultMessage = error?.response?.data?.message || 'Falha na comunicação com o servidor, por favor, tente novamente mais tarde.';
 				feedbackHandler({
 					label,
-					message: error?.response?.data?.message || 'Falha na comunicação com o servidor, por favor, tente novamente mais tarde.',
+					message: resolveErrorMessage(defaultMessage),
 					toastId: 'error-load-toast',
 					type: 'error',
 					autoClose,
@@ -81,7 +88,9 @@
 			}
 
 			if (error?.response?.status > 300) {
-				const requestMessage = error?.response?.data?.detail || error?.response?.data?.message || `${ errorMessage } (${ error.response.status })`;
+				const requestMessage = resolveErrorMessage(
+					error?.response?.data?.detail || error?.response?.data?.message || `${ errorMessage } (${ error.response.status })`
+				);
 				feedbackHandler({
 					label,
 					message: requestMessage,
@@ -97,6 +106,7 @@
 		const get = async(options: IUseApiOptions) => {
 			const {
 				errorMessage,
+				getErrorMessage,
 				showErrorFeedback,
 				successMessage,
 				showSuccessFeedback = false,
@@ -121,6 +131,7 @@
 					error,
 					label,
 					showErrorFeedback,
+					getErrorMessage,
 					message: errorMessage || `Erro ao carregar ${ label.toLocaleLowerCase() }!`,
 				});
 			}
@@ -129,6 +140,7 @@
 		const post = async <TBody>(options: IUseApiOptions<TBody>) => {
 			const {
 				errorMessage,
+				getErrorMessage,
 				showErrorFeedback = true,
 				successMessage,
 				showSuccessFeedback = true,
@@ -161,6 +173,7 @@
 				errorHandler({
 					label,
 					error,
+					getErrorMessage,
 					message: errorMessage || `Erro ao criar ${ label.toLocaleLowerCase() }!`,
 					showErrorFeedback
 				});
@@ -170,6 +183,7 @@
 		const update = async <TBody>(options: IUseApiOptions<TBody>) => {
     const {
       errorMessage,
+			getErrorMessage,
       showErrorFeedback = true,
       successMessage,
       showSuccessFeedback = true,
@@ -202,6 +216,7 @@
       errorHandler({
         label,
         error,
+				getErrorMessage,
         message: errorMessage || `Erro ao atualizar ${ label.toLocaleLowerCase() }!`,
         showErrorFeedback
       });
@@ -211,6 +226,7 @@
 		const patch = async <TBody>(options: IUseApiOptions<TBody>) => {
 			const {
 				errorMessage,
+				getErrorMessage,
 				showErrorFeedback = true,
 				successMessage,
 				showSuccessFeedback = true,
@@ -243,6 +259,7 @@
 				errorHandler({
 					label,
 					error,
+					getErrorMessage,
 					message: errorMessage || `Erro ao atualizar ${ label.toLocaleLowerCase() }!`,
 					showErrorFeedback
 				});
@@ -252,6 +269,7 @@
 		const destroy = async(options: IUseApiOptions) => {
 			const {
 				errorMessage,
+				getErrorMessage,
 				showErrorFeedback = true,
 				successMessage,
 				showSuccessFeedback = true,
@@ -275,6 +293,7 @@
 				errorHandler({
 					label,
 					error,
+					getErrorMessage,
 					message: errorMessage || `Erro ao deletar ${ label.toLocaleLowerCase() }!`,
 					showErrorFeedback
 				});
@@ -284,6 +303,7 @@
 		const destroyWithBody = async <TBody>(options: IUseApiOptions<TBody>) => {
 			const {
 				errorMessage,
+				getErrorMessage,
 				showErrorFeedback = true,
 				successMessage,
 				showSuccessFeedback = true,
@@ -308,6 +328,7 @@
 				errorHandler({
 					label,
 					error,
+					getErrorMessage,
 					message: errorMessage || `Erro ao processar ${ label.toLocaleLowerCase() }!`,
 					showErrorFeedback
 				});
