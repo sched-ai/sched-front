@@ -159,7 +159,7 @@ const CreateClient = () => {
         </h1>
       </header>
 
-      <div className="p-6 flex-1 overflow-y-auto">
+      <div className="patient-form-scroll p-6 flex-1 overflow-y-auto">
         <div className="max-w-2xl mx-auto bg-white border border-slate-200 shadow-sm rounded-lg p-8">
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-xl font-semibold text-slate-800">

@@ -1,18 +1,19 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Eye, User, Play, RotateCcw } from "lucide-react";
+import { Eye, Play, Pause, RotateCcw } from "lucide-react";
 import { useCreateAnnotation } from "@/hooks/api/useCreateAnnotation";
 import { useGetAppointment } from "@/hooks/api/useGetAppointment";
 import { useGetClient } from "@/hooks/api/useGetClient";
 import { useGetService } from "@/hooks/api/useGetService";
+import { PatientHeader } from "@/components/PatientHeader";
 
 function calculateAge(birthDate: string | undefined): number | undefined {
   if (!birthDate) return undefined;
   const dob = new Date(birthDate);
   if (isNaN(dob.getTime())) return undefined;
   const diffMs = Date.now() - dob.getTime();
-  const ageDt = new Date(diffMs); 
+  const ageDt = new Date(diffMs);
   return Math.abs(ageDt.getUTCFullYear() - 1970);
 }
 
@@ -23,7 +24,32 @@ function formatHHMMSS(totalSeconds: number) {
   return `${h}:${m}:${s}`;
 }
 
-function ConsultationTimer({ serviceId, startDate, endDate }: { serviceId?: string | null; startDate?: string; endDate?: string }) {
+function formatDisplayDate(dateValue?: string) {
+  if (!dateValue) return "";
+
+  const dateOnly = dateValue.split("T")[0];
+  const isoMatch = dateOnly.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+  if (isoMatch) {
+    const [, year, month, day] = isoMatch;
+    return `${day}/${month}/${year}`;
+  }
+
+  const parsedDate = new Date(dateValue);
+  if (Number.isNaN(parsedDate.getTime())) return dateValue;
+
+  return parsedDate.toLocaleDateString("pt-BR");
+}
+
+function ConsultationTimer({
+  serviceId,
+  startDate,
+  endDate,
+}: {
+  serviceId?: string | null;
+  startDate?: string;
+  endDate?: string;
+}) {
   const { data: service, isLoading } = useGetService(serviceId ?? "", !!serviceId);
 
   const [initialSeconds, setInitialSeconds] = useState(0);
@@ -70,16 +96,11 @@ function ConsultationTimer({ serviceId, startDate, endDate }: { serviceId?: stri
     }
   }, []);
 
-  const handleIniciar = useCallback(() => {
-    if (running || initialSeconds === 0) return;
-
-    setTimerSeconds((prev) => (prev === 0 ? initialSeconds : prev));
-    setRunning(true);
-
+  const startTimer = useCallback(() => {
     stopInterval();
     intervalRef.current = window.setInterval(() => {
-      setTimerSeconds((s) => {
-        const next = s - 1;
+      setTimerSeconds((seconds) => {
+        const next = seconds - 1;
         if (next <= 0) {
           if (intervalRef.current !== null) {
             window.clearInterval(intervalRef.current);
@@ -91,7 +112,21 @@ function ConsultationTimer({ serviceId, startDate, endDate }: { serviceId?: stri
         return next;
       });
     }, 1000);
-  }, [running, initialSeconds, stopInterval]);
+  }, [stopInterval]);
+
+  const handleToggleTimer = useCallback(() => {
+    if (initialSeconds === 0) return;
+
+    if (running) {
+      stopInterval();
+      setRunning(false);
+      return;
+    }
+
+    setTimerSeconds((prev) => (prev === 0 ? initialSeconds : prev));
+    setRunning(true);
+    startTimer();
+  }, [initialSeconds, running, startTimer, stopInterval]);
 
   const handleReset = useCallback(() => {
     stopInterval();
@@ -120,16 +155,20 @@ function ConsultationTimer({ serviceId, startDate, endDate }: { serviceId?: stri
 
         <div className="flex items-center gap-2">
           <button
-            onClick={handleIniciar}
-            disabled={running || initialSeconds === 0}
+            onClick={handleToggleTimer}
+            disabled={initialSeconds === 0}
             className={`w-9 h-9 flex items-center justify-center rounded-full transition-colors cursor-pointer ${
-              (running || initialSeconds === 0)
+              initialSeconds === 0
                 ? "bg-slate-200 text-slate-400 cursor-not-allowed"
                 : "bg-[#0b3b8c] text-white hover:bg-[#093077]"
             }`}
-            title="Iniciar"
+            title={running ? "Pausar" : "Iniciar"}
           >
-            <Play className="w-4 h-4 fill-current" />
+            {running ? (
+              <Pause className="w-4 h-4 fill-current" />
+            ) : (
+              <Play className="w-4 h-4 fill-current" />
+            )}
           </button>
 
           <button
@@ -170,11 +209,19 @@ export const PatientDetails: React.FC = () => {
     email: atendimentoState?.client?.email || atendimentoState?.email || "",
     address: atendimentoState?.client?.address || atendimentoState?.address || "",
     birth: atendimentoState?.client?.birthDate || atendimentoState?.birth || "",
-    age: atendimentoState?.client?.age || atendimentoState?.age || calculateAge(atendimentoState?.client?.birthDate || atendimentoState?.birth) || undefined,
+    age:
+      atendimentoState?.client?.age ||
+      atendimentoState?.age ||
+      calculateAge(atendimentoState?.client?.birthDate || atendimentoState?.birth) ||
+      undefined,
     gender: atendimentoState?.client?.gender || atendimentoState?.gender || "",
     especialidade: atendimentoState?.especialidade || atendimentoState?.specialty || "",
-    data: atendimentoState?.startDate?.split('T')[0] || atendimentoState?.data || atendimentoState?.date || "",
-    hora: atendimentoState?.startDate?.split('T')[1]?.substring(0,5) || atendimentoState?.hora || atendimentoState?.time || "",
+    data: atendimentoState?.startDate?.split("T")[0] || atendimentoState?.data || atendimentoState?.date || "",
+    hora:
+      atendimentoState?.startDate?.split("T")[1]?.substring(0, 5) ||
+      atendimentoState?.hora ||
+      atendimentoState?.time ||
+      "",
     medico: atendimentoState?.employee?.name || atendimentoState?.medico || "",
     status: atendimentoState?.status || "",
     tipoConsulta: atendimentoState?.service?.name || atendimentoState?.tipoConsulta || "",
@@ -187,31 +234,28 @@ export const PatientDetails: React.FC = () => {
       const serialized = JSON.stringify(atendimentoState);
       if (atendimentoPrevRef.current !== serialized) {
         atendimentoPrevRef.current = serialized;
-        setPatient((p: any) => ({ ...p, ...atendimentoState }));
+        setPatient((current: any) => ({ ...current, ...atendimentoState }));
       }
-    } catch (err) {
+    } catch {
       if (atendimentoPrevRef.current !== atendimentoState) {
         atendimentoPrevRef.current = atendimentoState as any;
-        setPatient((p: any) => ({ ...p, ...atendimentoState }));
+        setPatient((current: any) => ({ ...current, ...atendimentoState }));
       }
     }
   }, [atendimentoState]);
 
   const [annotationText, setAnnotationText] = useState<string>("");
-  // We use useGetAppointment to fetch fresh data
   const { data: fetchedAppointment, refetch: refetchAppointment, isLoading } = useGetAppointment(id || "", !!id);
 
-  // Derive clientId from appointment, then fetch the FULL client record directly by ID
   const clientId = fetchedAppointment?.clientId || fetchedAppointment?.client?.id || patient.clientId || "";
   const { data: fullClientData } = useGetClient(clientId, !!clientId);
 
   const { mutateAsync: createAnnotation, isPending: isCreatingAnnotation } = useCreateAnnotation({
     onSuccessFn: () => {
       refetchAppointment();
-    }
+    },
   });
 
-  // Update patient when full client data arrives
   useEffect(() => {
     if (fullClientData) {
       setPatient((prev: any) => ({
@@ -230,12 +274,11 @@ export const PatientDetails: React.FC = () => {
 
   useEffect(() => {
     if (fetchedAppointment) {
-       // Update component state with appointment data
-       setPatient((prev: any) => ({
-         ...prev,
-         clientId: fetchedAppointment.clientId || fetchedAppointment.client?.id || prev.clientId,
-         name: fetchedAppointment.client?.name || fetchedAppointment.clientName || prev.name,
-       }));
+      setPatient((prev: any) => ({
+        ...prev,
+        clientId: fetchedAppointment.clientId || fetchedAppointment.client?.id || prev.clientId,
+        name: fetchedAppointment.client?.name || fetchedAppointment.clientName || prev.name,
+      }));
     }
   }, [fetchedAppointment]);
 
@@ -244,14 +287,15 @@ export const PatientDetails: React.FC = () => {
     setAnnotationText(firstAnnotation?.content || "");
   }, [fetchedAppointment]);
 
-  const isCancelledState = patient.status && ['cancelado', 'cancelled'].includes(patient.status.toLowerCase());
-  const isCancelledFetched = fetchedAppointment?.status && ['cancelado', 'cancelled'].includes(fetchedAppointment.status.toLowerCase());
+  const isCancelledState = patient.status && ["cancelado", "cancelled"].includes(patient.status.toLowerCase());
+  const isCancelledFetched =
+    fetchedAppointment?.status && ["cancelado", "cancelled"].includes(fetchedAppointment.status.toLowerCase());
   const isCancelled = isCancelledState || isCancelledFetched;
 
   if (isLoading && !fetchedAppointment && !patient.status) {
     return (
       <div className="w-full flex flex-col h-full flex-1 items-center justify-center p-6">
-         <p className="text-slate-500 text-lg">Carregando...</p>
+        <p className="text-slate-500 text-lg">Carregando...</p>
       </div>
     );
   }
@@ -267,7 +311,7 @@ export const PatientDetails: React.FC = () => {
           </div>
           <h2 className="text-2xl font-bold text-[#141736] mb-2">Atendimento Cancelado</h2>
           <p className="text-slate-500 mb-8">Não é possível visualizar os detalhes de um atendimento que foi cancelado.</p>
-          <Button 
+          <Button
             className="bg-[#141736] hover:bg-[#282d64] text-white w-full h-[48px] text-base rounded-[8px]"
             onClick={() => navigate(-1)}
           >
@@ -281,72 +325,70 @@ export const PatientDetails: React.FC = () => {
   return (
     <div className="w-full flex flex-col h-full">
       <main className="flex-1 p-6">
-        <div className="bg-white rounded-[20px] shadow-custom p-6 flex items-center relative overflow-hidden mb-6">
-           <div className="absolute left-0 top-0 bottom-0 w-3 bg-[#141736]"></div>
-           <div className="flex items-center justify-between w-full ml-4">
-             <div className="flex items-center gap-6">
-                <div className="w-20 h-20 rounded-full border-4 border-[#141736] flex items-center justify-center bg-white text-[#141736]"> 
-                  <User className="w-10 h-10" />
-                </div>
-                <div>
-                  <h1 className="text-2xl font-bold text-[#141736]">{patient.name}</h1>
-                  <p className="text-slate-600 mt-1 text-sm">
-                    {patient.age ? `Idade: ${patient.age} anos | ` : ''} 
-                    {patient.gender ? `${patient.gender} | ` : ''} 
-                    {patient.cpf ? `CPF: ${patient.cpf} | ` : ''} 
-                    {patient.phone ? `Tel: ${patient.phone}` : ''}
-                  </p>
-                </div>
-             </div>
-             <div className="shrink-0">
+        <div className="mb-6">
+          <PatientHeader
+            name={patient.name}
+            age={patient.age}
+            birthDate={patient.birth}
+            gender={patient.gender}
+            cpf={patient.cpf}
+            phone={patient.phone}
+            action={
               <Button
                 size="sm"
                 className="bg-[#121535] text-white px-4 py-2 w-[170px] relative overflow-hidden flex items-center justify-center cursor-pointer"
                 onClick={() => {
-                  const selectedClientId = patient.clientId || fetchedAppointment?.clientId || fetchedAppointment?.client?.id || (location.state as any)?.atendimento?.clientId || (location.state as any)?.paciente?.id;
+                  const selectedClientId =
+                    patient.clientId ||
+                    fetchedAppointment?.clientId ||
+                    fetchedAppointment?.client?.id ||
+                    (location.state as any)?.atendimento?.clientId ||
+                    (location.state as any)?.paciente?.id;
 
                   if (selectedClientId) {
                     navigate(`/patients/${selectedClientId}/history`, { state: { paciente: patient } });
                   } else {
-                    console.warn("Client ID not found for navigation. Check fetchedAppointment object.", { fetchedAppointment, patient, state: location.state });
+                    console.warn("Client ID not found for navigation. Check fetchedAppointment object.", {
+                      fetchedAppointment,
+                      patient,
+                      state: location.state,
+                    });
                   }
                 }}
               >
                 <span className="w-4 h-4 mr-2 flex-shrink-0 flex items-center justify-center">
                   <Eye className="w-4 h-4" />
                 </span>
-                <span>Ver Histórico</span>
+                <span>Ver histórico</span>
               </Button>
-            </div>
-          </div>
+            }
+          />
         </div>
 
         <div className="mb-6 bg-[#F6F8FB] rounded-[14px] border border-slate-200 p-4 flex items-center justify-center">
           <div className="w-full lg:w-auto flex flex-col items-center">
             <ConsultationTimer
-              serviceId={fetchedAppointment?.serviceId || (location.state as any)?.atendimento?.serviceId || (location.state as any)?.atendimento?.service?.id}
+              serviceId={
+                fetchedAppointment?.serviceId ||
+                (location.state as any)?.atendimento?.serviceId ||
+                (location.state as any)?.atendimento?.service?.id
+              }
               startDate={fetchedAppointment?.startDate || (location.state as any)?.atendimento?.startDate}
               endDate={fetchedAppointment?.endDate || (location.state as any)?.atendimento?.endDate}
             />
           </div>
         </div>
 
-        {/* Consultation card with single annotation input */}
         <div className="space-y-6">
           <div className="bg-white rounded-[10px] shadow-custom p-6 border-2">
             <div className="flex items-start justify-between mb-3">
               <div>
-                <div className="text-base text-[#0f1724] italic">
-                  {fetchedAppointment?.service?.name || "Atendimento"}
-                </div>
+                <div className="text-lg font-bold text-[#0f1724]">{fetchedAppointment?.service?.name || "Atendimento"}</div>
               </div>
               <div className="text-sm text-slate-600">
-                {(fetchedAppointment?.startDate?.split('T')[0] || patient.data || "")} • {(fetchedAppointment?.startDate?.split('T')[1]?.substring(0,5) || patient.hora || "")}
+                {formatDisplayDate(fetchedAppointment?.startDate || patient.data || "")} •{" "}
+                {(fetchedAppointment?.startDate?.split("T")[1]?.substring(0, 5) || patient.hora || "")}
               </div>
-            </div>
-
-            <div className="bg-[#D9D9D9] p-3 rounded mb-3 border border-[#cfcfcf]">
-              <div className="text-sm text-slate-700">{fetchedAppointment?.description || "Sem obs."}</div>
             </div>
 
             <div className="mt-4 bg-white p-4 rounded-md border border-slate-200">
@@ -360,18 +402,15 @@ export const PatientDetails: React.FC = () => {
                 placeholder="Adicionar nota do atendimento..."
               />
               <div className="flex justify-end gap-3 mt-3">
-                <Button
-                  variant="ghost"
-                  onClick={() => setAnnotationText("")}
-                  className="text-slate-600 hover:text-slate-800"
-                >
+                <Button variant="ghost" onClick={() => setAnnotationText("")} className="text-slate-600 hover:text-slate-800">
                   Limpar
                 </Button>
                 <Button
                   onClick={async () => {
                     if (!annotationText.trim()) return;
                     const appointmentId = fetchedAppointment?.id || id || "";
-                    const selectedClientId = patient.clientId || clientId || fetchedAppointment?.clientId || fetchedAppointment?.client?.id || "";
+                    const selectedClientId =
+                      patient.clientId || clientId || fetchedAppointment?.clientId || fetchedAppointment?.client?.id || "";
                     if (!appointmentId || !selectedClientId) return;
                     try {
                       await createAnnotation({
