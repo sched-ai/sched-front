@@ -17,7 +17,9 @@ export const NavItem = ({
   iconSize,
 }: NavItemProps) => {
   const location = useLocation();
-  const isActive = location.pathname === href;
+  const isActive = href === "/" 
+    ? location.pathname === "/" 
+    : location.pathname.startsWith(href);
   const navigate = useNavigate();
   return (
     <div
