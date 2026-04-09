@@ -312,6 +312,7 @@ export const Home = () => {
         clickPosition={scheduleFormPosition}
         onDraftChange={setScheduleDraftEvent}
         availableHours={data.availableHours}
+        calendarEvents={data.events}
         onNavigateWeekToDate={(date) => {
           setCurrentDate(new Date(date.year, date.month - 1, date.day));
         }}

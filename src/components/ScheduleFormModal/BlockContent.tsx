@@ -7,6 +7,8 @@ import type { Dispatch, SetStateAction } from "react";
 import { useCreateTimeBlock, type DayOfWeek } from "@/hooks/api/useCreateTimeBlock";
 import { useUpdateTimeBlock } from "@/hooks/api/useUpdateTimeBlock";
 import type { Matcher } from "react-day-picker";
+import type { TimePickerProps } from "antd";
+import { TimePickerField } from "./TimePickerField";
 
 interface IProps {
   title: string | undefined;
@@ -45,6 +47,8 @@ interface IProps {
   startMaxTime?: string;
   endMinTime?: string;
   endMaxTime?: string;
+  startDisabledTime?: TimePickerProps["disabledTime"];
+  endDisabledTime?: TimePickerProps["disabledTime"];
 }
 
 
@@ -72,6 +76,8 @@ export const BlockContent = ({
   startMaxTime,
   endMinTime,
   endMaxTime,
+  startDisabledTime,
+  endDisabledTime,
 }: IProps) => {
 
   const { mutate: createTimeBlock, isPending: isCreating, error: createError } = useCreateTimeBlock({
@@ -210,25 +216,24 @@ export const BlockContent = ({
               disabled={disableDate}
             />
             <div className="flex items-center gap-2">
-              <input
+              <TimePickerField
                 id="inicio"
-                type="time"
-                style={{ colorScheme: "dark" }}
-                className="lightInput bg-transparent border-b border-gray-600 focus:border-blue-500 text-white p-1 w-24 text-center focus:outline-none"
                 value={startHour}
-                min={startMinTime}
-                max={startMaxTime}
-                onChange={(e) => setStartHour(e.target.value)}
+                minTime={startMinTime}
+                maxTime={startMaxTime}
+                ariaLabel="Início do bloqueio"
+                disabledTime={startDisabledTime}
+                onChange={(next) => setStartHour(next)}
               />
               <span className="text-gray-400">-</span>
-              <input
-                type="time"
-                style={{ colorScheme: "dark" }}
-                className="lightInput bg-transparent border-b border-gray-600 focus:border-blue-500 text-white p-1 w-24 text-center focus:outline-none"
+              <TimePickerField
+                id="fim"
                 value={endHour}
-                min={endMinTime}
-                max={endMaxTime}
-                onChange={(e) => setEndHour(e.target.value)}
+                minTime={endMinTime}
+                maxTime={endMaxTime}
+                ariaLabel="Fim do bloqueio"
+                disabledTime={endDisabledTime}
+                onChange={(next) => setEndHour(next)}
               />
             </div>
           </div>
@@ -312,6 +317,7 @@ export const BlockContent = ({
         <div className="h-[60px] w-full flex items-center justify-center">
         {error ? (
             <div className="bg-red-900/20 border border-red-900/50 rounded-md p-3 text-sm text-red-400 w-full leading-tight">
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
               {(error as any)?.response?.data?.error || (error as any)?.response?.data?.message || (error as any)?.message || "Ocorreu um erro"}
             </div>
           ) : null}

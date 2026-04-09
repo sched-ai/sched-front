@@ -21,6 +21,8 @@ import { useGetAllServices, type IService } from "@/hooks/api/useGetAllServices"
 import { useCreateAppointment } from "@/hooks/api/useCreateAppointment";
 import { useUpdateAppointment } from "@/hooks/api/useUpdateAppointment";
 import type { Matcher } from "react-day-picker";
+import type { TimePickerProps } from "antd";
+import { TimePickerField } from "./TimePickerField";
 
 interface IProps {
   title: string | undefined;
@@ -49,6 +51,8 @@ interface IProps {
   startMaxTime?: string;
   endMinTime?: string;
   endMaxTime?: string;
+  startDisabledTime?: TimePickerProps["disabledTime"];
+  endDisabledTime?: TimePickerProps["disabledTime"];
 }
 
 export const AppoimentContent = ({
@@ -71,6 +75,8 @@ export const AppoimentContent = ({
   startMaxTime,
   endMinTime,
   endMaxTime,
+  startDisabledTime,
+  endDisabledTime,
 }: IProps) => {
   const { userData, userLoading } = useUser();
   const { data: services } = useGetAllServices();
@@ -182,16 +188,14 @@ export const AppoimentContent = ({
               disabled={disableDate}
             />
             <div className="flex items-center gap-2">
-              <input
+              <TimePickerField
                 id="inicioConsulta"
-                type="time"
-                style={{ colorScheme: "auto" }}
-                className="bg-transparent border-b border-gray-600 focus:border-blue-500 text-white p-1 w-24 text-center focus:outline-none"
                 value={startHour}
-                min={startMinTime}
-                max={startMaxTime}
-                onChange={(e) => {
-                  const newStart = e.target.value;
+                minTime={startMinTime}
+                maxTime={startMaxTime}
+                ariaLabel="Início da consulta"
+                disabledTime={startDisabledTime}
+                onChange={(newStart) => {
                   setStartHour(newStart);
                   if (service && services && newStart) {
                     const selectedService = services.find((s: IService) => String(s.id) === String(service));
@@ -207,15 +211,14 @@ export const AppoimentContent = ({
                 }}
               />
               <span className="text-gray-400">-</span>
-              <input
+              <TimePickerField
                 id="fimConsulta"
-                type="time"
-                style={{ colorScheme: "auto" }}
-                className="bg-transparent border-b border-gray-600 focus:border-blue-500 text-white p-1 w-24 text-center focus:outline-none"
                 value={endHour}
-                min={endMinTime}
-                max={endMaxTime}
-                onChange={(e) => setEndHour(e.target.value)}
+                minTime={endMinTime}
+                maxTime={endMaxTime}
+                ariaLabel="Fim da consulta"
+                disabledTime={endDisabledTime}
+                onChange={(next) => setEndHour(next)}
               />
             </div>
           </div>

@@ -314,3 +314,116 @@ select:-webkit-autofill:focus {
 .toast-progress-warning {
   background: #d97706 !important;
 }
+
+.schedule-time-picker.ant-picker {
+  width: 96px;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid #4b5563;
+  min-height: 32px;
+  height: 48px;
+  padding: 0 6px;
+  box-shadow: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.schedule-time-picker.ant-picker:hover {
+  border-bottom-color: #60a5fa;
+}
+
+.schedule-time-picker.ant-picker-focused,
+.schedule-time-picker.ant-picker:focus-within {
+  border-bottom-color: #4b5563;
+  box-shadow: none;
+  outline: none;
+}
+
+.schedule-time-picker .ant-picker-input > input {
+  color: #ffffff;
+  text-align: center;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  height: 100%;
+}
+
+.schedule-time-picker .ant-picker-input > input::placeholder {
+  color: #9ca3af;
+}
+
+.schedule-time-picker .ant-picker-input > input:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.schedule-time-picker .ant-picker-suffix,
+.schedule-time-picker .ant-picker-clear {
+  color: #9ca3af;
+}
+
+.schedule-time-picker .ant-picker-suffix:hover,
+.schedule-time-picker .ant-picker-clear:hover {
+  color: #bfdbfe;
+}
+
+.schedule-time-picker-dropdown.ant-picker-dropdown {
+  --picker-accent: #2563eb;
+  --picker-bg: #fff;
+  --picker-surface: #1a1e45;
+  --picker-border: #30386f;
+  --picker-text: #111827;
+  --picker-muted: #9ca3af;
+}
+
+.schedule-time-picker-dropdown .ant-picker-panel-container {
+  background: var(--picker-bg);
+  border: 1px solid var(--picker-border);
+  border-radius: 0px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45);
+}
+
+.schedule-time-picker-dropdown .ant-picker-time-panel-column {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.schedule-time-picker-dropdown .ant-picker-time-panel-column::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.schedule-time-picker-dropdown .ant-picker-time-panel-column > li {
+  color: var(--picker-text);
+  font-family: 'Poppins', system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+.schedule-time-picker-dropdown .ant-picker-time-panel-column > li.ant-picker-time-panel-cell-disabled {
+  display: none;
+}
+
+.schedule-time-picker-dropdown .ant-picker-time-panel-column > li.ant-picker-time-panel-cell-selected .ant-picker-time-panel-cell-inner {
+  background: var(--picker-accent);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.schedule-time-picker-dropdown .ant-picker-time-panel-column > li .ant-picker-time-panel-cell-inner {
+  border-radius: 8px;
+  color: var(--picker-text);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.schedule-time-picker-dropdown .ant-picker-time-panel-column > li:hover .ant-picker-time-panel-cell-inner {
+  background: rgba(37, 99, 235, 0.16);
+  color: #0f172a;
+}
+
+.schedule-time-picker-dropdown .ant-picker-time-panel-column > li.ant-picker-time-panel-cell-selected:hover .ant-picker-time-panel-cell-inner {
+  background: #1d4ed8;
+  color: #ffffff;
+}
+
+.schedule-time-picker-dropdown .ant-picker-time-panel-column::after {
+  display: none;
+}
+

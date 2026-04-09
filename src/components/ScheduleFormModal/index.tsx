@@ -1,6 +1,7 @@
 import { X, GripHorizontal } from "lucide-react";
 import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import type { SetStateAction } from "react";
+import type { TimePickerProps } from "antd";
 import { Button } from "../ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DndContext, useDraggable } from "@dnd-kit/core";
@@ -51,6 +52,7 @@ interface FormModalProps {
     type?: 'consulta' | 'bloqueio';
   } | null) => void;
   availableHours?: AvailableHours;
+  calendarEvents?: EventType[];
   onNavigateWeekToDate?: (date: { day: number; month: number; year: number }) => void;
 }
 
@@ -115,6 +117,7 @@ export const ScheduleFormModal = ({
   clickPosition,
   onDraftChange,
   availableHours,
+  calendarEvents = [],
   onNavigateWeekToDate,
 }: FormModalProps) => {
   function getEndHour(startHour: string | undefined) {
@@ -452,8 +455,6 @@ export const ScheduleFormModal = ({
     }));
   };
 
-  if (!isOpen) return null;
-
   const handleSelectedDateChange = (next: SetStateAction<{ day: number; month: number; year: number } | null>) => {
     setSelectedDateState((prev) => {
       const resolvedNext = typeof next === "function" ? next(prev) : next;
@@ -469,14 +470,138 @@ export const ScheduleFormModal = ({
     : null;
 
   const selectedBounds = selectedDateAsDate ? getEffectiveBounds(selectedDateAsDate) : null;
+
+  const blockedIntervalsForSelectedDate = useMemo(() => {
+    if (!selectedDateState) return [] as Array<{ startMinute: number; endMinute: number }>;
+
+    return calendarEvents
+      .filter((event) => {
+        if (event.type !== "bloqueio") return false;
+
+        const eventDay = Number(event.dayNumber ?? event.day);
+        const eventMonth = Number(event.month);
+        const eventYear = Number(event.year);
+
+        if (Number.isNaN(eventDay) || Number.isNaN(eventMonth) || Number.isNaN(eventYear)) return false;
+
+        const isSameDate =
+          eventDay === selectedDateState.day &&
+          eventMonth === selectedDateState.month &&
+          eventYear === selectedDateState.year;
+
+        if (!isSameDate) return false;
+
+        if (
+          selectedEvent?.type === "bloqueio" &&
+          String(selectedEvent.id) === String(event.id)
+        ) {
+          return false;
+        }
+
+        return true;
+      })
+      .map((event) => ({
+        startMinute: timeToMinutes(event.start) ?? -1,
+        endMinute: timeToMinutes(event.end) ?? -1,
+      }))
+      .filter((interval) => interval.startMinute >= 0 && interval.endMinute > interval.startMinute)
+      .sort((a, b) => a.startMinute - b.startMinute);
+  }, [calendarEvents, selectedDateState, selectedEvent]);
+
+  const startDisabledTime: TimePickerProps["disabledTime"] = useCallback(() => {
+    if (activeTab !== "consulta") {
+      return {
+        disabledHours: () => [],
+        disabledMinutes: () => [],
+      };
+    }
+
+    const isMinuteBlocked = (totalMinute: number) =>
+      blockedIntervalsForSelectedDate.some(
+        (interval) => totalMinute >= interval.startMinute && totalMinute < interval.endMinute,
+      );
+
+    const disabledHours = Array.from({ length: 24 }, (_, hour) => hour).filter((hour) => {
+      for (let minute = 0; minute < 60; minute++) {
+        if (!isMinuteBlocked(hour * 60 + minute)) return false;
+      }
+      return true;
+    });
+
+    return {
+      disabledHours: () => disabledHours,
+      disabledMinutes: (hour: number) =>
+        Array.from({ length: 60 }, (_, minute) => minute).filter((minute) =>
+          isMinuteBlocked(hour * 60 + minute),
+        ),
+    };
+  }, [activeTab, blockedIntervalsForSelectedDate]);
+
   const startMinutes = timeToMinutes(startHour) ?? selectedBounds?.startMinute ?? 0;
+
+  const nextBlockStartMinute =
+    activeTab === "consulta"
+      ? blockedIntervalsForSelectedDate.find((interval) => interval.startMinute > startMinutes)?.startMinute ?? null
+      : null;
+
+  const effectiveEndLimitMinute = selectedBounds
+    ? Math.min(selectedBounds.endMinute, nextBlockStartMinute ?? selectedBounds.endMinute)
+    : null;
 
   const startMinTime = selectedBounds ? minutesToTime(selectedBounds.startMinute) : undefined;
   const startMaxTime = selectedBounds ? minutesToTime(Math.max(selectedBounds.startMinute, selectedBounds.endMinute - 1)) : undefined;
   const endMinTime = selectedBounds
     ? minutesToTime(Math.min(selectedBounds.endMinute, Math.max(selectedBounds.startMinute + 1, startMinutes + 1)))
     : undefined;
-  const endMaxTime = selectedBounds ? minutesToTime(selectedBounds.endMinute) : undefined;
+  const endMaxTime = effectiveEndLimitMinute !== null ? minutesToTime(effectiveEndLimitMinute) : undefined;
+
+  useEffect(() => {
+    if (!isOpen || !selectedDateState || activeTab !== "consulta") return;
+
+    const selectedDate = new Date(selectedDateState.year, selectedDateState.month - 1, selectedDateState.day);
+    const bounds = getEffectiveBounds(selectedDate);
+    if (!bounds) return;
+
+    const startMinutesRaw = timeToMinutes(startHour);
+    if (startMinutesRaw === null) return;
+
+    const overlap = blockedIntervalsForSelectedDate.find(
+      (interval) => startMinutesRaw >= interval.startMinute && startMinutesRaw < interval.endMinute,
+    );
+
+    if (overlap) {
+      const nextStart = Math.min(Math.max(overlap.endMinute, bounds.startMinute), bounds.endMinute - 1);
+      if (nextStart !== startMinutesRaw) {
+        setStartHour(minutesToTime(nextStart));
+        return;
+      }
+    }
+
+    const nextBlockStart = blockedIntervalsForSelectedDate.find(
+      (interval) => interval.startMinute > startMinutesRaw,
+    )?.startMinute;
+
+    const endCeiling = Math.min(bounds.endMinute, nextBlockStart ?? bounds.endMinute);
+    const endMinutesRaw = timeToMinutes(endHour);
+    if (endMinutesRaw === null) return;
+
+    const minEnd = Math.min(endCeiling, Math.max(bounds.startMinute + 1, startMinutesRaw + 1));
+    const clampedEnd = Math.min(Math.max(endMinutesRaw, minEnd), endCeiling);
+
+    if (clampedEnd !== endMinutesRaw) {
+      setEndHour(minutesToTime(clampedEnd));
+    }
+  }, [
+    activeTab,
+    blockedIntervalsForSelectedDate,
+    endHour,
+    getEffectiveBounds,
+    isOpen,
+    selectedDateState,
+    setEndHour,
+    setStartHour,
+    startHour,
+  ]);
 
   const blockProps = {
     title,
@@ -506,6 +631,7 @@ export const ScheduleFormModal = ({
     startMaxTime,
     endMinTime,
     endMaxTime,
+    startDisabledTime,
   };
 
   const appointmentProps = {
@@ -531,7 +657,10 @@ export const ScheduleFormModal = ({
     startMaxTime,
     endMinTime,
     endMaxTime,
+    startDisabledTime,
   };
+
+  if (!isOpen) return null;
 
   return (
     <DndContext onDragEnd={handleDragEnd} modifiers={[restrictToWindowEdges]}>

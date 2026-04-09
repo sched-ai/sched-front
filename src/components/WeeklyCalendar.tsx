@@ -359,7 +359,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                         const previewHeight = Math.max((endPos.totalPosition - startPos.totalPosition) * CELL_HEIGHT - 4, 28);
                         return (
                       <div
-                        className={`absolute left-0 w-full z-30 pointer-events-none transition-all duration-200 
+                        className={`absolute left-0 w-full z-10 pointer-events-none transition-all duration-200 
                           ${blink ? 'animate-pulse' : ''}`}
                         style={{
                           top: `${startPos.totalPosition * CELL_HEIGHT + 2}px`,
@@ -405,7 +405,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                       >
                         {/* Hover Plus Icon */}
                         {isAllowed && (
-                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          <div className="absolute inset-0 z-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                               <div className="w-8 h-8 rounded-full bg-blue-50/80 flex items-center justify-center backdrop-blur-sm shadow-sm ring-1 ring-blue-100">
                                 <Plus className="w-5 h-5 text-blue-500" />
                               </div>
@@ -508,9 +508,9 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                             title={tooltipText}
                             className={`absolute rounded-lg border ${color.border} ${
                               isConsultation
-                                ? `z-20 hover:shadow-md ${color.hoverShadow}` 
-                                : 'z-10'
-                            } ${hasOverlap ? 'px-1.5 py-1' : 'px-2.5 py-2'} cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:z-30 active:scale-[0.98] overflow-hidden group shadow-sm`}
+                                ? `z-40 hover:shadow-md ${color.hoverShadow}` 
+                                : 'z-30'
+                            } ${hasOverlap ? 'px-1.5 py-1' : 'px-2.5 py-2'} cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:z-50 active:scale-[0.98] overflow-hidden group shadow-sm`}
                             style={{
                               top: `${top + 1}px`,
                               height: `${height - 3}px`,
