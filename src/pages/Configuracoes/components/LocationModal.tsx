@@ -1,354 +1,407 @@
-import { useState, useEffect, type Dispatch, type SetStateAction } from "react";
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { useEffect, useMemo, useState } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Pencil } from "lucide-react";
-import bgWaves from "@/assets/abstract_waves.jpg";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
-type DayKey = "Dom" | "Seg" | "Ter" | "Qua" | "Qui" | "Sex" | "Sáb";
-const ALL_DAYS: DayKey[] = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-const DAY_FULL: Record<DayKey, string> = {
-  Dom: "Domingo",
-  Seg: "Segunda-Feira",
-  Ter: "Terça-Feira",
-  Qua: "Quarta-Feira",
-  Qui: "Quinta-Feira",
-  Sex: "Sexta-Feira",
-  Sáb: "Sábado",
-};
+export type DayKey = "Dom" | "Seg" | "Ter" | "Qua" | "Qui" | "Sex" | "Sáb";
 
 export interface LocationData {
   id?: string;
+  name: string;
+  serviceType: "ONLINE" | "PRESENCIAL";
   address: string;
-  nickname?: string;
   neighborhood: string;
   complement: string;
-  rooms: string;
-  scheduleType: "fixed" | "flexible";
-  fixedDays: DayKey[];
-  fixedStart: string;
-  fixedEnd: string;
-  flexibleSchedule: Record<DayKey, { active: boolean; start: string; end: string }>;
+  city: string;
+  state: string;
+  rooms: number;
+  activeDays: DayKey[];
+  startTime: string;
+  endTime: string;
 }
 
-const defaultFlexible = (): LocationData["flexibleSchedule"] =>
-  Object.fromEntries(
-    ALL_DAYS.map((d) => [d, { active: d !== "Dom" && d !== "Sáb", start: "09:00", end: "18:00" }])
-  ) as LocationData["flexibleSchedule"];
+const ALL_DAYS: DayKey[] = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
 interface LocationModalProps {
   isOpen: boolean;
-  setIsOpen: Dispatch<SetStateAction<boolean>>;
+  setIsOpen: (open: boolean) => void;
   location?: LocationData | null;
-  onSave?: (data: LocationData) => void;
+  onSave?: (data: LocationData) => void | Promise<void>;
+  allowOnlineSelection?: boolean;
+  lockServiceType?: boolean;
 }
 
-const inputCls =
-  "w-full bg-transparent border border-white/70 rounded-[10px] px-3 py-2 text-sm text-white placeholder-white/50 outline-none focus:border-white transition";
+interface LocationErrors {
+  name?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  rooms?: string;
+  activeDays?: string;
+  endTime?: string;
+}
 
-const timeCls =
-  "bg-transparent border border-white/70 rounded-[8px] px-2 py-1 text-sm text-white outline-none focus:border-white w-[90px] lightInput";
+const baseInputClass =
+  "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 hover:border-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500";
+
+const parseTimeMinutes = (value: string) => {
+  const [h, m] = value.split(":").map(Number);
+  if (Number.isNaN(h) || Number.isNaN(m)) return null;
+  return h * 60 + m;
+};
+
+const getDefaultLocation = (): LocationData => ({
+  name: "",
+  serviceType: "PRESENCIAL",
+  address: "",
+  neighborhood: "",
+  complement: "",
+  city: "",
+  state: "",
+  rooms: 1,
+  activeDays: ["Seg", "Ter", "Qua", "Qui", "Sex"],
+  startTime: "09:00",
+  endTime: "18:00",
+});
 
 export const LocationModal = ({
   isOpen,
   setIsOpen,
   location,
   onSave,
+  allowOnlineSelection = true,
+  lockServiceType = false,
 }: LocationModalProps) => {
-  const isEdit = !!location;
-
-  const [address, setAddress] = useState("");
-  const [neighborhood, setNeighborhood] = useState("");
-  const [complement, setComplement] = useState("");
-  const [rooms, setRooms] = useState("1");
-  const [scheduleType, setScheduleType] = useState<"fixed" | "flexible">("fixed");
-  const [fixedDays, setFixedDays] = useState<DayKey[]>(["Seg", "Ter", "Qua", "Qui", "Sex"]);
-  const [fixedStart, setFixedStart] = useState("09:00");
-  const [fixedEnd, setFixedEnd] = useState("18:00");
-  const [flexibleSchedule, setFlexibleSchedule] = useState<LocationData["flexibleSchedule"]>(defaultFlexible());
+  const isEdit = Boolean(location?.id);
+  const [form, setForm] = useState<LocationData>(getDefaultLocation());
+  const [errors, setErrors] = useState<LocationErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (isOpen) {
-      if (location) {
-        setAddress(location.address);
-        setNeighborhood(location.neighborhood);
-        setComplement(location.complement);
-        setRooms(location.rooms);
-        setScheduleType(location.scheduleType);
-        setFixedDays(location.fixedDays);
-        setFixedStart(location.fixedStart);
-        setFixedEnd(location.fixedEnd);
-        setFlexibleSchedule(location.flexibleSchedule);
-      } else {
-        setAddress("");
-        setNeighborhood("");
-        setComplement("");
-        setRooms("1");
-        setScheduleType("fixed");
-        setFixedDays(["Seg", "Ter", "Qua", "Qui", "Sex"]);
-        setFixedStart("09:00");
-        setFixedEnd("18:00");
-        setFlexibleSchedule(defaultFlexible());
-      }
+    if (!isOpen) return;
+
+    if (location) {
+      setForm({
+        ...location,
+        rooms: Number.isFinite(location.rooms) && location.rooms > 0 ? location.rooms : 1,
+      });
+    } else {
+      setForm(getDefaultLocation());
     }
+
+    setErrors({});
+    setIsSubmitting(false);
   }, [isOpen, location]);
 
-  const toggleFixedDay = (day: DayKey) =>
-    setFixedDays((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
-    );
+  const isPresencial = form.serviceType === "PRESENCIAL";
 
-  const toggleFlexDay = (day: DayKey) =>
-    setFlexibleSchedule((prev) => ({
-      ...prev,
-      [day]: { ...prev[day], active: !prev[day].active },
-    }));
+  const modalTitle = useMemo(() => {
+    if (isEdit) return "Editar local";
+    return "Adicionar novo local";
+  }, [isEdit]);
 
-  const setFlexTime = (day: DayKey, field: "start" | "end", val: string) =>
-    setFlexibleSchedule((prev) => ({
-      ...prev,
-      [day]: { ...prev[day], [field]: val },
-    }));
+  const validate = (): LocationErrors => {
+    const nextErrors: LocationErrors = {};
 
-  const handleClose = () => setIsOpen(false);
+    if (isPresencial && !form.name.trim()) {
+      nextErrors.name = "Informe o nome do local.";
+    }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSave?.({
-      id: location?.id,
-      address,
-      neighborhood,
-      complement,
-      rooms,
-      scheduleType,
-      fixedDays,
-      fixedStart,
-      fixedEnd,
-      flexibleSchedule,
+    if (isPresencial && !form.address.trim()) {
+      nextErrors.address = "Informe o endereço.";
+    }
+
+    if (isPresencial && !form.city.trim()) {
+      nextErrors.city = "Informe a cidade.";
+    }
+
+    if (isPresencial && !form.state.trim()) {
+      nextErrors.state = "Informe o estado.";
+    }
+
+    if (isPresencial && (!Number.isFinite(form.rooms) || form.rooms < 1)) {
+      nextErrors.rooms = "Número de salas deve ser maior que zero.";
+    }
+
+    if (form.activeDays.length === 0) {
+      nextErrors.activeDays = "Selecione ao menos um dia de atendimento.";
+    }
+
+    const startMinutes = parseTimeMinutes(form.startTime);
+    const endMinutes = parseTimeMinutes(form.endTime);
+
+    if (startMinutes === null || endMinutes === null || endMinutes <= startMinutes) {
+      nextErrors.endTime = "O horário final deve ser maior que o inicial.";
+    }
+
+    return nextErrors;
+  };
+
+  const toggleDay = (day: DayKey) => {
+    setForm((prev) => {
+      const isActive = prev.activeDays.includes(day);
+      return {
+        ...prev,
+        activeDays: isActive
+          ? prev.activeDays.filter((d) => d !== day)
+          : [...prev.activeDays, day],
+      };
     });
-    handleClose();
+  };
+
+  const handleSave = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    const validation = validate();
+    setErrors(validation);
+
+    if (Object.keys(validation).length > 0) return;
+
+    const payload: LocationData = {
+      ...form,
+      name: form.serviceType === "ONLINE" ? (form.name.trim() || "Atendimento Online") : form.name.trim(),
+      city: form.city.trim(),
+      state: form.state.trim().toUpperCase(),
+      address: form.address.trim(),
+      neighborhood: form.neighborhood.trim(),
+      complement: form.complement.trim(),
+      rooms: Number(form.rooms) || 1,
+    };
+
+    setIsSubmitting(true);
+    try {
+      await onSave?.(payload);
+      setIsOpen(false);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent showCloseButton={false} className="fixed left-1/2 top-1/2 z-50 w-[680px] max-w-[98%] overflow-hidden -translate-x-1/2 -translate-y-1/2 px-0 rounded-2xl border border-[#1C3760] bg-[rgba(3,8,22,0.85)] shadow-2xl">
-        {/* Background wave */}
-        <div
-          className="absolute inset-0 -z-10"
-          style={{
-            backgroundImage: `url(${bgWaves})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            backgroundRepeat: "no-repeat",
-            filter: "blur(45px) brightness(0.6)",
-            transform: "scale(1.02)",
-          }}
-        />
-        <div className="absolute inset-0 -z-10 bg-[rgba(8,18,40,0.55)]" />
-
-        <div className="relative z-10 p-5">
-          {/* Header */}
-          <div className="flex items-start justify-between mb-4">
+      <DialogContent className="max-w-2xl bg-white border border-slate-200 rounded-2xl p-0 overflow-hidden">
+        <form onSubmit={handleSave}>
+          <div className="px-6 py-5 border-b border-slate-200 flex items-start justify-between gap-4">
             <div>
-              <DialogTitle className="text-lg text-white font-semibold">
-                {isEdit ? "Editar Localização" : "Adicionar Localização"}
-              </DialogTitle>
-              <DialogDescription className="text-sm text-white/70 mt-0.5">
-                Preencha o formulário para {isEdit ? "editar o" : "adicionar um novo"} endereço
+              <DialogTitle className="text-xl text-slate-900">{modalTitle}</DialogTitle>
+              <DialogDescription className="text-sm text-slate-500 mt-1">
+                {isEdit
+                  ? "Atualize os dados do local. O horário é alterado no card expandido da lista."
+                  : "Configure o tipo de atendimento, dias e horários deste local."}
               </DialogDescription>
             </div>
-            <button
-              aria-label="Fechar"
-              onClick={handleClose}
-              className="text-white/80 hover:text-white text-lg leading-none cursor-pointer"
-            >
-              ✕
-            </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            {/* Address — large with pencil */}
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Endereço Novo"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                className={`${inputCls} pr-9 h-[44px]`}
-                required
-              />
-              <Pencil size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60" />
-            </div>
-
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Bairro"
-                value={neighborhood}
-                onChange={(e) => setNeighborhood(e.target.value)}
-                className={`${inputCls} pr-9 h-[44px]`}
-                required
-              />
-              <Pencil size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60" />
-            </div>
-
-            {/* Complement + Rooms row */}
-            <div className="flex gap-3">
-              <input
-                type="text"
-                placeholder="Complemento"
-                value={complement}
-                onChange={(e) => setComplement(e.target.value)}
-                className={`${inputCls} h-[40px] flex-1`}
-              />
-              <Select value={rooms} onValueChange={setRooms}>
-                <SelectTrigger className="w-[140px] h-[40px] border-white/70 text-white bg-transparent rounded-[10px] data-[placeholder]:text-white/50 text-sm flex-shrink-0">
-                  <SelectValue placeholder="Nº de Salas" />
-                </SelectTrigger>
-                <SelectContent>
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-                    <SelectItem key={n} value={String(n)}>
-                      {n} {n === 1 ? "sala" : "salas"}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* ── Fixed schedule ───────────────────────────────── */}
-            <div className="border border-white/20 rounded-xl p-4 flex flex-col gap-3">
-              {/* Radio label row */}
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="radio"
-                  name="scheduleType"
-                  checked={scheduleType === "fixed"}
-                  onChange={() => setScheduleType("fixed")}
-                  className="accent-white w-4 h-4 flex-shrink-0"
-                />
-                <span className="text-white text-sm font-medium">Horário Fixo</span>
-                <span className="text-white/50 text-xs">selecione os dias de funcionamento</span>
-              </label>
-
-              {scheduleType === "fixed" && (
-                <>
-                  {/* Time range on its own row */}
-                  <div className="flex items-center gap-2 pl-7">
-                    <input
-                      type="time"
-                      value={fixedStart}
-                      onChange={(e) => setFixedStart(e.target.value)}
-                      className={timeCls}
-                    />
-                    <span className="text-white/60 text-sm">–</span>
-                    <input
-                      type="time"
-                      value={fixedEnd}
-                      onChange={(e) => setFixedEnd(e.target.value)}
-                      className={timeCls}
-                    />
-                  </div>
-
-                  {/* Day buttons */}
-                  <div className="flex flex-wrap gap-2 pl-7">
-                    {ALL_DAYS.map((day) => {
-                      const active = fixedDays.includes(day);
-                      return (
-                        <button
-                          key={day}
-                          type="button"
-                          onClick={() => toggleFixedDay(day)}
-                          className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all cursor-pointer ${
-                            active
-                              ? "bg-[#121535] border-[#121535] text-white"
-                              : "bg-transparent border-white/40 text-white/60 hover:border-white/70"
-                          }`}
-                        >
-                          {day}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </>
+          <div className="px-6 py-5 space-y-5 max-h-[70vh] overflow-y-auto">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">Tipo de atendimento</label>
+              <div className="grid grid-cols-2 gap-2 bg-slate-100 rounded-lg p-1">
+                <button
+                  type="button"
+                  onClick={() => setForm((prev) => ({ ...prev, serviceType: "ONLINE" }))}
+                  disabled={!allowOnlineSelection || lockServiceType}
+                  className={`h-9 rounded-md text-sm font-medium transition ${
+                    form.serviceType === "ONLINE"
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "text-slate-600 hover:text-slate-900"
+                  } ${
+                      (!allowOnlineSelection || lockServiceType) && form.serviceType !== "ONLINE"
+                        ? "opacity-50 cursor-not-allowed hover:text-slate-600"
+                        : ""
+                  }`}
+                >
+                  Online
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setForm((prev) => ({ ...prev, serviceType: "PRESENCIAL" }))}
+                  disabled={lockServiceType}
+                  className={`h-9 rounded-md text-sm font-medium transition ${
+                    form.serviceType === "PRESENCIAL"
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "text-slate-600 hover:text-slate-900"
+                  } ${lockServiceType ? "cursor-not-allowed" : ""}`}
+                >
+                  Presencial
+                </button>
+              </div>
+              {!allowOnlineSelection && (
+                <p className="text-xs text-slate-500">Já existe um local online cadastrado.</p>
+              )}
+              {lockServiceType && (
+                <p className="text-xs text-slate-500">O tipo de atendimento não pode ser alterado na edição.</p>
               )}
             </div>
 
-            {/* ── Flexible schedule ─────────────────────────────── */}
-            <div className="border border-white/20 rounded-xl p-4 flex flex-col gap-3">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="radio"
-                  name="scheduleType"
-                  checked={scheduleType === "flexible"}
-                  onChange={() => setScheduleType("flexible")}
-                  className="accent-white w-4 h-4"
-                />
-                <span className="text-white text-sm font-medium">Horário Flexível</span>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                Nome do local {form.serviceType === "ONLINE" ? "(opcional)" : ""}
               </label>
+              <input
+                type="text"
+                value={form.name}
+                onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+                className={baseInputClass}
+                placeholder={form.serviceType === "ONLINE" ? "Ex: Atendimento remoto" : "Ex: Clínica Centro"}
+              />
+              {errors.name && <p className="text-xs text-red-500">{errors.name}</p>}
+            </div>
 
-              {scheduleType === "flexible" && (
-                <div className="flex flex-col gap-2 mt-1">
-                  {ALL_DAYS.map((day) => {
-                    const info = flexibleSchedule[day];
-                    return (
-                      <div key={day} className="flex items-center gap-3">
-                        {/* Checkbox */}
-                        <input
-                          type="checkbox"
-                          checked={info.active}
-                          onChange={() => toggleFlexDay(day)}
-                          className="accent-white w-4 h-4 flex-shrink-0 cursor-pointer"
-                        />
-                        {/* Day label */}
-                        <span
-                          className={`text-sm w-28 flex-shrink-0 ${
-                            info.active ? "text-white" : "text-white/50"
-                          }`}
-                        >
-                          {DAY_FULL[day]}
-                        </span>
-
-                        {/* Time pickers or "Fechado" */}
-                        {info.active ? (
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="time"
-                              value={info.start}
-                              onChange={(e) => setFlexTime(day, "start", e.target.value)}
-                              className={timeCls}
-                            />
-                            <span className="text-white/60 text-sm">–</span>
-                            <input
-                              type="time"
-                              value={info.end}
-                              onChange={(e) => setFlexTime(day, "end", e.target.value)}
-                              className={timeCls}
-                            />
-                          </div>
-                        ) : (
-                          <span className="text-white/40 text-xs italic ml-1">Fechado</span>
-                        )}
-                      </div>
-                    );
-                  })}
+            {isPresencial ? (
+              <>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Endereço</label>
+                  <input
+                    type="text"
+                    value={form.address}
+                    onChange={(e) => setForm((prev) => ({ ...prev, address: e.target.value }))}
+                    className={baseInputClass}
+                    placeholder="Rua, número"
+                  />
+                  {errors.address && <p className="text-xs text-red-500">{errors.address}</p>}
                 </div>
-              )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">Complemento</label>
+                    <input
+                      type="text"
+                      value={form.complement}
+                      onChange={(e) => setForm((prev) => ({ ...prev, complement: e.target.value }))}
+                      className={baseInputClass}
+                      placeholder="Sala, bloco, referência"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">Bairro</label>
+                    <input
+                      type="text"
+                      value={form.neighborhood}
+                      onChange={(e) => setForm((prev) => ({ ...prev, neighborhood: e.target.value }))}
+                      className={baseInputClass}
+                      placeholder="Bairro"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">Cidade</label>
+                    <input
+                      type="text"
+                      value={form.city}
+                      onChange={(e) => setForm((prev) => ({ ...prev, city: e.target.value }))}
+                      className={baseInputClass}
+                      placeholder="Cidade"
+                    />
+                    {errors.city && <p className="text-xs text-red-500">{errors.city}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">Estado</label>
+                    <input
+                      type="text"
+                      value={form.state}
+                      onChange={(e) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          state: e.target.value.replace(/[^a-zA-Z]/g, "").slice(0, 2).toUpperCase(),
+                        }))
+                      }
+                      className={baseInputClass}
+                      placeholder="UF"
+                      maxLength={2}
+                    />
+                    {errors.state && <p className="text-xs text-red-500">{errors.state}</p>}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Número de salas</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={form.rooms}
+                    onChange={(e) => setForm((prev) => ({ ...prev, rooms: Number(e.target.value) }))}
+                    className={baseInputClass}
+                  />
+                  {errors.rooms && <p className="text-xs text-red-500">{errors.rooms}</p>}
+                </div>
+              </>
+            ) : (
+              <div className="rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm text-blue-700">
+                Atendimentos realizados remotamente por vídeo ou chamada.
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">Dias de atendimento</label>
+              <div className="flex flex-wrap gap-2">
+                {ALL_DAYS.map((day) => {
+                  const active = form.activeDays.includes(day);
+                  return (
+                    <button
+                      key={day}
+                      type="button"
+                      onClick={() => toggleDay(day)}
+                      className={`h-9 min-w-10 rounded-md border px-3 text-sm font-medium transition ${
+                        active
+                          ? "border-blue-600 bg-blue-600 text-white"
+                          : "border-slate-300 bg-white text-slate-600 hover:border-slate-400"
+                      }`}
+                    >
+                      {day}
+                    </button>
+                  );
+                })}
+              </div>
+              {errors.activeDays && <p className="text-xs text-red-500">{errors.activeDays}</p>}
             </div>
 
-            {/* Save */}
-            <div className="flex justify-end mt-1">
-              <Button type="submit" className="bg-white text-[#141736] px-5 py-2 rounded-[10px] text-sm font-medium hover:bg-white/90">
-                Salvar
-              </Button>
-            </div>
-          </form>
-        </div>
+            {isEdit ? (
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
+                Horários não são editados neste modal. Para alterar início e término, use o card do local na lista.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Horário de início</label>
+                  <input
+                    type="time"
+                    value={form.startTime}
+                    onChange={(e) => setForm((prev) => ({ ...prev, startTime: e.target.value }))}
+                    className={baseInputClass}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Horário de término</label>
+                  <input
+                    type="time"
+                    value={form.endTime}
+                    onChange={(e) => setForm((prev) => ({ ...prev, endTime: e.target.value }))}
+                    className={baseInputClass}
+                  />
+                  {errors.endTime && <p className="text-xs text-red-500">{errors.endTime}</p>}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="px-6 py-4 border-t border-slate-200 flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsOpen(false)}
+              disabled={isSubmitting}
+              className="cursor-pointer px-2"
+            >
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer px-2">
+              {isSubmitting ? "Salvando..." : "Salvar"}
+            </Button>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
