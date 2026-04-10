@@ -1,118 +1,164 @@
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Calendar,
   Users,
-  Clock,
-  Filter,
-  Check,
-  ArrowRight,
+  CheckCircle,
+  CalendarDays,
+  XCircle,
+  Search,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ArrowRight,
 } from "lucide-react";
-import { useGetAllAppointments, type AppointmentAPI } from "@/hooks/api/useGetAllAppointments";
 import { format } from "date-fns";
+import { useGetAllAppointments, type AppointmentAPI } from "@/hooks/api/useGetAllAppointments";
 
-// Helper to debounce value
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
+
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedValue(value);
     }, delay);
+
     return () => {
       clearTimeout(handler);
     };
   }, [value, delay]);
+
   return debouncedValue;
 }
 
+const statusOptions = ["Todos os status", "Agendado", "Concluído", "Cancelado"];
+const itemsPerPageOptions = [5, 10, 20];
+
+const statusValueMap: Record<string, string> = {
+  "Todos os status": "todos",
+  Agendado: "agendado",
+  Concluído: "concluido",
+  Cancelado: "cancelado",
+};
+
+const statusConfig: Record<string, { color: string; dot: string }> = {
+  Agendado: { color: "text-blue-600", dot: "bg-blue-500" },
+  Concluído: { color: "text-green-600", dot: "bg-green-500" },
+  Cancelado: { color: "text-red-500", dot: "bg-red-500" },
+};
+
+function getStatusLabel(status: string) {
+  const normalized = status?.toLowerCase() || "";
+
+  if (["concluido", "finished", "done"].includes(normalized)) return "Concluído";
+  if (["agendado", "pending", "scheduled", "confirmed"].includes(normalized)) return "Agendado";
+  if (["cancelado", "cancelled"].includes(normalized)) return "Cancelado";
+
+  return status || "Desconhecido";
+}
+
+function getStatusVisual(status: string) {
+  const label = getStatusLabel(status);
+  return statusConfig[label] || { color: "text-slate-600", dot: "bg-slate-400" };
+}
+
 export const Atendimentos = () => {
+  const navigate = useNavigate();
+  const statusDropdownRef = useRef<HTMLDivElement | null>(null);
+  const itemsDropdownRef = useRef<HTMLDivElement | null>(null);
+
   const [pesquisa, setPesquisa] = useState("");
-  const [filtroStatus, setFiltroStatus] = useState("todos");
+  const [selectedStatus, setSelectedStatus] = useState("Todos os status");
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [itensPorPagina, setItensPorPagina] = useState(5);
-  const navigate = useNavigate();
+  const [statusOpen, setStatusOpen] = useState(false);
+  const [itemsOpen, setItemsOpen] = useState(false);
 
   const debouncedPesquisa = useDebounce(pesquisa, 500);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+
+      if (statusDropdownRef.current && !statusDropdownRef.current.contains(target)) {
+        setStatusOpen(false);
+      }
+
+      if (itemsDropdownRef.current && !itemsDropdownRef.current.contains(target)) {
+        setItemsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const { data: responseAny, isLoading } = useGetAllAppointments({
-    status: filtroStatus,
+    status: statusValueMap[selectedStatus] || "todos",
     search: debouncedPesquisa,
     page: paginaAtual,
     limit: itensPorPagina,
   });
 
-  // Handle both legacy (array) and new (object) API responses
   let appointments: AppointmentAPI[] = [];
   let meta = { total: 0, totalPages: 1, page: 1, limit: itensPorPagina };
   let estatisticas = { total: 0, concluidos: 0, agendados: 0, cancelados: 0 };
 
   if (Array.isArray(responseAny)) {
-    // Legacy mode: Server returned array of all items (no server-side pagination)
     const allData = responseAny as AppointmentAPI[];
-    
-    // Client-side Stats
+
     estatisticas = {
-        total: allData.length,
-        concluidos: allData.filter(a => ['concluido', 'finished', 'done'].includes(a.status?.toLowerCase())).length,
-        agendados: allData.filter(a => ['agendado', 'pending', 'scheduled', 'confirmed'].includes(a.status?.toLowerCase())).length,
-        cancelados: allData.filter(a => ['cancelado', 'cancelled'].includes(a.status?.toLowerCase())).length,
+      total: allData.length,
+      concluidos: allData.filter((item) => ["concluido", "finished", "done"].includes(item.status?.toLowerCase())).length,
+      agendados: allData.filter((item) => ["agendado", "pending", "scheduled", "confirmed"].includes(item.status?.toLowerCase())).length,
+      cancelados: allData.filter((item) => ["cancelado", "cancelled"].includes(item.status?.toLowerCase())).length,
     };
 
-    // Client-side Pagination
     meta.total = allData.length;
     meta.totalPages = Math.ceil(allData.length / itensPorPagina) || 1;
     meta.page = paginaAtual;
-    
+
     const startIndex = (paginaAtual - 1) * itensPorPagina;
     appointments = allData.slice(startIndex, startIndex + itensPorPagina);
-
   } else if (responseAny) {
-    // New mode: Server returning paginated data
     appointments = responseAny.data || [];
     meta = responseAny.meta || meta;
     estatisticas = responseAny.stats || estatisticas;
   }
 
-  const getStatusColor = (status: string) => {
-    const s = status?.toLowerCase() || "";
-    if (['concluido', 'finished', 'done'].includes(s)) return "bg-green-500";
-    if (['agendado', 'pending', 'scheduled', 'confirmed'].includes(s)) return "bg-blue-500";
-    if (['cancelado', 'cancelled'].includes(s)) return "bg-red-500";
-    return "bg-gray-500";
-  };
+  const statsCards = useMemo(
+    () => [
+      { label: "Total de Atendimentos", value: estatisticas.total, icon: Users, color: "text-blue-500" },
+      { label: "Concluídos", value: estatisticas.concluidos, icon: CheckCircle, color: "text-green-500" },
+      { label: "Agendados", value: estatisticas.agendados, icon: CalendarDays, color: "text-orange-500" },
+      { label: "Cancelados", value: estatisticas.cancelados, icon: XCircle, color: "text-red-500" },
+    ],
+    [estatisticas]
+  );
 
-  const getStatusLabel = (status: string) => {
-    const s = status?.toLowerCase() || "";
-    if (['concluido', 'finished', 'done'].includes(s)) return "Concluído";
-    if (['agendado', 'pending', 'scheduled', 'confirmed'].includes(s)) return "Agendado";
-    if (['cancelado', 'cancelled'].includes(s)) return "Cancelado";
-    return status;
-  };
+  const pageNumbers = useMemo(() => {
+    return Array.from({ length: meta.totalPages }, (_, index) => index + 1).slice(
+      Math.max(0, paginaAtual - 3),
+      Math.min(meta.totalPages, paginaAtual + 2)
+    );
+  }, [meta.totalPages, paginaAtual]);
 
-  const handlePesquisaChange = (novaPesquisa: string) => {
-    setPesquisa(novaPesquisa);
+  const handleSearchChange = (value: string) => {
+    setPesquisa(value);
     setPaginaAtual(1);
   };
 
-  const handleFiltroStatusChange = (novoFiltroStatus: string) => {
-    setFiltroStatus(novoFiltroStatus);
+  const handleStatusChange = (value: string) => {
+    setSelectedStatus(value);
     setPaginaAtual(1);
+    setStatusOpen(false);
   };
 
-  const handleItensPorPaginaChange = (novosItens: string) => {
-    setItensPorPagina(Number(novosItens));
+  const handleItemsPerPageChange = (value: number) => {
+    setItensPorPagina(value);
     setPaginaAtual(1);
+    setItemsOpen(false);
   };
 
   const irParaPagina = (pagina: number) => {
@@ -121,282 +167,189 @@ export const Atendimentos = () => {
 
   const irParaProximaPagina = () => {
     if (paginaAtual < meta.totalPages) {
-      setPaginaAtual(paginaAtual + 1);
+      setPaginaAtual((current) => current + 1);
     }
   };
 
   const irParaPaginaAnterior = () => {
     if (paginaAtual > 1) {
-      setPaginaAtual(paginaAtual - 1);
+      setPaginaAtual((current) => current - 1);
     }
   };
 
-
   return (
-    <div className="w-full flex flex-col h-full">
-      <header className="border-b border-b-[#DADCE0] h-full max-h-[80px] p-4">
-        <h1 className="text-2xl font-medium">Atendimentos</h1>
-      </header>
-      <div className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="shadow-custom bg-white rounded-lg p-6 border-l-4 border-[#141736]">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[#141736] text-sm">Total de Atendimentos</p>
-                <p className="text-3xl font-bold text-[#141736]">
-                  {estatisticas.total}
-                </p>
-              </div>
-              <Users className="w-8 h-8 text-blue-500" />
-            </div>
-          </div>
-
-          <div className="shadow-custom bg-white rounded-lg p-6 border-l-4 border-[#141736]">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[#141736] text-sm">Concluídos</p>
-                <p className="text-3xl font-bold text-[#141736]">
-                  {estatisticas.concluidos}
-                </p>
-              </div>
-              <Check className="w-8 h-8 text-green-500" />
-            </div>
-          </div>
-
-          <div className="shadow-custom bg-white rounded-lg p-6 border-l-4 border-[#141736]">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[#141736] text-sm">Agendados</p>
-                <p className="text-3xl font-bold text-[#141736]">
-                  {estatisticas.agendados}
-                </p>
-              </div>
-              <Calendar className="w-8 h-8 text-orange-500" />
-            </div>
-          </div>
-
-          <div className="shadow-custom bg-white rounded-lg p-6 border-l-4 border-[#141736]">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[#141736] text-sm">Cancelados</p>
-                <p className="text-3xl font-bold text-[#141736]">
-                  {estatisticas.cancelados}
-                </p>
-              </div>
-              <Clock className="w-8 h-8 text-red-500" />
-            </div>
-          </div>
+    <div className="min-h-screen bg-slate-50">
+      <div className="p-6 md:p-8 max-w-6xl mx-auto space-y-6">
+        <div>
+          <h1 className="text-slate-900">Atendimentos</h1>
+          <p className="text-muted-foreground mt-1">Gerencie e acompanhe todos os atendimentos</p>
         </div>
 
-        <div className="rounded-lg p-6 mb-2 border bg-white shadow-custom">
-          <div className="flex items-center gap-2 mb-4">
-            <Filter className="w-5 h-5 text-[#141736]" />
-            <h2 className="text-lg font-semibold text-[#141736]">Filtros</h2>
-          </div>
-          <div className="flex flex-col lg:flex-row gap-4 mb-6">
-            <div className="flex-1">
-              <Input
-                type="text"
-                placeholder="Pesquisar por paciente, especialidade ou médico..."
-                value={pesquisa}
-                onChange={(e) => handlePesquisaChange(e.target.value)}
-                className="w-full"
-              />
-            </div>
-            <Select
-              value={filtroStatus}
-              onValueChange={handleFiltroStatusChange}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {statsCards.map(({ label, value, icon: Icon, color }) => (
+            <div
+              key={label}
+              className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm flex items-center justify-between"
             >
-              <SelectTrigger className="w-full lg:w-[250px] !h-[48px] border-[#A2A6BB66]">
-                <SelectValue placeholder="Filtrar por status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos os status</SelectItem>
-                <SelectItem value="concluido">Concluído</SelectItem>
-                <SelectItem value="agendado">Agendado</SelectItem>
-                <SelectItem value="cancelado">Cancelado</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+              <div>
+                <p className="text-xs text-slate-500 mb-1">{label}</p>
+                <p className="text-slate-900">{value}</p>
+              </div>
+              <Icon className={`w-6 h-6 ${color}`} strokeWidth={1.5} />
+            </div>
+          ))}
+        </div>
 
-          <div className="border bg-[#141736] text-white rounded-t-lg py-2">
-            <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 items-center px-6 py-3">
-              <div className="lg:col-span-1">
-                <h3 className="font-semibold text-sm uppercase">Paciente</h3>
+        <div className="bg-white border border-slate-200 rounded-lg shadow-sm">
+          <div className="p-5 border-b border-slate-100">
+            <div className="flex flex-col md:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" strokeWidth={1.5} />
+                <input
+                  type="text"
+                  placeholder="Pesquisar por paciente ou serviço..."
+                  value={pesquisa}
+                  onChange={(event) => handleSearchChange(event.target.value)}
+                  className="w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 hover:border-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition"
+                />
               </div>
-              <div className="lg:col-span-1">
-                <h3 className="font-semibold text-sm uppercase">Serviço</h3>
-              </div>
-              <div className="lg:col-span-1">
-                <h3 className="font-semibold text-sm uppercase">Data</h3>
-              </div>
-              <div className="lg:col-span-1">
-                <h3 className="font-semibold text-sm uppercase">Horário</h3>
-              </div>
-              <div className="lg:col-span-1">
-                <h3 className="font-semibold text-sm uppercase">Status</h3>
-              </div>
-              <div className="lg:col-span-1 flex justify-center">
-                <h3 className="font-semibold text-sm uppercase">Detalhes</h3>
+
+              <div className="relative" ref={statusDropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setStatusOpen((open) => !open)}
+                  className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 hover:border-slate-400 transition min-w-[160px] justify-between"
+                >
+                  {selectedStatus}
+                  <ChevronDown className="w-4 h-4 text-slate-400" strokeWidth={1.5} />
+                </button>
+
+                {statusOpen && (
+                  <div className="absolute right-0 top-full mt-1 z-10 bg-white border border-slate-200 rounded-lg shadow-md min-w-[160px] overflow-hidden">
+                    {statusOptions.map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => handleStatusChange(option)}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 transition ${
+                          selectedStatus === option ? "text-blue-600 bg-blue-50" : "text-slate-700"
+                        }`}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
-          <div className="flex-1">
-            {isLoading ? (
-                <div className="text-center py-12">
-                   <p className="text-gray-500 text-lg">Carregando...</p>
-                </div>
-            ) : appointments.map((atendimento, index) => {
-              const start = new Date(atendimento.startDate);
-              return (
-                <div
-                    key={atendimento.id}
-                    className={`${
-                    index % 2 === 0 ? 'bg-white' : 'bg-slate-50'
-                    } hover:bg-slate-100 transition-colors duration-200`}
-                >
-                    <div className={`grid grid-cols-2 lg:grid-cols-6 gap-4 items-center p-6 border border-slate-200 ${index === appointments.length - 1  ? 'rounded-b-lg' : ''}`}>
-                    <div className="lg:col-span-1">
-                        <p className="text-slate-800 text-sm font-medium">
-                        {atendimento.clientName || atendimento.client?.name || 'Sem nome'}
-                        </p>
-                    </div>
 
-                    <div className="lg:col-span-1">
-                        <p className="text-slate-600 text-sm">
-                        {atendimento.service?.name || '-'}
-                        </p>
-                    </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[760px]">
+              <thead>
+                <tr className="border-b border-slate-100 bg-slate-50">
+                  {["Paciente", "Serviço", "Data", "Horário", "Status", ""].map((column) => (
+                    <th
+                      key={column}
+                      className="px-5 py-3 text-left text-xs text-slate-500 uppercase tracking-wide font-medium"
+                    >
+                      {column}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
 
-                    <div className="lg:col-span-1">
-                        <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-slate-400" />
-                        <p className="text-slate-600 text-sm">
-                            {format(start, 'dd/MM/yyyy')}
-                        </p>
-                        </div>
-                    </div>
+              <tbody>
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={6} className="px-5 py-10 text-center text-slate-400 text-sm">
+                      Carregando atendimentos...
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedRows(appointments, navigate)
+                )}
 
-                    <div className="lg:col-span-1">
-                        <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-slate-400" />
-                        <p className="text-slate-600 text-sm font-medium">
-                           {format(start, 'HH:mm')}
-                        </p>
-                        </div>
-                    </div>
-
-                    <div className="lg:col-span-1">
-                        <div className="flex items-center gap-2">
-                        <div
-                            className={`w-2.5 h-2.5 rounded-full ${getStatusColor(
-                            atendimento.status
-                            )}`}
-                        ></div>
-                        <span className="text-slate-700 text-sm capitalize">
-                            {getStatusLabel(atendimento.status)}
-                        </span>
-                        </div>
-                    </div>
-
-                    <div className="lg:col-span-1 flex justify-center">
-                        <Button
-                        variant="ghost"
-                        size="sm"
-                        className="bg-[#141736] hover:bg-[#282d64] text-white hover:text-white font-medium"
-                        onClick={() => navigate(`/appointment/${atendimento.id}`, { 
-                          state: { 
-                            atendimento,
-                            paciente: atendimento.client 
-                              ? { ...atendimento.client, id: atendimento.client.id || atendimento.clientId }
-                              : { id: atendimento.clientId, name: atendimento.clientName }
-                          } 
-                        })}
-                        disabled={['cancelado', 'cancelled'].includes(atendimento.status?.toLowerCase() || '')}
-                        >
-                        Ver
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                        </Button>
-                    </div>
-                    </div>
-                </div>
-            )})}
-
-            {!isLoading && appointments.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-gray-500 text-lg">
-                  Nenhuma consulta encontrada com os filtros aplicados.
-                </p>
-              </div>
-            )}
+                {!isLoading && appointments.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="px-5 py-10 text-center text-slate-400 text-sm">
+                      Nenhum atendimento encontrado.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
 
           {!isLoading && meta.total > 0 && (
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 p-4 rounded-lg">
-              <div className="flex items-center gap-4">
-                <span className="text-sm text-slate-600">
-                  Mostrando
-                </span>
-                 <Select value={itensPorPagina.toString()} onValueChange={handleItensPorPaginaChange}>
-                   <SelectTrigger className="w-[100px] !h-[36px] cursor-pointer bg-white">
-                     <SelectValue />
-                   </SelectTrigger>
-                   <SelectContent>
-                     <SelectItem value="5">5</SelectItem>
-                     <SelectItem value="10">10</SelectItem>
-                     <SelectItem value="20">20</SelectItem>
-                     <SelectItem value="50">50</SelectItem>
-                   </SelectContent>
-                 </Select>
-                 <span className="text-sm text-slate-600">
-                  itens por página
-                </span>
+            <div className="px-5 py-4 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-2 text-sm text-slate-600">
+                <span>Mostrando</span>
+                <div className="relative" ref={itemsDropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => setItemsOpen((open) => !open)}
+                    className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 hover:border-slate-400 transition min-w-[84px] justify-between"
+                  >
+                    {itensPorPagina}
+                    <ChevronDown className="w-4 h-4 text-slate-400" strokeWidth={1.5} />
+                  </button>
+
+                  {itemsOpen && (
+                    <div className="absolute right-0 bottom-full mb-1 z-10 bg-white border border-slate-200 rounded-lg shadow-md min-w-[84px] overflow-hidden">
+                      {itemsPerPageOptions.map((option) => (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() => handleItemsPerPageChange(option)}
+                          className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 transition ${
+                            itensPorPagina === option ? "text-blue-600 bg-blue-50" : "text-slate-700"
+                          }`}
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <span>itens por página</span>
               </div>
 
               <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
+                <button
+                  type="button"
                   onClick={irParaPaginaAnterior}
                   disabled={paginaAtual === 1}
-                  className="flex items-center gap-1"
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md text-sm text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="w-4 h-4" strokeWidth={1.5} />
                   Anterior
-                </Button>
+                </button>
 
                 <div className="flex items-center gap-1">
-                  {Array.from({ length: meta.totalPages }, (_, i) => i + 1)
-                    .slice(Math.max(0, paginaAtual - 3), Math.min(meta.totalPages, paginaAtual + 2))
-                    .map(
-                    (pagina) => (
-                      <Button
-                        key={pagina}
-                        variant={pagina === paginaAtual ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => irParaPagina(pagina)}
-                        className={`w-8 h-8 p-0 ${
-                          pagina === paginaAtual
-                            ? "bg-[#141736] text-white hover:bg-[#282c5e]"
-                            : "hover:bg-gray-100"
-                        }`}
-                      >
-                        {pagina}
-                      </Button>
-                    )
-                  )}
+                  {pageNumbers.map((pagina) => (
+                    <button
+                      key={pagina}
+                      type="button"
+                      onClick={() => irParaPagina(pagina)}
+                      className={`w-8 h-8 rounded-md text-sm transition ${
+                        pagina === paginaAtual ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-100"
+                      }`}
+                    >
+                      {pagina}
+                    </button>
+                  ))}
                 </div>
 
-                <Button
-                  variant="outline"
-                  size="sm"
+                <button
+                  type="button"
                   onClick={irParaProximaPagina}
                   disabled={paginaAtual === meta.totalPages}
-                  className="flex items-center gap-1"
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md text-sm text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition"
                 >
                   Próxima
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
+                  <ChevronRight className="w-4 h-4" strokeWidth={1.5} />
+                </button>
               </div>
             </div>
           )}
@@ -405,3 +358,53 @@ export const Atendimentos = () => {
     </div>
   );
 };
+
+function paginatedRows(appointments: AppointmentAPI[], navigate: ReturnType<typeof useNavigate>) {
+  return appointments.map((atendimento, index) => {
+    const start = new Date(atendimento.startDate);
+    const status = getStatusLabel(atendimento.status);
+    const visual = getStatusVisual(atendimento.status);
+    const isLast = index === appointments.length - 1;
+    const isCancelled = ["cancelado", "cancelled"].includes(atendimento.status?.toLowerCase() || "");
+
+    return (
+      <tr
+        key={atendimento.id}
+        className={`border-b border-slate-100 hover:bg-slate-50 transition ${isLast ? "border-b-0" : ""}`}
+      >
+        <td className="px-5 py-4 text-slate-900">{atendimento.clientName || atendimento.client?.name || "Sem nome"}</td>
+        <td className="px-5 py-4 text-slate-600">{atendimento.service?.name || "-"}</td>
+        <td className="px-5 py-4 text-slate-600">{format(start, "dd/MM/yyyy")}</td>
+        <td className="px-5 py-4 text-slate-600">{format(start, "HH:mm")}</td>
+        <td className="px-5 py-4">
+          <span className={`inline-flex items-center gap-1.5 ${visual.color}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${visual.dot}`} />
+            {status}
+          </span>
+        </td>
+        <td className="px-5 py-4">
+          <button
+            type="button"
+            onClick={() =>
+              navigate(`/appointment/${atendimento.id}`, {
+                state: {
+                  atendimento,
+                  paciente: atendimento.client
+                    ? { ...atendimento.client, id: atendimento.client.id || atendimento.clientId }
+                    : { id: atendimento.clientId, name: atendimento.clientName },
+                },
+              })
+            }
+            disabled={isCancelled}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-xs transition disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Ver
+            <ArrowRight className="w-3 h-3" strokeWidth={1.5} />
+          </button>
+        </td>
+      </tr>
+    );
+  });
+}
+
+export default Atendimentos;
