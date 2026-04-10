@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
 import { useCreateService } from "@/hooks/api/useCreateService";
 import type { IService } from "@/hooks/api/useGetAllServices";
 import { useUpdateService } from "@/hooks/api/useEditService";
 import { useQueryClient } from "@tanstack/react-query";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 // import { useListCompanyMemberships } from "@/hooks/api/useListCompanyMemberships";
 // import {
 //   Select,
@@ -58,32 +58,8 @@ const parseBRL = (formatted: string | null) => {
 };
 
 
-const ModalOverlay = ({
-  children,
-  onClose,
-}: {
-  children: React.ReactNode;
-  onClose: () => void;
-}) => {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-      <div
-        className="relative w-full max-w-md rounded-2xl bg-[#121535] border border-white/5 shadow-2xl flex flex-col animate-in zoom-in-95 duration-300"
-      >
-        <div className="absolute top-3 right-3 z-20">
-          <Button
-            variant="ghost"
-            className="text-white/70 hover:text-white hover:bg-white/10 h-8 w-8 rounded-full p-0"
-            onClick={onClose}
-          >
-            <X size={20} />
-          </Button>
-        </div>
-        {children}
-      </div>
-    </div>
-  );
-};
+const baseInputClass =
+  "w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-colors hover:border-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20";
 
 interface IProps {
   isModalOpen: boolean;
@@ -195,64 +171,56 @@ export const ModalCreateService = (props: IProps) => {
   if (!isModalOpen) return null;
 
   return (
-    <ModalOverlay onClose={handleClose}>
-      <div className="flex flex-col items-center text-center pt-6 pb-2">
-        <h1 className="text-xl font-bold text-white mb-1">
-          {isEditMode ? "Editar Serviço" : "Novo Serviço"}
-        </h1>
-        <p className="text-gray-400 text-sm max-w-[80%]">
-          {isEditMode
-            ? "Atualize os dados do serviço abaixo."
-            : "Preencha os dados abaixo para cadastrar um novo serviço no sistema."}
-        </p>
-      </div>
-
-      <div className="px-6 pb-5 pt-2">
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <div className="space-y-1">
-            <label className="text-xs text-gray-400 font-medium ml-1">
-              Nome do serviço
-            </label>
-            <input
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              className={`w-full bg-transparent border border-zinc-600 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-gray-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all ${errors.nome ? "border-red-500" : ""}`}
-              placeholder="Ex: Limpeza de pele"
-              type="text"
-              autoFocus
-            />
-            {errors.nome && (
-              <p className="text-red-400 text-xs ml-1 mt-1">{errors.nome}</p>
-            )}
+    <Dialog open={isModalOpen} onOpenChange={(open) => !open && handleClose()}>
+      <DialogContent className="max-w-2xl bg-white border border-slate-200 rounded-2xl p-0 overflow-hidden">
+        <form onSubmit={handleSubmit}>
+          <div className="px-6 py-5 border-b border-slate-200">
+            <DialogTitle className="text-xl text-slate-900">
+              {isEditMode ? "Editar serviço" : "Novo serviço"}
+            </DialogTitle>
+            <DialogDescription className="text-sm text-slate-500 mt-1">
+              {isEditMode
+                ? "Atualize os dados do serviço abaixo."
+                : "Preencha as informações para cadastrar um novo serviço."}
+            </DialogDescription>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-xs text-gray-400 font-medium ml-1">
-                Valor (R$)
-              </label>
+          <div className="px-6 py-5 space-y-4 max-h-[70vh] overflow-y-auto">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">Nome do serviço</label>
               <input
-                value={price}
-                onChange={(e) => setPrice(formatBRL(e.target.value))}
-                className="w-full bg-transparent border border-zinc-600 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-gray-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all"
-                placeholder="R$ 0,00"
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+                className={`${baseInputClass} ${errors.nome ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : ""}`}
+                placeholder="Ex: Limpeza de pele"
                 type="text"
+                autoFocus
               />
+              {errors.nome && <p className="text-xs text-red-500">{errors.nome}</p>}
             </div>
 
-            <div className="space-y-1">
-              <label className="text-xs text-gray-400 font-medium ml-1">
-                Duração
-              </label>
-              <input
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
-                className="w-full bg-transparent border border-zinc-600 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-gray-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all"
-                style={{ colorScheme: 'auto' }}
-                type="time"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700">Valor (R$)</label>
+                <input
+                  value={price}
+                  onChange={(e) => setPrice(formatBRL(e.target.value))}
+                  className={baseInputClass}
+                  placeholder="R$ 0,00"
+                  type="text"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700">Duração</label>
+                <input
+                  value={duration}
+                  onChange={(e) => setDuration(e.target.value)}
+                  className={baseInputClass}
+                  type="time"
+                />
+              </div>
             </div>
-          </div>
 
           {/* <div className="space-y-1">
             <label className="text-xs text-gray-400 font-medium ml-1">
@@ -276,30 +244,32 @@ export const ModalCreateService = (props: IProps) => {
             </Select>
           </div> */}
 
-          <div className="space-y-1">
-            <label className="text-xs text-gray-400 font-medium ml-1">
+            <div className="space-y-2">
+            <label className="text-sm font-medium text-slate-700">
               Descrição do serviço
             </label>
             <textarea
               value={descricao}
               onChange={(e) => setDescricao(e.target.value)}
-              className="w-full bg-transparent border border-zinc-600 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-gray-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all min-h-[70px] resize-none"
+              className={`${baseInputClass} min-h-[96px] resize-none`}
               placeholder="Descreva o serviço..."
             />
           </div>
+          </div>
 
-          <div className="pt-4 flex justify-end gap-3 items-center">
+          <div className="px-6 py-4 border-t border-slate-200 flex justify-end gap-2">
             <Button
               type="button"
-              variant="ghost"
-              className="text-gray-400 hover:text-white hover:bg-white/5 py-5 px-5 rounded-lg transition-all duration-200"
+              variant="outline"
+              className="px-2"
               onClick={handleClose}
+              disabled={isPending}
             >
               Cancelar
             </Button>
             <Button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-5 rounded-lg font-medium shadow-lg shadow-blue-900/40 hover:shadow-blue-900/60 transition-all duration-300 transform hover:-translate-y-0.5"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-2"
               disabled={isPending}
             >
               {isPending
@@ -312,7 +282,7 @@ export const ModalCreateService = (props: IProps) => {
             </Button>
           </div>
         </form>
-      </div>
-    </ModalOverlay>
+      </DialogContent>
+    </Dialog>
   );
 };

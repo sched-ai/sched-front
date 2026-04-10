@@ -1,6 +1,7 @@
 import { TriangleAlert } from "lucide-react";
-import { type Dispatch, type SetStateAction, useEffect, useRef } from "react";
+import { type Dispatch, type SetStateAction } from "react";
 import { Button } from "../ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "../ui/dialog";
 
 interface IProps {
   isModalOpen: boolean;
@@ -11,47 +12,28 @@ interface IProps {
 
 export const ModalAlert = (props: IProps) => {
   const { isModalOpen, setIsModalOpen, onSubmit, serviceName } = props;
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
-        setIsModalOpen(false);
-      }
-    };
-
-    if (isModalOpen) {
-      setTimeout(() => document.addEventListener("mousedown", handleClickOutside), 0);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isModalOpen, setIsModalOpen]);
 
   if (!isModalOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-      <div 
-          ref={ref}
-          className="w-[400px] bg-[#121535] border border-slate-700 text-slate-100 rounded-lg shadow-2xl overflow-hidden flex flex-col p-6 animate-in zoom-in-95 duration-200"
-      >
-          <div className="flex items-center gap-2 mb-4">
-            <TriangleAlert className="w-6 h-6 text-red-500" />
-            <h2 className="text-xl font-bold text-white">Confirmar Exclusão</h2>
+    <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+      <DialogContent className="max-w-md bg-white border border-slate-200 rounded-xl">
+          <div className="flex items-center gap-2 mb-1">
+            <TriangleAlert className="w-5 h-5 text-red-500" />
+            <DialogTitle className="text-lg text-slate-900">Confirmar exclusão</DialogTitle>
           </div>
 
-          <p className="text-slate-300 text-sm mb-6 leading-relaxed">
-            Tem certeza que gostaria de excluir permanentemente o serviço{" "}
-            <span className="font-bold">"{serviceName}"</span>?
-          </p>
+          <DialogDescription className="text-sm text-slate-600 mt-1">
+            Tem certeza que deseja excluir o serviço{" "}
+            <span className="font-semibold text-slate-900">"{serviceName}"</span>? Essa ação não pode ser desfeita.
+          </DialogDescription>
 
-          <div className="flex gap-3 mt-auto justify-end">
+          <div className="mt-5 flex justify-end gap-2">
             <Button 
               type="button"
-              variant="ghost" 
+              variant="outline"
               onClick={() => setIsModalOpen(false)}
-              className="border-slate-600 !text-slate-300 hover:bg-slate-800 hover:text-white px-4 cursor-pointer"
+              className="px-2"
             >
               Cancelar
             </Button>
@@ -62,12 +44,12 @@ export const ModalAlert = (props: IProps) => {
                 e.preventDefault();
                 onSubmit();
               }}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 cursor-pointer"
+              className="bg-red-600 hover:bg-red-700 text-white px-2"
             >
               Excluir
             </Button>
           </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };

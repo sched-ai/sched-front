@@ -1,14 +1,14 @@
 import { Button } from "@/components/ui/button";
-import Input from "@/components/ui/input";
 import {
   Plus,
   EllipsisVertical,
   Edit2,
   Trash2,
-  ListFilter,
   Package,
+  Search,
+  Clock3,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   useGetAllServices,
   type IService,
@@ -23,7 +23,6 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -70,6 +69,17 @@ export const Servicos = () => {
   const serviceNameToDelete =
     services?.find((s) => s.id === serviceToDelete)?.name || "";
 
+  const formatCurrency = (value?: number | null) => {
+    if (value === null || value === undefined || Number.isNaN(Number(value))) {
+      return "R$ 0,00";
+    }
+
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(Number(value));
+  };
+
   // Formata duration (minutos) para um rótulo legível no card
   const formatDurationLabel = (totalMinutes?: number | null) => {
     if (totalMinutes === null || totalMinutes === undefined) return "-";
@@ -81,88 +91,132 @@ export const Servicos = () => {
     return minutes === 0 ? `${hours}h` : `${hours}h ${minutes}m`;
   };
 
-  const EmptyState = () => (
-    <main
-      className="flex items-center justify-center text-center p-8"
-      style={{ minHeight: "calc(100vh - 300px)" }}
-    >
-      <div>
-        <Package className="mx-auto h-24 w-24" />
-        <h2 className="mt-6 text-2xl font-semibold text-gray-800">
-          Comece a cadastrar seus serviços
-        </h2>
-        <p className="mt-2 text-base text-gray-500">
-          Você ainda não possui nenhum serviço ou pacote. <br />
-        </p>
+  const filteredServices = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+
+    return (services ?? [])
+      .filter((service) => {
+        if (filter === "service") return service.type === "SERVICE";
+        if (filter === "package") return service.type === "PACKAGE";
+        return true;
+      })
+      .filter((service) => {
+        if (!normalizedSearch) return true;
+
+        return (
+          service.name?.toLowerCase().includes(normalizedSearch) ||
+          service.description?.toLowerCase().includes(normalizedSearch)
+        );
+      });
+  }, [filter, searchTerm, services]);
+
+  const totalServices = services?.length ?? 0;
+  const hasAnyService = totalServices > 0;
+  const hasSearchOrFilter = searchTerm.trim().length > 0 || filter !== "all";
+
+  const EmptyState = ({
+    title,
+    description,
+    showAction = true,
+  }: {
+    title: string;
+    description: string;
+    showAction?: boolean;
+  }) => (
+    <main className="rounded-xl border border-dashed border-border bg-card/30 p-10 text-center">
+      <div className="mx-auto">
+        <Package className="mx-auto h-12 w-12 text-muted-foreground" />
+        <h2 className="mt-4 text-xl font-semibold text-foreground">{title}</h2>
+        <p className="mt-2 text-sm text-muted-foreground">{description}</p>
+
+        {showAction && (
+          <Button
+            onClick={handleOpenCreateModal}
+            className="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-4"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Adicionar serviço
+          </Button>
+        )}
       </div>
     </main>
   );
 
   return (
-    <div className="min-h-screen">
-      <header className="border-b border-b-[#DADCE0] h-full max-h-[80px] p-4 bg-white">
-        <h1 className="text-2xl font-medium">Serviços</h1>
-      </header>
+    <div className="min-h-screen bg-background">
+      <main className="mx-auto p-6 md:p-8 space-y-6">
+        <section className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold text-foreground">Serviços</h1>
+            <p className="mt-2 text-[16px] text-muted-foreground">
+              Gerencie seus serviços e pacotes em um único lugar.
+            </p>
+          </div>
 
-      {services && services.length > 0 ? (
-        <main className="p-4 md:p-8">
-          <div
-            className="bg-white p-4 mb-4 rounded-lg"
-            style={{ boxShadow: "0 6px 12px -6px #A4A4A4" }}
+          <Button
+            onClick={handleOpenCreateModal}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4"
           >
-            <div className="flex flex-col md:flex-row items-start md:items-end gap-[30px]">
-              <Input
+            <Plus className="h-4 w-4 mr-2" />
+            Adicionar serviço
+          </Button>
+        </section>
+
+        <section className="border border-border rounded-lg p-4 bg-card shadow-sm">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
                 type="text"
-                label="Pesquisar"
-                placeholder="Pesquise por serviço"
+                placeholder="Pesquisar por serviço ou pacote"
                 value={searchTerm}
                 onChange={handleSearchChange}
-                className="w-full md:flex-1"
+                className="w-full rounded-lg border border-slate-300 bg-white pl-10 pr-4 py-2.5 text-sm text-slate-900 outline-none transition-colors hover:border-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
               />
-              <Button
-                className="bg-[#121535] transition-colors gap-1 text-white text-[15px] w-full md:w-auto"
-                onClick={handleOpenCreateModal}
-              >
-                <Plus size={15} />
-                Adicionar Serviço
-              </Button>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {services
-              ?.filter((s) => {
-                if (filter === "service") return s.type === "SERVICE";
-                if (filter === "package") return s.type === "PACKAGE";
-                return true;
-              })
-              .filter((s) =>
-                s.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                s.description?.toLowerCase().includes(searchTerm.toLowerCase())
-              )
-              .map((service) => (
+
+        </section>
+
+        {hasAnyService ? (
+          filteredServices.length > 0 ? (
+            <section className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {filteredServices.map((service) => {
+                const previousPrice = Number((service as IService & { previousPrice?: number }).previousPrice);
+                const hasPreviousPrice = Number.isFinite(previousPrice) && previousPrice > Number(service.price);
+                const discountPercentage = hasPreviousPrice
+                  ? Math.round(((previousPrice - Number(service.price)) / previousPrice) * 100)
+                  : null;
+
+                return (
               <div
                 key={service.id}
-                className="bg-white shadow-custom border border-gray-200 rounded-lg p-6 min-h-[160px] relative overflow-hidden"
+                className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm min-h-[186px] flex flex-col justify-between"
               >
-                {/* Badge + Dropdown (top-right) */}
-                <div className="absolute top-4 right-4 flex items-center gap-[5px]">
-                  <span className={`text-sm font-semibold px-3 py-1 rounded-full text-white ${service.type === 'SERVICE' ? 'bg-[#0177fb]' : 'bg-[#121535]'}`}>
+                <div className="flex items-start justify-between gap-3">
+                  <span
+                    className={`text-xs font-medium px-2.5 py-1 rounded-md ${
+                      service.type === "SERVICE"
+                        ? "bg-blue-100 text-blue-700"
+                        : "bg-slate-100 text-slate-700"
+                    }`}
+                  >
                     {service.type === "SERVICE" ? "Serviço" : "Pacote"}
                   </span>
 
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="p-1.5">
-                        <EllipsisVertical />
+                      <Button variant="ghost" className="h-8 w-8 p-0 text-slate-600 hover:bg-slate-100">
+                        <EllipsisVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56" align="start">
+                    <DropdownMenuContent className="w-48" align="end">
                       <DropdownMenuLabel>Ações</DropdownMenuLabel>
                       <DropdownMenuGroup>
                         <DropdownMenuItem onClick={() => handleOpenEditModal(service)}>
                           Editar
                           <DropdownMenuShortcut>
-                            <Edit2 />
+                            <Edit2 className="h-4 w-4" />
                           </DropdownMenuShortcut>
                         </DropdownMenuItem>
                         <DropdownMenuItem
@@ -173,107 +227,80 @@ export const Servicos = () => {
                         >
                           Excluir
                           <DropdownMenuShortcut>
-                            <Trash2 />
+                            <Trash2 className="h-4 w-4" />
                           </DropdownMenuShortcut>
                         </DropdownMenuItem>
                       </DropdownMenuGroup>
-                      <DropdownMenuSeparator />
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
 
-                <div className="pr-32">
-                  <h2 className="text-black text-xl font-semibold truncate">{service.name}</h2>
-                  {service.type === 'SERVICE' ? (
-                    <p className="text-gray-400 text-sm mt-3 line-clamp-3">{service.description}</p>
-                  ) : (
-                    <div className="text-gray-400 text-sm mt-3 space-y-1">
-                      {service.description ? service.description.split(/\n|,/)?.map((line, idx) => (
-                        <div key={idx} className="truncate">{line.trim()}</div>
-                      )) : <div className="truncate">{service.description}</div>}
-                    </div>
-                  )}
+                <div className="mt-3">
+                  <h2 className="text-base font-semibold text-slate-900 line-clamp-1">{service.name}</h2>
+                  <p className="text-sm text-slate-600 mt-2 line-clamp-2 min-h-10">
+                    {service.description || "Sem descrição informada."}
+                  </p>
                 </div>
 
-                {/* Right column: price / previous / discount or duration+price */}
-                <div className="absolute bottom-4 right-4 text-right">
-                  {service.type === 'PACKAGE' ? (
-                    <>
-                      {(service as any).previousPrice ? (
-                        <div className="text-gray-400 text-sm line-through">
-                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number((service as any).previousPrice))}
-                        </div>
-                      ) : null}
-                      <div className="text-black font-semibold text-lg mt-1">
-                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(service.price))}
-                      </div>
-                      {(service as any).previousPrice ? (
-                        <div className="text-[#0177fb] text-sm mt-1">
-                          {Math.round(((Number((service as any).previousPrice) - Number(service.price)) / Number((service as any).previousPrice)) * 100)}% off
-                        </div>
-                      ) : null}
-                    </>
+                <div className="mt-4 flex items-end justify-between gap-4">
+                  {service.type === "PACKAGE" ? (
+                    <div className="text-xs text-muted-foreground">Pacote</div>
                   ) : (
-                    <>
-                      <div className="text-gray-400 text-sm">{formatDurationLabel(service.duration)}</div>
-                      <div className="text-black font-semibold text-lg mt-1">
-                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(service.price))}
-                      </div>
-                    </>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Clock3 className="h-3.5 w-3.5" />
+                      {formatDurationLabel(service.duration)}
+                    </div>
                   )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </main>
-      ) : (
-        <>
-          <div className="p-4 md:p-8">
-            <div
-              className="bg-white p-4 mb-4 rounded-lg"
-              style={{ boxShadow: "0 6px 12px -6px #A4A4A4" }}
-            >
-                <div className="flex flex-col md:flex-row items-start md:items-end gap-[30px]">
-                  <Input
-                    type="text"
-                    label="Pesquisar"
-                    placeholder="Pesquise por serviço ou pacote"
-                    value={searchTerm}
-                    onChange={handleSearchChange}
-                    className="w-full md:flex-1"
-                  />
-                  <div className="w-full md:w-auto">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="!text-[#121535] w-full md:w-[236px] !border-[#121535] flex items-center justify-center gap-2"
-                        >
-                          <ListFilter size={16} />
-                          {filter === "all" ? "Ver Todos" : filter === "service" ? "Serviços" : "Pacotes"}
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start">
-                        <DropdownMenuLabel>Mostrar</DropdownMenuLabel>
-                        <DropdownMenuItem onSelect={() => setFilter("all")}>Todos</DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => setFilter("service")}>Serviços</DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => setFilter("package")}>Pacotes</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+
+                  <div className="text-right">
+                    {hasPreviousPrice && (
+                      <div className="text-xs text-slate-400 line-through">
+                        {formatCurrency(previousPrice)}
+                      </div>
+                    )}
+
+                    <div className="text-lg font-semibold text-slate-900 leading-none mt-1">
+                      {formatCurrency(Number(service.price))}
+                    </div>
+
+                    {discountPercentage !== null && (
+                      <div className="text-xs text-blue-600 mt-1">{discountPercentage}% off</div>
+                    )}
                   </div>
-                  <Button
-                    className="bg-[#121535] hover:brightness-110 transition-colors gap-1 text-white text-[15px] w-full md:w-auto"
-                    onClick={handleOpenCreateModal}
-                  >
-                    <Plus size={15} />
-                    Adicionar Serviço/Pacote
-                  </Button>
                 </div>
               </div>
+                );
+              })}
+            </section>
+          ) : (
+            <EmptyState
+              title="Nenhum resultado encontrado"
+              description={`Não encontramos itens para "${searchTerm}" com o filtro selecionado.`}
+              showAction={false}
+            />
+          )
+        ) : (
+          <EmptyState
+            title="Comece cadastrando seus serviços"
+            description="Você ainda não possui serviços ou pacotes cadastrados."
+          />
+        )}
+
+        {hasSearchOrFilter && hasAnyService && (
+          <div className="flex justify-end">
+            <Button
+              variant="outline"
+              className="px-4"
+              onClick={() => {
+                setSearchTerm("");
+                setFilter("all");
+              }}
+            >
+              Limpar filtros
+            </Button>
           </div>
-          <EmptyState />
-        </>
-      )}
+        )}
+      </main>
 
       <ModalCreateService
         isModalOpen={isModalOpen}

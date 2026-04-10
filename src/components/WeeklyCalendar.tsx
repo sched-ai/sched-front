@@ -262,6 +262,26 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 		};
 	});
 
+  const blockedCells = React.useMemo(() => {
+    const blocked = new Set<string>();
+
+    eventMap.forEach((event) => {
+      if (event.type !== 'bloqueio' || event.dayIdx < 0) return;
+
+      for (let hourIdx = 0; hourIdx < 24; hourIdx++) {
+        const cellStart = hourIdx;
+        const cellEnd = hourIdx + 1;
+        const overlaps = event.endPos.totalPosition > cellStart && event.startPos.totalPosition < cellEnd;
+
+        if (overlaps) {
+          blocked.add(`${event.dayIdx}-${hourIdx}`);
+        }
+      }
+    });
+
+    return blocked;
+  }, [eventMap]);
+
   const handleCellClick = (dayIdx: number, hour: string, e: React.MouseEvent<HTMLDivElement>) => {
     const dateObj = weekDates[dayIdx];
     const startPos = getHourPosition(hour);
@@ -298,7 +318,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
         >
           <div className="min-w-[900px]">
             {/* Header Sticky */}
-            <div className="flex z-40 sticky top-0 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+            <div className="flex sticky top-0 z-[120] isolate bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
               <div className="min-w-[70px] max-w-[70px] w-full border-r border-gray-200 bg-gray-50/30"></div>
               <div className="grid grid-cols-7 w-full divide-x divide-gray-200">
                 {weekDays.map((day, idx) => {
@@ -392,19 +412,21 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                     {/* Grid Lines */}
                     {hours.map((hour, hourIdx) => {
                       const isAllowed = isCellAllowed(dayIdx, hourIdx);
+                      const isBlockedByEvent = blockedCells.has(`${dayIdx}-${hourIdx}`);
+                      const isInteractive = isAllowed && !isBlockedByEvent;
                       
                       return (
                       <div
                         key={hour}
                         className={`h-[80px] border-b border-gray-200 relative group transition-colors ${
-                          isAllowed ? 'hover:bg-blue-50/20 cursor-pointer' : 'cursor-not-allowed bg-[#f5f5f5]'
+                          isInteractive ? 'hover:bg-blue-50/20 cursor-pointer' : 'cursor-not-allowed bg-[#f5f5f5]'
                         }`}
                         onClick={(e) => {
-                          if (isAllowed) handleCellClick(dayIdx, hour, e);
+                          if (isInteractive) handleCellClick(dayIdx, hour, e);
                         }}
                       >
                         {/* Hover Plus Icon */}
-                        {isAllowed && (
+                        {isInteractive && (
                           <div className="absolute inset-0 z-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                               <div className="w-8 h-8 rounded-full bg-blue-50/80 flex items-center justify-center backdrop-blur-sm shadow-sm ring-1 ring-blue-100">
                                 <Plus className="w-5 h-5 text-blue-500" />
@@ -508,9 +530,9 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                             title={tooltipText}
                             className={`absolute rounded-lg border ${color.border} ${
                               isConsultation
-                                ? `z-40 hover:shadow-md ${color.hoverShadow}` 
-                                : 'z-30'
-                            } ${hasOverlap ? 'px-1.5 py-1' : 'px-2.5 py-2'} cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:z-50 active:scale-[0.98] overflow-hidden group shadow-sm`}
+                                ? `z-20 hover:shadow-md ${color.hoverShadow}` 
+                                : 'z-10'
+                            } ${hasOverlap ? 'px-1.5 py-1' : 'px-2.5 py-2'} cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:z-30 active:scale-[0.98] overflow-hidden group shadow-sm`}
                             style={{
                               top: `${top + 1}px`,
                               height: `${height - 3}px`,
