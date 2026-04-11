@@ -1,14 +1,17 @@
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { format } from "date-fns";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  ArrowRight,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Pencil,
+  Plus,
+  Search,
+  Trash2,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -17,42 +20,55 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Filter,
-  ArrowRight,
-  ChevronLeft,
-  ChevronRight,
-  Pencil,
-  Trash2,
-} from "lucide-react";
 import { useGetAllClients } from "@/hooks/api/useGetAllClients";
 import type { ClientAPI } from "@/hooks/api/useGetAllClients";
 import { useDeleteClient } from "@/hooks/api/useDeleteClient";
-import { format } from "date-fns";
-import { formatPhone, formatCpf } from "@/util/helper";
+import { formatCpf, formatPhone } from "@/util/helper";
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
-  React.useEffect(() => {
+
+  useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedValue(value);
     }, delay);
+
     return () => {
       clearTimeout(handler);
     };
   }, [value, delay]);
+
   return debouncedValue;
 }
 
+const itemsPerPageOptions = [5, 10, 20, 50];
 
 export const Pacientes = () => {
+  const navigate = useNavigate();
+  const itemsDropdownRef = useRef<HTMLDivElement | null>(null);
+
   const [pesquisa, setPesquisa] = useState("");
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [itensPorPagina, setItensPorPagina] = useState(10);
-  const navigate = useNavigate();
+  const [itemsOpen, setItemsOpen] = useState(false);
   const [clientToDelete, setClientToDelete] = useState<ClientAPI | null>(null);
 
   const debouncedPesquisa = useDebounce(pesquisa, 500);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+
+      if (itemsDropdownRef.current && !itemsDropdownRef.current.contains(target)) {
+        setItemsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const { data: response, isLoading } = useGetAllClients({
     search: debouncedPesquisa,
@@ -65,19 +81,31 @@ export const Pacientes = () => {
   const pacientes = response?.data || [];
   const meta = response?.meta || { total: 0, totalPages: 1, page: 1, limit: 10 };
 
-  const handlePesquisaChange = (val: string) => { setPesquisa(val); setPaginaAtual(1); };
-  const handleItensPorPaginaChange = (val: string) => { setItensPorPagina(Number(val)); setPaginaAtual(1); };
-  const irParaPagina = (p: number) => setPaginaAtual(p);
-  const irParaProximaPagina = () => { if (paginaAtual < meta.totalPages) setPaginaAtual(paginaAtual + 1); };
-  const irParaPaginaAnterior = () => { if (paginaAtual > 1) setPaginaAtual(paginaAtual - 1); };
+  const pageNumbers = useMemo(() => {
+    return Array.from({ length: meta.totalPages }, (_, index) => index + 1).slice(
+      Math.max(0, paginaAtual - 3),
+      Math.min(meta.totalPages, paginaAtual + 2)
+    );
+  }, [meta.totalPages, paginaAtual]);
 
-  // Delete handlers
+  const handlePesquisaChange = (value: string) => {
+    setPesquisa(value);
+    setPaginaAtual(1);
+  };
+
+  const handleItensPorPaginaChange = (value: number) => {
+    setItensPorPagina(value);
+    setPaginaAtual(1);
+    setItemsOpen(false);
+  };
+
   const handleDeleteClick = (client: ClientAPI) => {
     setClientToDelete(client);
   };
 
   const handleConfirmDelete = () => {
     if (!clientToDelete) return;
+
     deleteClient(clientToDelete.id, {
       onSuccess: () => {
         setClientToDelete(null);
@@ -85,175 +113,286 @@ export const Pacientes = () => {
     });
   };
 
-  // Tooltip
-  const [tooltip, setTooltip] = useState({ visible: false, text: "", x: 0, y: 0 });
-  const handleMouseEnter = (e: React.MouseEvent, text: string) => { setTooltip({ visible: true, text, x: e.clientX + 12, y: e.clientY + 12 }); };
-  const handleMouseMove = (e: React.MouseEvent) => { setTooltip((t) => (t.visible ? { ...t, x: e.clientX + 12, y: e.clientY + 12 } : t)); };
-  const handleMouseLeave = () => setTooltip({ visible: false, text: "", x: 0, y: 0 });
-  
+  const irParaPagina = (pagina: number) => {
+    setPaginaAtual(pagina);
+  };
+
+  const irParaProximaPagina = () => {
+    if (paginaAtual < meta.totalPages) {
+      setPaginaAtual((pagina) => pagina + 1);
+    }
+  };
+
+  const irParaPaginaAnterior = () => {
+    if (paginaAtual > 1) {
+      setPaginaAtual((pagina) => pagina - 1);
+    }
+  };
+
   return (
-    <div className="w-full flex flex-col h-full">
-      <header className="border-b border-b-[#DADCE0] h-full max-h-[80px] p-4">
-        <h1 className="text-2xl font-medium">Pacientes</h1>
-      </header>
-      <div className="p-6">
-        <div className="rounded-lg p-6 mb-2 border bg-white shadow-custom">
-          <div className="flex items-center gap-2 mb-4">
-            <Filter className="w-5 h-5 text-[#141736]" />
-            <h2 className="text-lg font-semibold text-[#141736]">Filtros</h2>
+    <div className="min-h-screen bg-slate-50">
+      <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div>
+            <h1 className="text-[2rem] text-slate-900">Pacientes</h1>
+            <p className="text-muted-foreground mt-1">Gerencie os pacientes cadastrados e acompanhe os históricos com rapidez.</p>
           </div>
 
-          <div className="flex flex-col lg:flex-row gap-4 mb-6 items-center">
-            <div className="flex-1">
-              <Input
-                type="text"
-                placeholder="Pesquise por nome, CPF ou e-mail..."
-                value={pesquisa}
-                onChange={(e) => handlePesquisaChange(e.target.value)}
-                className="w-full"
-              />
-            </div>
+          <Button
+            type="button"
+            onClick={() => navigate("/patients/new")}
+            className="bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center gap-2 self-start h-11 px-5 rounded-lg whitespace-nowrap"
+          >
+            <Plus className="w-4 h-4" strokeWidth={1.5} />
+            Adicionar paciente
+          </Button>
+        </div>
 
-            <Button 
-                className="bg-[#121535] text-white px-8 py-2 hover:bg-[#1f2347] transition-colors" 
-                onClick={() => navigate('/patients/new')}
-            >
-              + Adicionar paciente
-            </Button>
-          </div>
-            
-          <div className="border bg-[#141736] text-white rounded-t-lg py-2">
-            <div className="grid grid-cols-2 lg:grid-cols-7 gap-4 items-center px-6 py-3 min-w-0">
-               {['Nome', 'CPF', 'Telefone', 'E-mail', 'Cadastro', 'Histórico', 'Ações'].map((h, i) => (
-                   <div key={h} className={`${i >= 5 ? 'flex justify-center' : ''} lg:col-span-1`}>
-                        <h3 className="font-semibold text-sm uppercase">{h}</h3>
-                   </div>
-               ))}
+        <div className="bg-white border border-slate-200 rounded-lg shadow-sm">
+          <div className="p-5 border-b border-slate-100">
+            <div className="flex flex-col md:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" strokeWidth={1.5} />
+                <input
+                  type="text"
+                  placeholder="Pesquisar por nome, CPF ou e-mail..."
+                  value={pesquisa}
+                  onChange={(event) => handlePesquisaChange(event.target.value)}
+                  className="w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 hover:border-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition"
+                />
+              </div>
             </div>
           </div>
 
-          <div className="flex-1">
-            {isLoading ? (
-                <div className="text-center py-12">
-                   <p className="text-gray-500 text-lg">Carregando...</p>
-                </div>
-            ) : pacientes.map((p, index) => {
-                const createdAt = p.createdAt ? format(new Date(p.createdAt), 'dd/MM/yyyy') : '-';
-                return (
-              <div
-                key={p.id}
-                className={`${index % 2 === 0 ? 'bg-white' : 'bg-slate-50'} hover:bg-slate-100 transition-colors duration-200`}
-              >
-                <div className={`grid grid-cols-2 lg:grid-cols-7 gap-4 items-center p-6 border border-slate-200 min-w-0 ${index === pacientes.length - 1  ? 'rounded-b-lg' : ''}`}>
-                  <div className="lg:col-span-1">
-                    <p className="text-slate-800 text-sm font-medium truncate" onMouseEnter={(e) => handleMouseEnter(e, p.name)} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}>{p.name}</p>
-                  </div>
-                  <div className="lg:col-span-1"><p className="text-slate-600 text-sm truncate">{p.cpf ? formatCpf(p.cpf) : '-'}</p></div>
-                  <div className="lg:col-span-1"><p className="text-slate-600 text-sm truncate">{p.phone ? formatPhone(p.phone) : '-'}</p></div>
-                  <div className="lg:col-span-1">
-                    <p className="text-slate-600 text-sm truncate" onMouseEnter={(e) => handleMouseEnter(e, p.email || '-')} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}>{p.email || '-'}</p>
-                  </div>
-                  <div className="lg:col-span-1"><p className="text-slate-600 text-sm truncate">{createdAt}</p></div>
-                  <div className="lg:col-span-1 flex justify-center">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="bg-[#141736] hover:bg-[#282d64] text-white hover:text-white font-medium"
-                      onClick={() => navigate(`/patients/${p.id}/history`, { state: { paciente: p } })}
+          <div className="overflow-hidden">
+            <table className="w-full table-fixed">
+              <colgroup>
+                <col className="w-[17%]" />
+                <col className="w-[15%]" />
+                <col className="w-[15%]" />
+                <col className="w-[22%]" />
+                <col className="w-[11%]" />
+                <col className="w-[11%]" />
+                <col className="w-[9%]" />
+              </colgroup>
+              <thead>
+                <tr className="border-b border-slate-100 bg-slate-50">
+                  {["Nome", "CPF", "Telefone", "E-mail", "Cadastro", "Histórico", "Ações"].map((column) => (
+                    <th
+                      key={column}
+                      className="px-5 py-4 text-left text-xs text-slate-500 uppercase tracking-wide font-medium"
                     >
-                      Ver <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </div>
-                  <div className="lg:col-span-1 flex justify-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 h-8 w-8 p-0"
-                      onClick={() => navigate(`/patients/${p.id}/edit`)}
-                      title="Editar paciente"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
-                      onClick={() => handleDeleteClick(p)}
-                      title="Excluir paciente"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )})}
-             {!isLoading && pacientes.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-gray-500 text-lg">Nenhum paciente encontrado.</p>
-              </div>
-            )}
+                      {column}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+
+              <tbody>
+                {isLoading && (
+                  <tr>
+                    <td colSpan={7} className="px-5 py-12 text-center text-slate-400 text-sm">
+                      Carregando pacientes...
+                    </td>
+                  </tr>
+                )}
+
+                {!isLoading &&
+                  pacientes.map((paciente, index) => {
+                    const isLast = index === pacientes.length - 1;
+                    const createdAt = paciente.createdAt ? format(new Date(paciente.createdAt), "dd/MM/yyyy") : "-";
+                    const displayEmail = paciente.email || "-";
+
+                    return (
+                      <tr
+                        key={paciente.id}
+                        className={`border-b border-slate-100 hover:bg-slate-50 transition ${isLast ? "border-b-0" : ""}`}
+                      >
+                        <td className="px-5 py-5 text-slate-900 align-middle">
+                          <span className="block truncate" title={paciente.name}>
+                            {paciente.name}
+                          </span>
+                        </td>
+                        <td className="px-5 py-5 text-slate-600 align-middle">
+                          <span className="block truncate" title={paciente.cpf ? formatCpf(paciente.cpf) : "-"}>
+                            {paciente.cpf ? formatCpf(paciente.cpf) : "-"}
+                          </span>
+                        </td>
+                        <td className="px-5 py-5 text-slate-600 align-middle">
+                          <span className="block truncate" title={paciente.phone ? formatPhone(paciente.phone) : "-"}>
+                            {paciente.phone ? formatPhone(paciente.phone) : "-"}
+                          </span>
+                        </td>
+                        <td className="px-5 py-5 text-slate-600 align-middle">
+                          <span className="block truncate" title={displayEmail}>
+                            {displayEmail}
+                          </span>
+                        </td>
+                        <td className="px-5 py-5 text-slate-600 align-middle">
+                          <span className="block truncate" title={createdAt}>
+                            {createdAt}
+                          </span>
+                        </td>
+                        <td className="px-5 py-5 align-middle">
+                          <button
+                            type="button"
+                            title="Ver histórico do paciente"
+                            onClick={() => navigate(`/patients/${paciente.id}/history`, { state: { paciente } })}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs transition whitespace-nowrap"
+                          >
+                            Ver
+                            <ArrowRight className="w-3 h-3" strokeWidth={1.5} />
+                          </button>
+                        </td>
+                        <td className="px-5 py-5 align-middle">
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              title="Editar paciente"
+                              onClick={() => navigate(`/patients/${paciente.id}/edit`)}
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition"
+                            >
+                              <Pencil className="w-4 h-4" strokeWidth={1.5} />
+                            </button>
+                            <button
+                              type="button"
+                              title="Excluir paciente"
+                              onClick={() => handleDeleteClick(paciente)}
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-red-500 hover:bg-red-50 hover:text-red-600 transition"
+                            >
+                              <Trash2 className="w-4 h-4" strokeWidth={1.5} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+
+                {!isLoading && pacientes.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="px-5 py-12 text-center text-slate-400 text-sm">
+                      Nenhum paciente encontrado.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-            
+
           {!isLoading && meta.total > 0 && (
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 p-4 rounded-lg">
-               <div className="flex items-center gap-4">
-                <span className="text-sm text-slate-600">Mostrando</span>
-                 <Select value={itensPorPagina.toString()} onValueChange={handleItensPorPaginaChange}>
-                   <SelectTrigger className="w-[100px] !h-[36px] cursor-pointer bg-white">
-                     <SelectValue />
-                   </SelectTrigger>
-                   <SelectContent>
-                     {[5, 10, 20, 50].map(v => <SelectItem key={v} value={String(v)}>{v}</SelectItem>)}
-                   </SelectContent>
-                 </Select>
-                 <span className="text-sm text-slate-600">itens por página</span>
+            <div className="px-5 py-4 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-2 text-sm text-slate-600">
+                <span>Mostrando</span>
+                <div className="relative" ref={itemsDropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => setItemsOpen((open) => !open)}
+                    className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 hover:border-slate-400 transition min-w-[84px] justify-between"
+                  >
+                    {itensPorPagina}
+                    <ChevronDown className="w-4 h-4 text-slate-400" strokeWidth={1.5} />
+                  </button>
+
+                  {itemsOpen && (
+                    <div className="absolute right-0 bottom-full mb-1 z-10 bg-white border border-slate-200 rounded-lg shadow-md min-w-[84px] overflow-hidden">
+                      {itemsPerPageOptions.map((option) => (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() => handleItensPorPaginaChange(option)}
+                          className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 transition ${
+                            itensPorPagina === option ? "text-blue-600 bg-blue-50" : "text-slate-700"
+                          }`}
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <span>itens por página</span>
               </div>
+
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={irParaPaginaAnterior} disabled={paginaAtual === 1} className="flex items-center gap-1"><ChevronLeft className="w-4 h-4" /> Anterior</Button>
+                <button
+                  type="button"
+                  onClick={irParaPaginaAnterior}
+                  disabled={paginaAtual === 1}
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md text-sm text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                >
+                  <ChevronLeft className="w-4 h-4" strokeWidth={1.5} />
+                  Anterior
+                </button>
+
                 <div className="flex items-center gap-1">
-                   {Array.from({ length: meta.totalPages }, (_, i) => i + 1).slice(Math.max(0, paginaAtual - 3), Math.min(meta.totalPages, paginaAtual + 2)).map((pagina) => (
-                    <Button key={pagina} variant={pagina === paginaAtual ? "default" : "outline"} size="sm" onClick={() => irParaPagina(pagina)} className={`w-8 h-8 p-0 ${pagina === paginaAtual ? "bg-[#141736] text-white hover:bg-[#282c5e]" : "hover:bg-gray-100"}`}>{pagina}</Button>
+                  {pageNumbers.map((pagina) => (
+                    <button
+                      key={pagina}
+                      type="button"
+                      onClick={() => irParaPagina(pagina)}
+                      className={`w-8 h-8 rounded-md text-sm transition ${
+                        pagina === paginaAtual ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-100"
+                      }`}
+                    >
+                      {pagina}
+                    </button>
                   ))}
                 </div>
-                <Button variant="outline" size="sm" onClick={irParaProximaPagina} disabled={paginaAtual === meta.totalPages} className="flex items-center gap-1">Próxima <ChevronRight className="w-4 h-4" /></Button>
+
+                <button
+                  type="button"
+                  onClick={irParaProximaPagina}
+                  disabled={paginaAtual === meta.totalPages}
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md text-sm text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                >
+                  Próxima
+                  <ChevronRight className="w-4 h-4" strokeWidth={1.5} />
+                </button>
               </div>
             </div>
           )}
-          {tooltip.visible && <div className="fixed z-50 max-w-xs bg-black text-white text-sm px-2 py-1 rounded shadow-lg pointer-events-none" style={{ left: tooltip.x, top: tooltip.y }}>{tooltip.text}</div>}
         </div>
       </div>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={!!clientToDelete} onOpenChange={(open) => { if (!open) setClientToDelete(null); }}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Excluir paciente</DialogTitle>
-            <DialogDescription>
-              Tem certeza que deseja excluir o paciente <strong>{clientToDelete?.name}</strong>?
-              Esta ação não pode ser desfeita. Agendamentos futuros deste paciente também serão removidos.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={() => setClientToDelete(null)}
-              disabled={isDeleting}
-              className="px-2"
-            >
-              Cancelar
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleConfirmDelete}
-              disabled={isDeleting}
-              className="ml-2 px-2"
-            >
-              {isDeleting ? "Excluindo..." : "Excluir"}
-            </Button>
-          </DialogFooter>
+      <Dialog
+        open={!!clientToDelete}
+        onOpenChange={(open) => {
+          if (!open) setClientToDelete(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-md border border-slate-200 rounded-xl p-0 overflow-hidden">
+          <div className="bg-white">
+            <DialogHeader className="px-6 pt-6 pb-4 border-b border-slate-100">
+              <DialogTitle className="text-slate-900">Excluir paciente</DialogTitle>
+              <DialogDescription className="text-slate-500 pt-2">
+                Tem certeza que deseja excluir o paciente <strong className="text-slate-900">{clientToDelete?.name}</strong>?
+                Esta ação não pode ser desfeita. Agendamentos futuros deste paciente também serão removidos.
+              </DialogDescription>
+            </DialogHeader>
+
+            <DialogFooter className="px-6 py-4 border-t border-slate-100 flex-row justify-end gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setClientToDelete(null)}
+                disabled={isDeleting}
+                className="h-10 px-5 border-slate-300 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+                className="h-10 px-5"
+              >
+                {isDeleting ? "Excluindo..." : "Excluir"}
+              </Button>
+            </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
-
     </div>
   );
 };
