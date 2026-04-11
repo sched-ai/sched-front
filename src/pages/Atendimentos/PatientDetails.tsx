@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Eye, Play, Pause, RotateCcw } from "lucide-react";
+import { Eye, Play, Pause, RotateCcw, Clock3, CalendarDays, FileText, ArrowLeft, XCircle } from "lucide-react";
 import { useCreateAnnotation } from "@/hooks/api/useCreateAnnotation";
 import { useGetAppointment } from "@/hooks/api/useGetAppointment";
 import { useGetClient } from "@/hooks/api/useGetClient";
@@ -11,16 +11,22 @@ import { PatientHeader } from "@/components/PatientHeader";
 function calculateAge(birthDate: string | undefined): number | undefined {
   if (!birthDate) return undefined;
   const dob = new Date(birthDate);
-  if (isNaN(dob.getTime())) return undefined;
+  if (Number.isNaN(dob.getTime())) return undefined;
   const diffMs = Date.now() - dob.getTime();
   const ageDt = new Date(diffMs);
   return Math.abs(ageDt.getUTCFullYear() - 1970);
 }
 
 function formatHHMMSS(totalSeconds: number) {
-  const h = Math.floor(totalSeconds / 3600).toString().padStart(2, "0");
-  const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, "0");
-  const s = Math.floor(totalSeconds % 60).toString().padStart(2, "0");
+  const h = Math.floor(totalSeconds / 3600)
+    .toString()
+    .padStart(2, "0");
+  const m = Math.floor((totalSeconds % 3600) / 60)
+    .toString()
+    .padStart(2, "0");
+  const s = Math.floor(totalSeconds % 60)
+    .toString()
+    .padStart(2, "0");
   return `${h}:${m}:${s}`;
 }
 
@@ -39,6 +45,26 @@ function formatDisplayDate(dateValue?: string) {
   if (Number.isNaN(parsedDate.getTime())) return dateValue;
 
   return parsedDate.toLocaleDateString("pt-BR");
+}
+
+function getStatusLabel(status?: string) {
+  const normalized = status?.toLowerCase() || "";
+
+  if (["concluido", "finished", "done"].includes(normalized)) return "Concluído";
+  if (["agendado", "pending", "scheduled", "confirmed"].includes(normalized)) return "Agendado";
+  if (["cancelado", "cancelled"].includes(normalized)) return "Cancelado";
+
+  return status || "Desconhecido";
+}
+
+function getStatusVisual(status?: string) {
+  const label = getStatusLabel(status);
+
+  if (label === "Concluído") return { color: "text-green-600", dot: "bg-green-500" };
+  if (label === "Agendado") return { color: "text-blue-600", dot: "bg-blue-500" };
+  if (label === "Cancelado") return { color: "text-red-500", dot: "bg-red-500" };
+
+  return { color: "text-slate-600", dot: "bg-slate-400" };
 }
 
 function ConsultationTimer({
@@ -62,21 +88,24 @@ function ConsultationTimer({
 
   useEffect(() => {
     let minutes = 0;
+
     if (service?.duration) {
       minutes = service.duration;
     } else if (startDate && endDate) {
-      const s = new Date(startDate).getTime();
-      const e = new Date(endDate).getTime();
-      if (!isNaN(s) && !isNaN(e) && e > s) {
-        minutes = Math.round((e - s) / 60000);
+      const start = new Date(startDate).getTime();
+      const end = new Date(endDate).getTime();
+
+      if (!Number.isNaN(start) && !Number.isNaN(end) && end > start) {
+        minutes = Math.round((end - start) / 60000);
       }
     }
 
     if (minutes > 0) {
-      const secs = minutes * 60;
-      setInitialSeconds(secs);
+      const seconds = minutes * 60;
+      setInitialSeconds(seconds);
+
       if (!runningRef.current) {
-        setTimerSeconds(secs);
+        setTimerSeconds(seconds);
       }
     }
   }, [service?.duration, startDate, endDate]);
@@ -101,6 +130,7 @@ function ConsultationTimer({
     intervalRef.current = window.setInterval(() => {
       setTimerSeconds((seconds) => {
         const next = seconds - 1;
+
         if (next <= 0) {
           if (intervalRef.current !== null) {
             window.clearInterval(intervalRef.current);
@@ -109,6 +139,7 @@ function ConsultationTimer({
           setRunning(false);
           return 0;
         }
+
         return next;
       });
     }, 1000);
@@ -135,21 +166,12 @@ function ConsultationTimer({
   }, [initialSeconds, stopInterval]);
 
   return (
-    <div className="relative w-full max-w-[560px] rounded-xl border border-[#d7e3ff] bg-gradient-to-r from-white to-[#f4f8ff] shadow-[0_16px_40px_-14px_rgba(11,59,140,0.45)] px-5 py-3.5">
-      <div className="pointer-events-none absolute -inset-1 -z-10 rounded-2xl bg-[#0b3b8c]/10 blur-md" />
-      <div className="flex items-center justify-between gap-4">
-        <div className="min-w-0">
-          <p className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">
-            Duração da consulta
-          </p>
-          <div className="font-mono text-2xl leading-tight text-[#0b3b8c] mt-1 select-none">
-            {isLoading ? (
-              <span className="text-lg text-slate-400">...</span>
-            ) : initialSeconds === 0 ? (
-              <span className="text-lg text-slate-400">--:--:--</span>
-            ) : (
-              <span>{formatHHMMSS(timerSeconds)}</span>
-            )}
+    <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-5 space-y-4">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-xs text-slate-500 uppercase tracking-wide mb-2">Duração da consulta</p>
+          <div className="text-slate-900 font-mono text-3xl">
+            {isLoading ? "..." : initialSeconds === 0 ? "--:--:--" : formatHHMMSS(timerSeconds)}
           </div>
         </div>
 
@@ -157,27 +179,23 @@ function ConsultationTimer({
           <button
             onClick={handleToggleTimer}
             disabled={initialSeconds === 0}
-            className={`w-9 h-9 flex items-center justify-center rounded-full transition-colors cursor-pointer ${
+            className={`w-10 h-10 flex items-center justify-center rounded-full transition ${
               initialSeconds === 0
-                ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-                : "bg-[#0b3b8c] text-white hover:bg-[#093077]"
+                ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                : "bg-blue-600 text-white hover:bg-blue-700"
             }`}
             title={running ? "Pausar" : "Iniciar"}
           >
-            {running ? (
-              <Pause className="w-4 h-4 fill-current" />
-            ) : (
-              <Play className="w-4 h-4 fill-current" />
-            )}
+            {running ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current" />}
           </button>
 
           <button
             onClick={handleReset}
             disabled={!running && timerSeconds === initialSeconds}
-            className={`w-9 h-9 flex items-center justify-center rounded-full transition-colors cursor-pointer ${
+            className={`w-10 h-10 flex items-center justify-center rounded-full transition ${
               !running && timerSeconds === initialSeconds
-                ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-                : "bg-amber-500 text-white hover:bg-amber-600"
+                ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             }`}
             title="Zerar"
           >
@@ -187,7 +205,7 @@ function ConsultationTimer({
       </div>
 
       {!isLoading && initialSeconds === 0 && (
-        <p className="text-xs text-slate-500 mt-2">Sem duração configurada para este atendimento.</p>
+        <p className="text-sm text-slate-500">Sem duração configurada para este atendimento.</p>
       )}
     </div>
   );
@@ -291,82 +309,105 @@ export const PatientDetails: React.FC = () => {
   const isCancelledFetched =
     fetchedAppointment?.status && ["cancelado", "cancelled"].includes(fetchedAppointment.status.toLowerCase());
   const isCancelled = isCancelledState || isCancelledFetched;
+  const statusVisual = getStatusVisual(fetchedAppointment?.status || patient.status);
+  const statusLabel = getStatusLabel(fetchedAppointment?.status || patient.status);
 
   if (isLoading && !fetchedAppointment && !patient.status) {
     return (
-      <div className="w-full flex flex-col h-full flex-1 items-center justify-center p-6">
-        <p className="text-slate-500 text-lg">Carregando...</p>
+      <div className="min-h-screen bg-slate-50">
+        <div className="p-6 md:p-8 max-w-6xl mx-auto">
+          <div className="bg-white border border-slate-200 rounded-lg shadow-sm px-6 py-10 text-center text-slate-500">
+            Carregando atendimento...
+          </div>
+        </div>
       </div>
     );
   }
 
   if (isCancelled) {
     return (
-      <div className="w-full flex flex-col h-full flex-1 items-center justify-center p-6">
-        <div className="bg-white rounded-[20px] shadow-custom p-8 text-center max-w-md w-full border-t-4 border-red-500">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+      <div className="min-h-screen bg-slate-50">
+        <div className="p-6 md:p-8 max-w-6xl mx-auto space-y-6">
+          <div>
+            <h1 className="text-[2rem] text-slate-900">Detalhes do Atendimento</h1>
+            <p className="text-muted-foreground mt-1">Acompanhe as informações do atendimento e o histórico do paciente.</p>
           </div>
-          <h2 className="text-2xl font-bold text-[#141736] mb-2">Atendimento Cancelado</h2>
-          <p className="text-slate-500 mb-8">Não é possível visualizar os detalhes de um atendimento que foi cancelado.</p>
-          <Button
-            className="bg-[#141736] hover:bg-[#282d64] text-white w-full h-[48px] text-base rounded-[8px]"
-            onClick={() => navigate(-1)}
-          >
-            Voltar
-          </Button>
+
+          <div className="bg-white border border-slate-200 rounded-lg shadow-sm px-6 py-10 text-center">
+            <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-red-50 flex items-center justify-center">
+              <XCircle className="w-7 h-7 text-red-500" strokeWidth={1.5} />
+            </div>
+            <h2 className="text-slate-900 mb-2">Atendimento cancelado</h2>
+            <p className="text-slate-500 mb-6">Não é possível visualizar os detalhes de um atendimento que foi cancelado.</p>
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => navigate(-1)}>
+              Voltar
+            </Button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full flex flex-col h-full">
-      <main className="flex-1 p-6">
-        <div className="mb-6">
-          <PatientHeader
-            name={patient.name}
-            age={patient.age}
-            birthDate={patient.birth}
-            gender={patient.gender}
-            cpf={patient.cpf}
-            phone={patient.phone}
-            action={
-              <Button
-                size="sm"
-                className="bg-[#121535] text-white px-4 py-2 w-[170px] relative overflow-hidden flex items-center justify-center cursor-pointer"
-                onClick={() => {
-                  const selectedClientId =
-                    patient.clientId ||
-                    fetchedAppointment?.clientId ||
-                    fetchedAppointment?.client?.id ||
-                    (location.state as any)?.atendimento?.clientId ||
-                    (location.state as any)?.paciente?.id;
+    <div className="min-h-screen bg-slate-50">
+      <div className="p-6 md:p-8 max-w-6xl mx-auto space-y-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div>
+            <h1 className="text-[2rem] text-slate-900">Detalhes do Atendimento</h1>
+            <p className="text-muted-foreground mt-1">Acompanhe as informações do atendimento e registre observações de forma organizada.</p>
+          </div>
 
-                  if (selectedClientId) {
-                    navigate(`/patients/${selectedClientId}/history`, { state: { paciente: patient } });
-                  } else {
-                    console.warn("Client ID not found for navigation. Check fetchedAppointment object.", {
-                      fetchedAppointment,
-                      patient,
-                      state: location.state,
-                    });
-                  }
-                }}
-              >
-                <span className="w-4 h-4 mr-2 flex-shrink-0 flex items-center justify-center">
-                  <Eye className="w-4 h-4" />
-                </span>
-                <span>Ver histórico</span>
-              </Button>
-            }
-          />
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-2 self-start border-slate-300 text-slate-700 hover:bg-slate-100 hover:text-slate-900 h-10 px-4 whitespace-nowrap"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Voltar
+          </Button>
         </div>
 
-        <div className="mb-6 bg-[#F6F8FB] rounded-[14px] border border-slate-200 p-4 flex items-center justify-center">
-          <div className="w-full lg:w-auto flex flex-col items-center">
+        <PatientHeader
+          name={patient.name}
+          age={patient.age}
+          birthDate={patient.birth}
+          gender={patient.gender}
+          cpf={patient.cpf}
+          phone={patient.phone}
+          action={
+            <Button
+              size="sm"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-5 h-11 min-w-[160px] flex items-center justify-center whitespace-nowrap rounded-xl"
+              onClick={() => {
+                const selectedClientId =
+                  patient.clientId ||
+                  fetchedAppointment?.clientId ||
+                  fetchedAppointment?.client?.id ||
+                  (location.state as any)?.atendimento?.clientId ||
+                  (location.state as any)?.paciente?.id;
+
+                if (selectedClientId) {
+                  navigate(`/patients/${selectedClientId}/history`, { state: { paciente: patient } });
+                } else {
+                  console.warn("Client ID not found for navigation. Check fetchedAppointment object.", {
+                    fetchedAppointment,
+                    patient,
+                    state: location.state,
+                  });
+                }
+              }}
+            >
+              <span className="w-4 h-4 mr-2 flex-shrink-0 flex items-center justify-center">
+                <Eye className="w-4 h-4" />
+              </span>
+              <span>Ver histórico</span>
+            </Button>
+          }
+        />
+
+        <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
+          <div className="space-y-6">
             <ConsultationTimer
               serviceId={
                 fetchedAppointment?.serviceId ||
@@ -376,62 +417,105 @@ export const PatientDetails: React.FC = () => {
               startDate={fetchedAppointment?.startDate || (location.state as any)?.atendimento?.startDate}
               endDate={fetchedAppointment?.endDate || (location.state as any)?.atendimento?.endDate}
             />
-          </div>
-        </div>
 
-        <div className="space-y-6">
-          <div className="bg-white rounded-[10px] shadow-custom p-6 border-2">
-            <div className="flex items-start justify-between mb-3">
+            <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-5 space-y-4">
               <div>
-                <div className="text-lg font-bold text-[#0f1724]">{fetchedAppointment?.service?.name || "Atendimento"}</div>
+                <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">Resumo</p>
+                <p className="text-slate-900">{fetchedAppointment?.service?.name || "Atendimento"}</p>
               </div>
-              <div className="text-sm text-slate-600">
-                {formatDisplayDate(fetchedAppointment?.startDate || patient.data || "")} •{" "}
-                {(fetchedAppointment?.startDate?.split("T")[1]?.substring(0, 5) || patient.hora || "")}
-              </div>
-            </div>
 
-            <div className="mt-4 bg-white p-4 rounded-md border border-slate-200">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="text-sm font-semibold text-[#141736]">Notas do Atendimento</h4>
+              <div className="space-y-3 text-sm">
+                <div className="flex items-center gap-2 text-slate-600">
+                  <CalendarDays className="w-4 h-4 text-slate-400" strokeWidth={1.5} />
+                  <span>{formatDisplayDate(fetchedAppointment?.startDate || patient.data || "")}</span>
+                </div>
+                <div className="flex items-center gap-2 text-slate-600">
+                  <Clock3 className="w-4 h-4 text-slate-400" strokeWidth={1.5} />
+                  <span>{fetchedAppointment?.startDate?.split("T")[1]?.substring(0, 5) || patient.hora || ""}</span>
+                </div>
+                <div className={`inline-flex items-center gap-1.5 ${statusVisual.color}`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${statusVisual.dot}`} />
+                  {statusLabel}
+                </div>
               </div>
-              <textarea
-                value={annotationText}
-                onChange={(e) => setAnnotationText(e.target.value)}
-                className="w-full p-3 rounded-md border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#141736] text-sm text-slate-700 leading-relaxed resize-y min-h-[120px]"
-                placeholder="Adicionar nota do atendimento..."
-              />
-              <div className="flex justify-end gap-3 mt-3">
-                <Button variant="ghost" onClick={() => setAnnotationText("")} className="text-slate-600 hover:text-slate-800">
-                  Limpar
-                </Button>
-                <Button
-                  onClick={async () => {
-                    if (!annotationText.trim()) return;
-                    const appointmentId = fetchedAppointment?.id || id || "";
-                    const selectedClientId =
-                      patient.clientId || clientId || fetchedAppointment?.clientId || fetchedAppointment?.client?.id || "";
-                    if (!appointmentId || !selectedClientId) return;
-                    try {
-                      await createAnnotation({
-                        appointmentId,
-                        clientId: selectedClientId,
-                        content: annotationText.trim(),
-                      });
-                    } catch (err) {
-                      console.error("Failed to create annotation", err);
-                    }
-                  }}
-                  className="bg-[#141736] text-white px-4 py-2 rounded-[8px]"
-                  disabled={isCreatingAnnotation}
-                >
-                  {isCreatingAnnotation ? "Salvando..." : "Salvar"}
-                </Button>
+
+              <div className="pt-2 border-t border-slate-100">
+                <p className="text-xs text-slate-500 uppercase tracking-wide mb-2">Observação inicial</p>
+                <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                  {fetchedAppointment?.description || "Sem observações registradas para este atendimento."}
+                </div>
               </div>
             </div>
           </div>
+
+          <div className="bg-white border border-slate-200 rounded-lg shadow-sm">
+            <div className="px-5 py-4 border-b border-slate-100 flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h2 className="text-slate-900">Notas do atendimento</h2>
+                <p className="text-muted-foreground text-sm mt-1">Registre ou atualize as observações deste atendimento.</p>
+              </div>
+              <div className="inline-flex items-center gap-2 text-sm text-slate-500">
+                <Clock3 className="w-4 h-4 text-slate-400" strokeWidth={1.5} />
+                <span>
+                  {formatDisplayDate(fetchedAppointment?.startDate || patient.data || "")} •{" "}
+                  {(fetchedAppointment?.startDate?.split("T")[1]?.substring(0, 5) || patient.hora || "")}
+                </span>
+              </div>
+            </div>
+
+            <div className="p-5 space-y-4">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                <div className="flex items-center gap-2 text-slate-700 mb-2">
+                  <FileText className="w-4 h-4 text-slate-400" strokeWidth={1.5} />
+                  <span className="text-sm">Anotação</span>
+                </div>
+                <textarea
+                  value={annotationText}
+                  onChange={(e) => setAnnotationText(e.target.value)}
+                  className="w-full min-h-[220px] rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 hover:border-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition resize-y"
+                  placeholder="Adicione uma observação relevante sobre o atendimento..."
+                />
+              </div>
+            </div>
+
+            <div className="px-5 py-4 border-t border-slate-100 flex items-center justify-end gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setAnnotationText("")}
+                className="h-10 min-w-[88px] px-5 whitespace-nowrap border-slate-300 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+              >
+                Limpar
+              </Button>
+              <Button
+                type="button"
+                onClick={async () => {
+                  if (!annotationText.trim()) return;
+                  const appointmentId = fetchedAppointment?.id || id || "";
+                  const selectedClientId =
+                    patient.clientId || clientId || fetchedAppointment?.clientId || fetchedAppointment?.client?.id || "";
+
+                  if (!appointmentId || !selectedClientId) return;
+
+                  try {
+                    await createAnnotation({
+                      appointmentId,
+                      clientId: selectedClientId,
+                      content: annotationText.trim(),
+                    });
+                  } catch (err) {
+                    console.error("Failed to create annotation", err);
+                  }
+                }}
+                className="h-10 min-w-[88px] px-5 whitespace-nowrap bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+                disabled={isCreatingAnnotation}
+              >
+                {isCreatingAnnotation ? "Salvando..." : "Salvar"}
+              </Button>
+            </div>
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 };
