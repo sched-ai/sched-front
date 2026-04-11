@@ -41,9 +41,9 @@ const statusValueMap: Record<string, string> = {
 };
 
 const statusConfig: Record<string, { color: string; dot: string }> = {
-  Agendado: { color: "text-blue-600", dot: "bg-blue-500" },
-  Concluído: { color: "text-green-600", dot: "bg-green-500" },
-  Cancelado: { color: "text-red-500", dot: "bg-red-500" },
+  Agendado: { color: "text-dark-blue", dot: "bg-blue-500" },
+  Concluído: { color: "text-dark-blue", dot: "bg-green-500" },
+  Cancelado: { color: "text-dark-blue", dot: "bg-red-500" },
 };
 
 function getStatusLabel(status: string) {
@@ -179,11 +179,13 @@ export const Atendimentos = () => {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="p-6 md:p-8 max-w-6xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-slate-900">Atendimentos</h1>
-          <p className="text-muted-foreground mt-1">Gerencie e acompanhe todos os atendimentos</p>
-        </div>
+      <div className="p-6 md:p-8 mx-auto space-y-6">
+        <div className="mb-8">
+            <h1 className="text-2xl font-semibold text-foreground">Atendimentos</h1>
+            <p className="text-muted-foreground mt-2">
+             Gerencie e acompanhe todos os atendimentos
+            </p>
+          </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {statsCards.map(({ label, value, icon: Icon, color }) => (

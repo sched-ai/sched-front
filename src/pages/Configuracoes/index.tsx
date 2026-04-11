@@ -357,16 +357,12 @@ export const Configuracoes = () => {
 
           <div className="space-y-8">
             <section>
-              <div className="mb-6">
-                <h2 className="text-xl font-semibold text-foreground">Perfil</h2>
-                <p className="text-sm text-muted-foreground mt-1">Informações básicas do profissional</p>
-              </div>
 
               <div className="border border-border rounded-lg p-6 space-y-4 bg-card shadow-sm flex flex-col">
             <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
-              <div>
-                <h3 className="text-base font-semibold text-foreground">Dados do perfil</h3>
-                <p className="text-sm text-muted-foreground">Visualize e edite seus dados pessoais.</p>
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold text-foreground">Perfil</h2>
+                <p className="text-sm text-muted-foreground mt-1">Informações básicas do profissional</p>
               </div>
               {!isProfileEditing && (
                 <Button
@@ -508,6 +504,8 @@ export const Configuracoes = () => {
             </section>
 
             <section>
+
+            <div className="border border-border rounded-lg p-6 bg-card shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
               <div>
                 <h2 className="text-xl font-semibold text-foreground">Locais de Atendimento</h2>
@@ -520,8 +518,6 @@ export const Configuracoes = () => {
                 </Button>
               </div> */}
             </div>
-
-            <div className="border border-border rounded-lg p-6 bg-card shadow-sm">
             {locations.length === 0 ? (
               <div className="rounded-xl border border-dashed border-border bg-muted/20 p-8 text-center">
                 <p className="text-foreground font-medium">Nenhum local cadastrado ainda.</p>

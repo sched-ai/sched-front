@@ -315,7 +315,7 @@ export const PatientDetails: React.FC = () => {
   if (isLoading && !fetchedAppointment && !patient.status) {
     return (
       <div className="min-h-screen bg-slate-50">
-        <div className="p-6 md:p-8 max-w-6xl mx-auto">
+        <div className="p-6 md:p-8 mx-auto">
           <div className="bg-white border border-slate-200 rounded-lg shadow-sm px-6 py-10 text-center text-slate-500">
             Carregando atendimento...
           </div>
@@ -327,7 +327,7 @@ export const PatientDetails: React.FC = () => {
   if (isCancelled) {
     return (
       <div className="min-h-screen bg-slate-50">
-        <div className="p-6 md:p-8 max-w-6xl mx-auto space-y-6">
+        <div className="p-6 md:p-8 mx-auto space-y-6 h-full">
           <div>
             <h1 className="text-[2rem] text-slate-900">Detalhes do Atendimento</h1>
             <p className="text-muted-foreground mt-1">Acompanhe as informações do atendimento e o histórico do paciente.</p>
@@ -349,8 +349,8 @@ export const PatientDetails: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="p-6 md:p-8 max-w-6xl mx-auto space-y-6">
+    <div className="bg-slate-50 h-full">
+      <div className="p-6 md:p-8 mx-auto space-y-6 h-full">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
             <h1 className="text-[2rem] text-slate-900">Detalhes do Atendimento</h1>
@@ -439,7 +439,7 @@ export const PatientDetails: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-slate-100">
+              <div className="pt-20 border-t border-slate-100">
                 <p className="text-xs text-slate-500 uppercase tracking-wide mb-2">Observação inicial</p>
                 <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
                   {fetchedAppointment?.description || "Sem observações registradas para este atendimento."}
@@ -448,7 +448,7 @@ export const PatientDetails: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-lg shadow-sm">
+          <div className="bg-white border border-slate-200 rounded-lg shadow-sm h-full flex flex-col">
             <div className="px-5 py-4 border-b border-slate-100 flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
               <div>
                 <h2 className="text-slate-900">Notas do atendimento</h2>
