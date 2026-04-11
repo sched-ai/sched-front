@@ -318,7 +318,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
         >
           <div className="min-w-[900px]">
             {/* Header Sticky */}
-            <div className="flex sticky top-0 z-[120] isolate bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+            <div className="flex sticky top-0 z-[30] isolate bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
               <div className="min-w-[70px] max-w-[70px] w-full border-r border-gray-200 bg-gray-50/30"></div>
               <div className="grid grid-cols-7 w-full divide-x divide-gray-200">
                 {weekDays.map((day, idx) => {
