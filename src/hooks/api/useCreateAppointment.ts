@@ -37,7 +37,7 @@ export const useCreateAppointment = ({ onSuccessFn, onErrorFn }: IUseMutationPar
       post({
         endpoint: "appointment",
         body: serviceData,
-        label: "Consulta",
+        label: "Agendamento",
         getErrorMessage: getAppointmentErrorMessage,
       }),
     

@@ -64,6 +64,16 @@ function getHourPosition(time: string) {
 	};
 }
 
+function addMinutesToTime(time: string, minutesToAdd: number) {
+  const [hourStr = "0", minuteStr = "0"] = time.split(":");
+  const startMinutes = Number(hourStr) * 60 + Number(minuteStr);
+  const maxMinutesInDay = 23 * 60 + 59;
+  const nextMinutes = Math.min(Math.max(startMinutes + minutesToAdd, 0), maxMinutesInDay);
+  const nextHour = Math.floor(nextMinutes / 60);
+  const nextMinute = nextMinutes % 60;
+  return `${String(nextHour).padStart(2, "0")}:${String(nextMinute).padStart(2, "0")}`;
+}
+
 export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ 
   events, 
   currentDate,
@@ -147,7 +157,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 
     const endHour = endPos.totalPosition > startPos.totalPosition
       ? (draftEvent.endHour ?? draftEvent.startHour)
-      : `${String(Math.min(23, startPos.hourIndex + 1)).padStart(2, "0")}:00`;
+      : addMinutesToTime(draftEvent.startHour, 5);
 
     return {
       dayIdx,
@@ -269,14 +279,17 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
       if (event.type !== 'bloqueio' || event.dayIdx < 0) return;
 
       for (let hourIdx = 0; hourIdx < 24; hourIdx++) {
-        const cellStart = hourIdx;
-        const cellEnd = hourIdx + 1;
-        const overlaps = event.endPos.totalPosition > cellStart && event.startPos.totalPosition < cellEnd;
+          const cellStart = hourIdx;
+          const cellEnd = hourIdx + 1;
 
-        if (overlaps) {
-          blocked.add(`${event.dayIdx}-${hourIdx}`);
+          // Calculate how much of the hour is overlapped by the event (in hours)
+          const overlap = Math.min(event.endPos.totalPosition, cellEnd) - Math.max(event.startPos.totalPosition, cellStart);
+
+          // Only mark the whole hour as blocked if the event covers the full hour (overlap >= 1 hour)
+          if (overlap >= 1) {
+            blocked.add(`${event.dayIdx}-${hourIdx}`);
+          }
         }
-      }
     });
 
     return blocked;
@@ -284,8 +297,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 
   const handleCellClick = (dayIdx: number, hour: string, e: React.MouseEvent<HTMLDivElement>) => {
     const dateObj = weekDates[dayIdx];
-    const startPos = getHourPosition(hour);
-    const defaultEndHour = `${String(Math.min(23, startPos.hourIndex + 1)).padStart(2, "0")}:${String(startPos.minuteOffset * 60).padStart(2, "0")}`;
+    const defaultEndHour = addMinutesToTime(hour, 5);
     setTempBox({ dayIdx, startHour: hour, endHour: defaultEndHour, date: dateObj, type: 'consulta' });
     if (onDateClick) {
       const rect = e.currentTarget.getBoundingClientRect();
@@ -427,7 +439,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                       >
                         {/* Hover Plus Icon */}
                         {isInteractive && (
-                          <div className="absolute inset-0 z-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          <div className="absolute inset-0 z-40 pointer-events-none flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                               <div className="w-8 h-8 rounded-full bg-blue-50/80 flex items-center justify-center backdrop-blur-sm shadow-sm ring-1 ring-blue-100">
                                 <Plus className="w-5 h-5 text-blue-500" />
                               </div>
@@ -529,9 +541,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                             key={ev.id}
                             title={tooltipText}
                             className={`absolute rounded-lg border ${color.border} ${
-                              isConsultation
-                                ? `z-20 hover:shadow-md ${color.hoverShadow}` 
-                                : 'z-10'
+                              `z-20` + (isConsultation ? ` hover:shadow-md ${color.hoverShadow}` : '')
                             } ${hasOverlap ? 'px-1.5 py-1' : 'px-2.5 py-2'} cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:z-30 active:scale-[0.98] overflow-hidden group shadow-sm`}
                             style={{
                               top: `${top + 1}px`,
@@ -541,6 +551,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                               width: hasOverlap ? `calc(${widthPercent}% - 4px)` : 'calc(100% - 8px)',
                               background: color.bg,
                               color: color.text,
+                              pointerEvents: 'auto',
                             }}
                             onClick={(e) => handleEventClick(ev, e)}
                           >

@@ -351,12 +351,13 @@ export const PatientDetails: React.FC = () => {
   return (
     <div className="bg-slate-50 h-full">
       <div className="p-6 md:p-8 mx-auto space-y-6 h-full">
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div>
-            <h1 className="text-[2rem] text-slate-900">Detalhes do Atendimento</h1>
-            <p className="text-muted-foreground mt-1">Acompanhe as informações do atendimento e registre observações de forma organizada.</p>
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between mb-0">
+          <div className="mb-8">
+            <h1 className="text-2xl font-semibold text-foreground">Detalhes do Atendimento</h1>
+            <p className="text-muted-foreground mt-2">
+             Acompanhe as informações do atendimento e registre observações de forma organizada.
+            </p>
           </div>
-
           <Button
             type="button"
             variant="outline"
@@ -378,7 +379,7 @@ export const PatientDetails: React.FC = () => {
           action={
             <Button
               size="sm"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-5 h-11 min-w-[160px] flex items-center justify-center whitespace-nowrap rounded-xl"
+              className="bg-[#141736] hover:bg-[#141736]/80 text-white px-5 h-11 min-w-[160px] flex items-center justify-center whitespace-nowrap rounded-xl"
               onClick={() => {
                 const selectedClientId =
                   patient.clientId ||

@@ -180,7 +180,7 @@ export const Atendimentos = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="p-6 md:p-8 mx-auto space-y-6">
-        <div className="mb-8">
+          <div className="mb-8">
             <h1 className="text-2xl font-semibold text-foreground">Atendimentos</h1>
             <p className="text-muted-foreground mt-2">
              Gerencie e acompanhe todos os atendimentos
@@ -191,7 +191,8 @@ export const Atendimentos = () => {
           {statsCards.map(({ label, value, icon: Icon, color }) => (
             <div
               key={label}
-              className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm flex items-center justify-between"
+              className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm flex items-center justify-between border-l-4 border-l-[#141736]"
+              
             >
               <div>
                 <p className="text-xs text-slate-500 mb-1">{label}</p>
@@ -234,7 +235,7 @@ export const Atendimentos = () => {
                         type="button"
                         onClick={() => handleStatusChange(option)}
                         className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 transition ${
-                          selectedStatus === option ? "text-blue-600 bg-blue-50" : "text-slate-700"
+                          selectedStatus === option ? "text-[#141736] bg-blue-50" : "text-slate-700"
                         }`}
                       >
                         {option}
@@ -335,7 +336,7 @@ export const Atendimentos = () => {
                       type="button"
                       onClick={() => irParaPagina(pagina)}
                       className={`w-8 h-8 rounded-md text-sm transition ${
-                        pagina === paginaAtual ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-100"
+                        pagina === paginaAtual ? "bg-[#141736] text-white" : "text-slate-600 hover:bg-slate-100"
                       }`}
                     >
                       {pagina}
@@ -398,7 +399,7 @@ function paginatedRows(appointments: AppointmentAPI[], navigate: ReturnType<type
               })
             }
             disabled={isCancelled}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-xs transition disabled:opacity-40 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#141736] hover:bg-[#141736]/80 text-white text-xs transition disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Ver
             <ArrowRight className="w-3 h-3" strokeWidth={1.5} />

@@ -144,7 +144,7 @@ export const Pacientes = () => {
           <Button
             type="button"
             onClick={() => navigate("/patients/new")}
-            className="bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center gap-2 self-start h-11 px-5 rounded-lg whitespace-nowrap"
+            className="bg-[#141736] hover:bg-[#141736]/80 text-white inline-flex items-center gap-2 self-start h-11 px-5 rounded-lg whitespace-nowrap"
           >
             <Plus className="w-4 h-4" strokeWidth={1.5} />
             Adicionar paciente
@@ -241,7 +241,7 @@ export const Pacientes = () => {
                             type="button"
                             title="Ver histórico do paciente"
                             onClick={() => navigate(`/patients/${paciente.id}/history`, { state: { paciente } })}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs transition whitespace-nowrap"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#141736] hover:bg-[#141736]/80 text-white text-xs transition whitespace-nowrap"
                           >
                             Ver
                             <ArrowRight className="w-3 h-3" strokeWidth={1.5} />
@@ -253,7 +253,7 @@ export const Pacientes = () => {
                               type="button"
                               title="Editar paciente"
                               onClick={() => navigate(`/patients/${paciente.id}/edit`)}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition"
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[#141736] hover:bg-blue-50 hover:text-[#141736]/80 transition"
                             >
                               <Pencil className="w-4 h-4" strokeWidth={1.5} />
                             </button>
@@ -304,7 +304,7 @@ export const Pacientes = () => {
                           type="button"
                           onClick={() => handleItensPorPaginaChange(option)}
                           className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 transition ${
-                            itensPorPagina === option ? "text-blue-600 bg-blue-50" : "text-slate-700"
+                            itensPorPagina === option ? "text-[#141736] bg-blue-50" : "text-slate-700"
                           }`}
                         >
                           {option}
@@ -334,7 +334,7 @@ export const Pacientes = () => {
                       type="button"
                       onClick={() => irParaPagina(pagina)}
                       className={`w-8 h-8 rounded-md text-sm transition ${
-                        pagina === paginaAtual ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-100"
+                        pagina === paginaAtual ? "bg-[#141736] text-white" : "text-slate-600 hover:bg-slate-100"
                       }`}
                     >
                       {pagina}
