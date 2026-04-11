@@ -131,11 +131,14 @@ export const Pacientes = () => {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
+      <div className="p-6 md:p-8 mx-auto space-y-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div>
-            <h1 className="text-[2rem] text-slate-900">Pacientes</h1>
-            <p className="text-muted-foreground mt-1">Gerencie os pacientes cadastrados e acompanhe os históricos com rapidez.</p>
+
+          <div className="mb-8">
+            <h1 className="text-2xl font-semibold text-foreground">Pacientes</h1>
+            <p className="text-muted-foreground mt-2">
+             Gerencie os pacientes cadastrados e acompanhe os históricos com rapidez.
+            </p>
           </div>
 
           <Button
