@@ -314,7 +314,7 @@ export const PatientDetails: React.FC = () => {
 
   if (isLoading && !fetchedAppointment && !patient.status) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen">
         <div className="p-6 md:p-8 mx-auto">
           <div className="bg-white border border-slate-200 rounded-lg shadow-sm px-6 py-10 text-center text-slate-500">
             Carregando atendimento...
@@ -326,7 +326,7 @@ export const PatientDetails: React.FC = () => {
 
   if (isCancelled) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen">
         <div className="p-6 md:p-8 mx-auto space-y-6 h-full">
           <div>
             <h1 className="text-[2rem] text-slate-900">Detalhes do Atendimento</h1>
@@ -349,7 +349,7 @@ export const PatientDetails: React.FC = () => {
   }
 
   return (
-    <div className="bg-slate-50 h-full">
+    <div className="h-full">
       <div className="p-6 md:p-8 mx-auto space-y-6 h-full">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between mb-0">
           <div className="mb-8">

@@ -130,7 +130,7 @@ export const Pacientes = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen">
       <div className="p-6 md:p-8 mx-auto space-y-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
 

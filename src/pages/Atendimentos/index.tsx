@@ -178,7 +178,7 @@ export const Atendimentos = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen">
       <div className="p-6 md:p-8 mx-auto space-y-6">
           <div className="mb-8">
             <h1 className="text-2xl font-semibold text-foreground">Atendimentos</h1>
