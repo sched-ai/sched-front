@@ -379,7 +379,7 @@ export const PatientDetails: React.FC = () => {
           action={
             <Button
               size="sm"
-              className="bg-[#141736] hover:bg-[#141736]/80 text-white px-5 h-11 min-w-[160px] flex items-center justify-center whitespace-nowrap rounded-xl"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-5 h-11 min-w-[160px] flex items-center justify-center whitespace-nowrap rounded-xl"
               onClick={() => {
                 const selectedClientId =
                   patient.clientId ||

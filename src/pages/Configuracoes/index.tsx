@@ -367,7 +367,7 @@ export const Configuracoes = () => {
               {!isProfileEditing && (
                 <Button
                   onClick={() => setIsProfileEditing(true)}
-                  className="min-w-28"
+                  className="min-w-28 bg-blue-600 hover:bg-blue-700"
                 >
                   Editar
                 </Button>

@@ -272,7 +272,7 @@ export const PatientHistory = () => {
                                 </Button>
                                 <Button 
                                   onClick={() => handleSaveNote(apt)}
-                                  className="bg-[#141736] text-white hover:bg-[#141736]/90 rounded-full px-6"
+                                  className="bg-blue-600 text-white hover:bg-blue-700 rounded-full px-6"
                                   disabled={isCreating}
                                 >
                                   {isCreating ? "Salvando..." : "Salvar"}

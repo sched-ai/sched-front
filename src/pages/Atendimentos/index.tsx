@@ -336,7 +336,7 @@ export const Atendimentos = () => {
                       type="button"
                       onClick={() => irParaPagina(pagina)}
                       className={`w-8 h-8 rounded-md text-sm transition ${
-                        pagina === paginaAtual ? "bg-[#141736] text-white" : "text-slate-600 hover:bg-slate-100"
+                        pagina === paginaAtual ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-100"
                       }`}
                     >
                       {pagina}
@@ -399,7 +399,7 @@ function paginatedRows(appointments: AppointmentAPI[], navigate: ReturnType<type
               })
             }
             disabled={isCancelled}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#141736] hover:bg-[#141736]/80 text-white text-xs transition disabled:opacity-40 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-xs transition disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Ver
             <ArrowRight className="w-3 h-3" strokeWidth={1.5} />

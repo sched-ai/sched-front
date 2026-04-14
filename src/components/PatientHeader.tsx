@@ -82,7 +82,6 @@ export function PatientHeader({
 
   return (
     <div className="bg-white rounded-[20px] shadow-custom p-6 flex items-center relative overflow-hidden">
-      <div className="absolute left-0 top-0 bottom-0 w-3 bg-[#141736]"></div>
       <div className="flex items-center justify-between gap-6 w-full ml-4">
         <div className="flex items-center gap-6 min-w-0">
           <div className="w-20 h-20 rounded-full border-4 border-[#141736] flex items-center justify-center bg-white text-[#141736] shrink-0">
