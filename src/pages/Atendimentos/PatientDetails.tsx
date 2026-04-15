@@ -1149,11 +1149,17 @@ export const PatientDetails: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-lg shadow-sm">
-            <div className="px-5 py-4 border-b border-slate-100 flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
-              <div>
-                <h2 className="text-slate-900">Notas do atendimento</h2>
-                <p className="text-muted-foreground text-sm mt-1">Registre ou atualize as observações deste atendimento.</p>
+          <div
+            className="bg-white border border-slate-200 rounded-lg shadow-sm flex flex-col relative overflow-hidden"
+            onDragEnter={onDragEnter}
+            onDragLeave={onDragLeave}
+            onDragOver={onDragOver}
+            onDrop={onDrop}
+          >
+            {isDragging && (
+              <div className="absolute inset-0 z-20 rounded-lg border-2 border-dashed border-blue-400 bg-blue-50/80 flex flex-col items-center justify-center gap-3 pointer-events-none">
+                <Upload className="w-8 h-8 text-blue-500" strokeWidth={1.5} />
+                <p className="text-sm text-blue-600">Solte os arquivos aqui</p>
               </div>
             )}
 
