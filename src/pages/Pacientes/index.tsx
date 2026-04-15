@@ -130,12 +130,15 @@ export const Pacientes = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen">
+      <div className="p-6 md:p-8 mx-auto space-y-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div>
-            <h1 className="text-[2rem] text-slate-900">Pacientes</h1>
-            <p className="text-muted-foreground mt-1">Gerencie os pacientes cadastrados e acompanhe os históricos com rapidez.</p>
+
+          <div className="mb-8">
+            <h1 className="text-2xl font-semibold text-foreground">Pacientes</h1>
+            <p className="text-muted-foreground mt-2">
+             Gerencie os pacientes cadastrados e acompanhe os históricos com rapidez.
+            </p>
           </div>
 
           <Button
@@ -250,7 +253,7 @@ export const Pacientes = () => {
                               type="button"
                               title="Editar paciente"
                               onClick={() => navigate(`/patients/${paciente.id}/edit`)}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition"
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[#141736] hover:bg-blue-50 hover:text-[#141736]/80 transition"
                             >
                               <Pencil className="w-4 h-4" strokeWidth={1.5} />
                             </button>
@@ -301,7 +304,7 @@ export const Pacientes = () => {
                           type="button"
                           onClick={() => handleItensPorPaginaChange(option)}
                           className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 transition ${
-                            itensPorPagina === option ? "text-blue-600 bg-blue-50" : "text-slate-700"
+                            itensPorPagina === option ? "text-[#141736] bg-blue-50" : "text-slate-700"
                           }`}
                         >
                           {option}

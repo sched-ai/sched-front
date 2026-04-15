@@ -13,6 +13,7 @@ import PatientHistory from '@/pages/Pacientes/PatientHistory'
 import LandingPage from '../pages/LandingPage'
 import LegalPage from '../pages/LegalPage'
 import { Configuracoes } from '@/pages/Configuracoes'
+import LocationSettings from '@/pages/Configuracoes/LocationSettings'
 
 export interface RouteConfig {
   path: string
@@ -103,6 +104,18 @@ export const routesConfig: RouteConfig[] = [
   {
     path: "/settings",
     element: <Configuracoes />,
+    template: true,
+    authRoute: true
+  },
+  {
+    path: "/settings/locations/new",
+    element: <LocationSettings />,
+    template: true,
+    authRoute: true
+  },
+  {
+    path: "/settings/locations/:id/edit",
+    element: <LocationSettings />,
     template: true,
     authRoute: true
   },
