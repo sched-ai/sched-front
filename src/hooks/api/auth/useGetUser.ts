@@ -21,9 +21,10 @@ export interface IMembership {
       city: string;
       complement: string | null;
       id: string;
+      neighborhood: string;
       nickname: string;
       number: string;
-      schedule: Record<string, { startMinute: number; endMinute: number }> | null;
+      schedule: Record<string, { startMinute: number | null; endMinute: number | null }> | null;
       state: string;
     }[];
   };

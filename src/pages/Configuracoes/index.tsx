@@ -4,10 +4,12 @@ import { Building2, ChevronDown, Globe, Pencil, Plus, Trash2 } from "lucide-reac
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { useUser } from "@/context/user";
+import { useDeleteWorkplace } from "@/hooks/api/useDeleteWorkplace";
 import { useUpdateCompanyPhone } from "@/hooks/api/useUpdateCompanyPhone";
 import useToast from "@/hooks/useToast";
 import { formatCnpj, formatCpf, formatPhone } from "@/util/helper";
-import { LocationModal, type DayKey, type LocationData } from "./components/LocationModal";
+import { useNavigate } from "react-router-dom";
+import type { DayKey, LocationData } from "./components/LocationModal";
 
 const DAY_KEYS: DayKey[] = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
@@ -39,59 +41,17 @@ const getDayRangeSummary = (days: DayKey[]) => {
   return `${ordered[0]} - ${ordered[ordered.length - 1]}`;
 };
 
-const isTimeRangeValid = (startTime: string, endTime: string) => {
-  const [startH, startM] = startTime.split(":").map(Number);
-  const [endH, endM] = endTime.split(":").map(Number);
-
-  if ([startH, startM, endH, endM].some((part) => Number.isNaN(part))) return false;
-
-  const start = startH * 60 + startM;
-  const end = endH * 60 + endM;
-  return end > start;
-};
-
-const mockAddresses: LocationData[] = [
-  {
-    id: "mock-1",
-    name: "Clínica Centro",
-    serviceType: "PRESENCIAL",
-    address: "Rua das Amendoeiras, 742",
-    neighborhood: "Centro",
-    complement: "Sala 302, Bloco B",
-    city: "Belo Horizonte",
-    state: "MG",
-    rooms: 4,
-    activeDays: ["Seg", "Ter", "Qua", "Qui", "Sex"],
-    startTime: "08:00",
-    endTime: "18:00",
-  },
-  {
-    id: "mock-2",
-    name: "Atendimento Online",
-    serviceType: "ONLINE",
-    address: "",
-    neighborhood: "",
-    complement: "",
-    city: "",
-    state: "",
-    rooms: 1,
-    activeDays: ["Seg", "Ter", "Qua", "Qui", "Sex"],
-    startTime: "09:00",
-    endTime: "18:00",
-  },
-];
-
 export const Configuracoes = () => {
   const { userData, refreshUser } = useUser();
   const { showToast } = useToast();
   const { mutateAsync: updateCompanyPhone, isPending: isUpdatingCompanyPhone } = useUpdateCompanyPhone();
+  const { mutateAsync: deleteWorkplace, isPending: isDeletingWorkplace } = useDeleteWorkplace();
 
   const [isProfileSaving, setIsProfileSaving] = useState(false);
   const [isProfileEditing, setIsProfileEditing] = useState(false);
-  const [isLocModalOpen, setIsLocModalOpen] = useState(false);
-  const [editingLocation, setEditingLocation] = useState<LocationData | null>(null);
   const [expandedLocationId, setExpandedLocationId] = useState<string | null>(null);
   const [locationToDelete, setLocationToDelete] = useState<LocationData | null>(null);
+  const navigate = useNavigate();
 
   const companyType = userData?.membership?.company?.companyType === "AUTONOMO" ? "Autônomo" : "Empresa";
 
@@ -153,7 +113,7 @@ export const Configuracoes = () => {
         name: wp.nickname || (isOnline ? "Atendimento Online" : `Local ${index + 1}`),
         serviceType: isOnline ? "ONLINE" : "PRESENCIAL",
         address: `${wp.address || ""}${wp.number ? `, ${wp.number}` : ""}`.trim(),
-        neighborhood: "",
+        neighborhood: wp.neighborhood ?? "",
         complement: wp.complement ?? "",
         city: wp.city ?? "",
         state: wp.state ?? "",
@@ -165,20 +125,8 @@ export const Configuracoes = () => {
     });
   }, [userData]);
 
-  const [locations, setLocations] = useState<LocationData[]>(() =>
-    apiAddresses.length > 0 ? apiAddresses : mockAddresses,
-  );
+  const locations = apiAddresses;
 
-  useEffect(() => {
-    if (apiAddresses.length > 0) {
-      setLocations(apiAddresses);
-    }
-  }, [apiAddresses]);
-
-  const hasOnlineLocation = useMemo(
-    () => locations.some((location) => location.serviceType === "ONLINE"),
-    [locations],
-  );
 
   const handleProfileSave = async () => {
     const cleanPhone = profileForm.phone.replace(/\D/g, "");
@@ -223,125 +171,41 @@ export const Configuracoes = () => {
   };
 
   const openAddLocation = () => {
-    setEditingLocation(null);
-    setIsLocModalOpen(true);
+    navigate("/settings/locations/new");
   };
 
   const openEditLocation = (location: LocationData) => {
-    if (location.serviceType === "ONLINE") {
-      showToast({
-        label: "Local online sem edição",
-        message: "O local Online não pode ser editado pelo modal.",
-        type: "info",
-        toastId: "online-location-edit-disabled",
-      });
-      return;
-    }
-
-    setEditingLocation(location);
-    setIsLocModalOpen(true);
+    navigate(`/settings/locations/${location.id}/edit`);
   };
 
-  const handleSaveLocation = async (data: LocationData) => {
-    const hasAnotherOnline = locations.some(
-      (location) => location.serviceType === "ONLINE" && location.id !== data.id,
-    );
-
-    if (data.serviceType === "ONLINE" && hasAnotherOnline) {
-      showToast({
-        label: "Já existe local online",
-        message: "Não é possível criar ou converter outro local para Online.",
-        type: "error",
-        toastId: "online-location-duplicate",
-      });
-      return;
-    }
-
-    setLocations((prev) => {
-      if (data.id) {
-        return prev.map((location) => (location.id === data.id ? data : location));
-      }
-
-      return [...prev, { ...data, id: `loc-${Date.now()}` }];
-    });
-
-    showToast({
-      label: data.id ? "Local atualizado" : "Local adicionado",
-      message: "As informações do local foram salvas.",
-      type: "success",
-      toastId: data.id ? "location-updated" : "location-created",
-    });
-  };
-
-  const handleDeleteLocation = useCallback(() => {
+  const handleDeleteLocation = useCallback(async () => {
     if (!locationToDelete?.id) return;
 
-    setLocations((prev) => prev.filter((location) => location.id !== locationToDelete.id));
-    setExpandedLocationId((prev) => (prev === locationToDelete.id ? null : prev));
+    try {
+      await deleteWorkplace(locationToDelete.id);
+      setExpandedLocationId((prev) => (prev === locationToDelete.id ? null : prev));
+      setLocationToDelete(null);
+      refreshUser();
 
-    showToast({
-      label: "Local removido",
-      message: "O local de atendimento foi excluído com sucesso.",
-      type: "success",
-      toastId: "location-removed",
-    });
-
-    setLocationToDelete(null);
-  }, [locationToDelete, showToast]);
+      showToast({
+        label: "Local removido",
+        message: "O local de atendimento foi excluído com sucesso.",
+        type: "success",
+        toastId: "location-removed",
+      });
+    } catch (error: unknown) {
+      const apiMessage = (error as { response?: { data?: { error?: string } } })?.response?.data?.error;
+      showToast({
+        label: "Não foi possível excluir",
+        message: apiMessage || "Tente novamente em instantes.",
+        type: "error",
+        toastId: "location-remove-error",
+      });
+    }
+  }, [deleteWorkplace, locationToDelete, refreshUser, showToast]);
 
   const toggleExpand = (locationId: string) => {
     setExpandedLocationId((prev) => (prev === locationId ? null : locationId));
-  };
-
-  const toggleDayForLocation = (locationId: string, day: DayKey) => {
-    setLocations((prev) =>
-      prev.map((location) => {
-        if (location.id !== locationId) return location;
-
-        const isActive = location.activeDays.includes(day);
-        return {
-          ...location,
-          activeDays: isActive
-            ? location.activeDays.filter((d) => d !== day)
-            : [...location.activeDays, day],
-        };
-      }),
-    );
-  };
-
-  const setLocationTime = (locationId: string, field: "startTime" | "endTime", value: string) => {
-    setLocations((prev) =>
-      prev.map((location) => (location.id === locationId ? { ...location, [field]: value } : location)),
-    );
-  };
-
-  const saveInlineLocation = (location: LocationData) => {
-    if (!isTimeRangeValid(location.startTime, location.endTime)) {
-      showToast({
-        label: "Horário inválido",
-        message: "O horário final deve ser maior que o inicial.",
-        type: "error",
-        toastId: `location-inline-time-${location.id}`,
-      });
-      return;
-    }
-
-    if (location.activeDays.length === 0) {
-      showToast({
-        label: "Selecione os dias",
-        message: "Ative pelo menos um dia para o local.",
-        type: "error",
-        toastId: `location-inline-days-${location.id}`,
-      });
-      return;
-    }
-
-    showToast({
-      label: "Horários atualizados",
-      message: `${location.name} foi atualizado com sucesso.`,
-      type: "success",
-      toastId: `location-inline-saved-${location.id}`,
-    });
   };
 
   return (
@@ -511,12 +375,14 @@ export const Configuracoes = () => {
                 <h2 className="text-xl font-semibold text-foreground">Locais de Atendimento</h2>
                 <p className="text-sm text-muted-foreground mt-1">Configure os horários e locais onde você atende</p>
               </div>
-              {/* <div className="flex gap-3">
-                <Button onClick={openAddLocation}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Adicionar local
-                </Button>
-              </div> */}
+              {locations.length > 0 && (
+                <div className="flex gap-3">
+                  <Button onClick={openAddLocation} className="bg-blue-600 hover:bg-blue-700 text-white">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Criar local de atendimento
+                  </Button>
+                </div>
+              )}
             </div>
             {locations.length === 0 ? (
               <div className="rounded-xl border border-dashed border-border bg-muted/20 p-8 text-center">
@@ -531,8 +397,8 @@ export const Configuracoes = () => {
               <div className="space-y-4">
                 {locations.map((location) => {
                   const isExpanded = expandedLocationId === location.id;
-                  const hasInvalidTime = !isTimeRangeValid(location.startTime, location.endTime);
                   const locationTypeLabel = location.serviceType === "ONLINE" ? "Online" : "Presencial";
+                  const panelId = `location-panel-${location.id}`;
 
                   return (
                     <article key={location.id} className="rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -541,6 +407,8 @@ export const Configuracoes = () => {
                           type="button"
                           onClick={() => toggleExpand(location.id ?? "")}
                           className="flex-1 text-left"
+                          aria-expanded={isExpanded}
+                          aria-controls={panelId}
                         >
                           <div className="flex items-center gap-2 mb-1">
                             {location.serviceType === "ONLINE" ? (
@@ -561,14 +429,8 @@ export const Configuracoes = () => {
                         <div className="flex items-center gap-1.5">
                           <button
                             type="button"
-                            className={`h-8 w-8 inline-flex items-center justify-center rounded-md border ${
-                              location.serviceType === "ONLINE"
-                                ? "border-slate-200 text-slate-300 cursor-not-allowed bg-slate-50"
-                                : "border-slate-200 text-slate-600 hover:bg-slate-100"
-                            }`}
+                            className="h-8 w-8 inline-flex items-center justify-center rounded-md border border-slate-200 text-slate-600 hover:bg-slate-100"
                             onClick={() => openEditLocation(location)}
-                            disabled={location.serviceType === "ONLINE"}
-                            title={location.serviceType === "ONLINE" ? "Local online não pode ser editado no modal" : undefined}
                             aria-label={`Editar ${location.name}`}
                           >
                             <Pencil className="w-4 h-4" />
@@ -595,7 +457,7 @@ export const Configuracoes = () => {
                       </div>
 
                       {isExpanded && (
-                        <div className="border-t border-slate-200 bg-slate-50 p-4 md:p-5 space-y-5">
+                        <div id={panelId} className="border-t border-slate-200 bg-slate-50 p-4 md:p-5 space-y-5">
                           <div>
                             <h3 className="text-sm font-semibold text-slate-900 mb-2">Informações do local</h3>
                             {location.serviceType === "ONLINE" ? (
@@ -613,6 +475,10 @@ export const Configuracoes = () => {
                                   <span>{location.complement || "Não informado"}</span>
                                 </div>
                                 <div>
+                                  <span className="font-medium">Bairro: </span>
+                                  <span>{location.neighborhood || "Não informado"}</span>
+                                </div>
+                                <div>
                                   <span className="font-medium">Cidade/UF: </span>
                                   <span>{location.city || "-"}/{location.state || "-"}</span>
                                 </div>
@@ -626,65 +492,20 @@ export const Configuracoes = () => {
 
                           <div>
                             <h3 className="text-sm font-semibold text-slate-900 mb-2">Dias de atendimento</h3>
-                            <div className="flex flex-wrap gap-2">
-                              {DAY_KEYS.map((day) => {
-                                const isActive = location.activeDays.includes(day);
-                                return (
-                                  <button
-                                    key={day}
-                                    type="button"
-                                    onClick={() => toggleDayForLocation(location.id ?? "", day)}
-                                    className={`h-9 min-w-10 rounded-md border px-3 text-sm font-medium transition ${
-                                      isActive
-                                        ? "border-blue-600 bg-blue-600 text-white"
-                                        : "border-slate-300 bg-white text-slate-600 hover:border-slate-400"
-                                    }`}
-                                  >
-                                    {day}
-                                  </button>
-                                );
-                              })}
+                            <div className="flex flex-wrap gap-2 text-sm text-slate-700">
+                              {location.activeDays.length > 0 ? location.activeDays.map((day) => (
+                                <span key={`${location.id}-${day}`} className="rounded-md border border-slate-300 bg-white px-3 py-1.5">
+                                  {day}
+                                </span>
+                              )) : <span>Sem dias ativos</span>}
                             </div>
-                            {location.activeDays.length === 0 && (
-                              <p className="text-xs text-red-500 mt-2">Selecione ao menos um dia ativo.</p>
-                            )}
                           </div>
 
                           <div>
                             <h3 className="text-sm font-semibold text-slate-900 mb-2">Horário</h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl">
-                              <div className="space-y-1">
-                                <label className="text-xs text-slate-600">Início</label>
-                                <input
-                                  type="time"
-                                  value={location.startTime}
-                                  onChange={(e) => setLocationTime(location.id ?? "", "startTime", e.target.value)}
-                                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none hover:border-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                                />
-                              </div>
-                              <div className="space-y-1">
-                                <label className="text-xs text-slate-600">Término</label>
-                                <input
-                                  type="time"
-                                  value={location.endTime}
-                                  onChange={(e) => setLocationTime(location.id ?? "", "endTime", e.target.value)}
-                                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none hover:border-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                                />
-                              </div>
-                            </div>
-                            {hasInvalidTime && (
-                              <p className="text-xs text-red-500 mt-2">Horário final deve ser maior que o horário inicial.</p>
-                            )}
-                          </div>
-
-                          <div className="flex justify-end">
-                            <Button
-                              onClick={() => saveInlineLocation(location)}
-                              disabled={hasInvalidTime || location.activeDays.length === 0}
-                              className="bg-blue-600 hover:bg-blue-700 text-white px-4"
-                            >
-                              Salvar horário
-                            </Button>
+                            <p className="text-sm text-slate-700">
+                              {location.startTime} - {location.endTime}
+                            </p>
                           </div>
                         </div>
                       )}
@@ -699,28 +520,23 @@ export const Configuracoes = () => {
         </div>
       </main>
 
-      <LocationModal
-        isOpen={isLocModalOpen}
-        setIsOpen={setIsLocModalOpen}
-        location={editingLocation}
-        onSave={handleSaveLocation}
-        allowOnlineSelection={!hasOnlineLocation && !editingLocation}
-        lockServiceType={Boolean(editingLocation)}
-      />
+
 
       <Dialog open={Boolean(locationToDelete)} onOpenChange={(open) => !open && setLocationToDelete(null)}>
         <DialogContent className="max-w-md bg-white border border-slate-200 rounded-xl">
           <DialogTitle className="text-lg text-slate-900">Excluir local</DialogTitle>
           <DialogDescription className="text-sm text-slate-600">
-            Tem certeza que deseja excluir este local? Essa ação não pode ser desfeita.
+            {locationToDelete?.name
+              ? `Tem certeza que deseja excluir o local "${locationToDelete.name}"? Essa ação não pode ser desfeita.`
+              : "Tem certeza que deseja excluir este local? Essa ação não pode ser desfeita."}
           </DialogDescription>
 
           <div className="mt-5 flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setLocationToDelete(null)} className="px-2">
+            <Button variant="outline" onClick={() => setLocationToDelete(null)} className="px-2" disabled={isDeletingWorkplace}>
               Cancelar
             </Button>
-            <Button className="bg-red-600 hover:bg-red-700 text-white px-2" onClick={handleDeleteLocation}>
-              Excluir
+            <Button className="bg-red-600 hover:bg-red-700 text-white px-2" onClick={handleDeleteLocation} disabled={isDeletingWorkplace}>
+              {isDeletingWorkplace ? "Excluindo..." : "Excluir"}
             </Button>
           </div>
         </DialogContent>
