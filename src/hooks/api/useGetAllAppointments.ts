@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import useAPI from "./useAPI";
+import type { AppointmentAttachmentAPI } from "./useAppointmentAttachments";
 
 export interface AppointmentAPI {
   id: string;
@@ -28,6 +29,7 @@ export interface AppointmentAPI {
     content: string;
     createdAt: string;
   }>;
+  attachments?: AppointmentAttachmentAPI[];
 }
 
 export interface AppointmentsResponse {
