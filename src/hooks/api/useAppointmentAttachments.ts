@@ -49,6 +49,10 @@ export interface AppointmentAttachmentAccessLinksPayload {
   attachmentIds: string[];
 }
 
+export interface AppointmentAttachmentAccessLinksByAppointmentPayload extends AppointmentAttachmentAccessLinksPayload {
+  appointmentId: string;
+}
+
 export interface AppointmentAttachmentAccessLinksResponse {
   links: Array<{
     attachmentId: string;
@@ -104,6 +108,27 @@ export const useAppointmentAttachmentAccessLinks = (appointmentId: string) => {
 
   return useMutation({
     mutationFn: async (body: AppointmentAttachmentAccessLinksPayload) => {
+      const response = await post({
+        endpoint: `appointment/${appointmentId}/attachments/access-links`,
+        body,
+        label: ATTACHMENT_LABEL,
+        showSuccessFeedback: false,
+        showErrorFeedback: false,
+      });
+
+      return response;
+    },
+  });
+};
+
+export const useAppointmentAttachmentAccessLinksByAppointment = () => {
+  const { post } = useAPI<AppointmentAttachmentAccessLinksResponse>();
+
+  return useMutation({
+    mutationFn: async ({
+      appointmentId,
+      ...body
+    }: AppointmentAttachmentAccessLinksByAppointmentPayload) => {
       const response = await post({
         endpoint: `appointment/${appointmentId}/attachments/access-links`,
         body,

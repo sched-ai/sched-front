@@ -51,25 +51,39 @@ export interface AppointmentsResponse {
 interface UseGetAllAppointmentsParams {
   status?: string;
   search?: string;
+  clientId?: string;
   startDate?: string;
   endDate?: string;
   page?: number;
   limit?: number;
+  includeAttachments?: boolean;
   enabled?: boolean;
 }
 
-export const useGetAllAppointments = ({ status, search, startDate, endDate, page = 1, limit = 10, enabled = true }: UseGetAllAppointmentsParams = {}) => {
+export const useGetAllAppointments = ({
+  status,
+  search,
+  clientId,
+  startDate,
+  endDate,
+  page = 1,
+  limit = 10,
+  includeAttachments = false,
+  enabled = true,
+}: UseGetAllAppointmentsParams = {}) => {
   const { get } = useAPI<AppointmentsResponse>();
 
   return useQuery({
-    queryKey: ["appointments", status, search, startDate, endDate, page, limit],
+    queryKey: ["appointments", status, search, clientId, startDate, endDate, page, limit, includeAttachments],
     enabled,
     queryFn: async () => {
       const params = new URLSearchParams();
       if (status && status !== 'todos') params.append('status', status);
       if (search) params.append('search', search);
+      if (clientId) params.append('clientId', clientId);
       if (startDate) params.append('startDate', startDate);
       if (endDate) params.append('endDate', endDate);
+      if (includeAttachments) params.append('includeAttachments', 'true');
       params.append('page', page.toString());
       params.append('limit', limit.toString());
 
