@@ -399,13 +399,13 @@ export const PatientHistory = () => {
                             </button>
 
                             {isAttachmentsExpanded && (
-                              <div className="mt-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-4">
+                              <div className="mt-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm space-y-3">
                                 {imageAttachments.length > 0 && (
                                   <div>
-                                    <p className="text-xs text-slate-500 uppercase tracking-wide mb-3">
+                                    <p className="text-xs text-slate-500 uppercase tracking-wide mb-2">
                                       Imagens · {imageAttachments.length}
                                     </p>
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                    <div className="grid grid-cols-3 sm:grid-cols-4 xl:grid-cols-5 gap-2">
                                       {imageAttachments.map((attachment) => {
                                         const previewUrl = getCachedAttachmentLink(
                                           appointment.id,
@@ -419,7 +419,7 @@ export const PatientHistory = () => {
                                             type="button"
                                             onClick={() => previewUrl && openSignedLink(previewUrl)}
                                             disabled={!previewUrl}
-                                            className="rounded-xl overflow-hidden border border-slate-200 bg-slate-50 text-left hover:border-slate-300 transition-colors disabled:cursor-default"
+                                            className="rounded-lg overflow-hidden border border-slate-200 bg-slate-50 text-left hover:border-slate-300 transition-colors disabled:cursor-default"
                                             title={attachment.name}
                                           >
                                             <div className="aspect-square w-full bg-slate-100 flex items-center justify-center overflow-hidden">
@@ -437,9 +437,9 @@ export const PatientHistory = () => {
                                                 </div>
                                               )}
                                             </div>
-                                            <div className="px-3 py-2">
-                                              <p className="text-xs text-slate-700 truncate">{attachment.name}</p>
-                                              <p className="text-[11px] text-slate-400 mt-1">
+                                            <div className="px-2 py-1.5">
+                                              <p className="text-[11px] text-slate-700 truncate">{attachment.name}</p>
+                                              <p className="text-[10px] text-slate-400 mt-0.5">
                                                 {formatBytes(attachment.size)}
                                               </p>
                                             </div>
@@ -452,7 +452,7 @@ export const PatientHistory = () => {
 
                                 {documentAttachments.length > 0 && (
                                   <div>
-                                    <p className="text-xs text-slate-500 uppercase tracking-wide mb-3">
+                                    <p className="text-xs text-slate-500 uppercase tracking-wide mb-2">
                                       Documentos · {documentAttachments.length}
                                     </p>
                                     <div className="flex flex-col gap-2">
@@ -461,7 +461,7 @@ export const PatientHistory = () => {
                                           key={attachment.id}
                                           type="button"
                                           onClick={() => void handleDownloadAttachment(appointment.id, attachment)}
-                                          className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 flex items-center gap-3 text-left hover:bg-white hover:border-slate-300 transition-colors"
+                                          className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 flex items-center gap-3 text-left hover:bg-white hover:border-slate-300 transition-colors"
                                           title={attachment.name}
                                         >
                                           <div
