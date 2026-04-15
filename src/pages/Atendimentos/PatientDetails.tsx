@@ -3,6 +3,7 @@ import axios from "axios";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import {
   ArrowLeft,
   CalendarDays,
@@ -21,6 +22,7 @@ import {
   Upload,
   X,
   XCircle,
+  TriangleAlert,
 } from "lucide-react";
 import { PatientHeader } from "@/components/PatientHeader";
 import { useCreateAnnotation } from "@/hooks/api/useCreateAnnotation";
@@ -450,6 +452,7 @@ export const PatientDetails: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"nota" | "arquivos">("nota");
   const [queuedFiles, setQueuedFiles] = useState<QueuedUploadedFile[]>([]);
   const [accessLinks, setAccessLinks] = useState<SignedLinkCache>({});
+  const [attachmentToDelete, setAttachmentToDelete] = useState<AppointmentAttachmentAPI | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isSavingFiles, setIsSavingFiles] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1017,6 +1020,22 @@ export const PatientDetails: React.FC = () => {
     [deleteAttachment, id, queryClient, refetchAppointment, showToast]
   );
 
+  const handleRequestDeleteStoredAttachment = useCallback((attachment: AppointmentAttachmentAPI) => {
+    setAttachmentToDelete(attachment);
+  }, []);
+
+  const handleCancelDeleteStoredAttachment = useCallback(() => {
+    if (deleteAttachment.isPending) return;
+    setAttachmentToDelete(null);
+  }, [deleteAttachment.isPending]);
+
+  const handleConfirmDeleteStoredAttachment = useCallback(async () => {
+    if (!attachmentToDelete) return;
+
+    await handleDeleteStoredAttachment(attachmentToDelete);
+    setAttachmentToDelete(null);
+  }, [attachmentToDelete, handleDeleteStoredAttachment]);
+
   const isCancelledState = patient.status && ["cancelado", "cancelled"].includes(patient.status.toLowerCase());
   const isCancelledFetched =
     fetchedAppointment?.status && ["cancelado", "cancelled"].includes(fetchedAppointment.status.toLowerCase());
@@ -1349,7 +1368,7 @@ export const PatientDetails: React.FC = () => {
 
                               <button
                                 type="button"
-                                onClick={() => void handleDeleteStoredAttachment(image)}
+                                onClick={() => handleRequestDeleteStoredAttachment(image)}
                                 className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/50 hover:bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
                                 title="Remover arquivo"
                               >
@@ -1467,7 +1486,7 @@ export const PatientDetails: React.FC = () => {
 
                             <button
                               type="button"
-                              onClick={() => void handleDeleteStoredAttachment(document)}
+                              onClick={() => handleRequestDeleteStoredAttachment(document)}
                               className="w-8 h-8 rounded-md flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
                               title="Remover arquivo"
                             >
@@ -1584,6 +1603,49 @@ export const PatientDetails: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <Dialog
+        open={!!attachmentToDelete}
+        onOpenChange={(open) => {
+          if (!open) {
+            handleCancelDeleteStoredAttachment();
+          }
+        }}
+      >
+        <DialogContent className="max-w-md bg-white border border-slate-200 rounded-xl" showCloseButton={!deleteAttachment.isPending}>
+          <div className="flex items-center gap-2 mb-1">
+            <TriangleAlert className="w-5 h-5 text-red-500" />
+            <DialogTitle className="text-lg text-slate-900">Confirmar exclusão</DialogTitle>
+          </div>
+
+          <DialogDescription className="text-sm text-slate-600 mt-1">
+            Tem certeza que deseja excluir o arquivo{" "}
+            <span className="font-semibold text-slate-900">"{attachmentToDelete?.name}"</span>? Essa ação não pode ser
+            desfeita.
+          </DialogDescription>
+
+          <DialogFooter className="mt-5 flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancelDeleteStoredAttachment}
+              disabled={deleteAttachment.isPending}
+              className="px-2"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => void handleConfirmDeleteStoredAttachment()}
+              disabled={deleteAttachment.isPending}
+              className="bg-red-600 hover:bg-red-700 text-white px-2"
+            >
+              {deleteAttachment.isPending ? "Excluindo..." : "Excluir"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
