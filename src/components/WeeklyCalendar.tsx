@@ -330,7 +330,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
         >
           <div className="min-w-[900px]">
             {/* Header Sticky */}
-            <div className="flex sticky top-0 z-[30] isolate bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+            <div className="flex sticky top-0 z-[36] isolate bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
               <div className="min-w-[70px] max-w-[70px] w-full border-r border-gray-200 bg-gray-50/30"></div>
               <div className="grid grid-cols-7 w-full divide-x divide-gray-200">
                 {weekDays.map((day, idx) => {
@@ -439,7 +439,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                       >
                         {/* Hover Plus Icon */}
                         {isInteractive && (
-                          <div className="absolute inset-0 z-40 pointer-events-none flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          <div className="absolute inset-0 z-[35] pointer-events-none flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                               <div className="w-8 h-8 rounded-full bg-blue-50/80 flex items-center justify-center backdrop-blur-sm shadow-sm ring-1 ring-blue-100">
                                 <Plus className="w-5 h-5 text-blue-500" />
                               </div>
