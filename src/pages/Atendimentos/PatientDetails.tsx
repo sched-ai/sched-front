@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useRef, useState } from "react";
+﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
@@ -368,7 +368,7 @@ function ConsultationTimer({
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs text-slate-500 uppercase tracking-wide mb-2">Duração da consulta</p>
-          <div className="text-slate-900 font-mono text-3xl">
+          <div className="text-slate-900 text-3xl">
             {isLoading ? "..." : initialSeconds === 0 ? "--:--:--" : formatHHMMSS(timerSeconds)}
           </div>
         </div>
@@ -455,6 +455,7 @@ export const PatientDetails: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCounter = useRef(0);
   const queuedFilesRef = useRef<QueuedUploadedFile[]>([]);
+  const previewRequestsInFlightRef = useRef<Set<string>>(new Set());
   const { data: fetchedAppointment, refetch: refetchAppointment, isLoading } = useGetAppointment(id || "", !!id);
 
   const clientId = fetchedAppointment?.clientId || fetchedAppointment?.client?.id || patient.clientId || "";
@@ -468,7 +469,7 @@ export const PatientDetails: React.FC = () => {
 
   const initiateAttachments = useInitiateAppointmentAttachments(id || "");
   const completeAttachments = useCompleteAppointmentAttachments(id || "");
-  const requestAttachmentAccessLinks = useAppointmentAttachmentAccessLinks(id || "");
+  const { mutateAsync: requestAttachmentAccessLinksAsync } = useAppointmentAttachmentAccessLinks(id || "");
   const deleteAttachment = useDeleteAppointmentAttachment(id || "");
 
   useEffect(() => {
@@ -542,6 +543,10 @@ export const PatientDetails: React.FC = () => {
   const statusVisual = getStatusVisual(fetchedAppointment?.status || patient.status);
   const statusLabel = getStatusLabel(fetchedAppointment?.status || patient.status);
   const storedImageKey = storedImages.map((attachment) => attachment.id).join("|");
+  const storedImageIds = useMemo(
+    () => storedImageKey.split("|").filter(Boolean),
+    [storedImageKey]
+  );
 
   const getCachedSignedLink = useCallback(
     (mode: "preview" | "download", attachmentId: string) => {
@@ -558,18 +563,24 @@ export const PatientDetails: React.FC = () => {
   );
 
   useEffect(() => {
-    if (activeTab !== "arquivos" || !storedImages.length) return;
+    if (activeTab !== "arquivos" || !storedImageIds.length) return;
 
-    const missingPreviewIds = storedImages
-      .filter((attachment) => !getCachedSignedLink("preview", attachment.id))
-      .map((attachment) => attachment.id);
+    const missingPreviewIds = storedImageIds.filter((attachmentId) => {
+      const cacheKey = getAccessLinkCacheKey("preview", attachmentId);
+      const cachedLink = accessLinks[cacheKey];
+
+      return (
+        (!cachedLink || isSignedLinkExpired(cachedLink.expiresAt)) &&
+        !previewRequestsInFlightRef.current.has(attachmentId)
+      );
+    });
 
     if (!missingPreviewIds.length) return;
 
     let isCancelled = false;
+    missingPreviewIds.forEach((attachmentId) => previewRequestsInFlightRef.current.add(attachmentId));
 
-    requestAttachmentAccessLinks
-      .mutateAsync({
+    requestAttachmentAccessLinksAsync({
         mode: "preview",
         attachmentIds: missingPreviewIds,
       })
@@ -591,12 +602,17 @@ export const PatientDetails: React.FC = () => {
       })
       .catch((error) => {
         console.error("Error prefetching attachment previews:", error);
+      })
+      .finally(() => {
+        missingPreviewIds.forEach((attachmentId) => {
+          previewRequestsInFlightRef.current.delete(attachmentId);
+        });
       });
 
     return () => {
       isCancelled = true;
     };
-  }, [activeTab, getCachedSignedLink, requestAttachmentAccessLinks, storedImageKey, storedImages]);
+  }, [activeTab, accessLinks, requestAttachmentAccessLinksAsync, storedImageIds]);
 
   const updateQueuedFile = useCallback((fileId: string, updater: (file: QueuedUploadedFile) => QueuedUploadedFile) => {
     setQueuedFiles((prev) => prev.map((file) => (file.id === fileId ? updater(file) : file)));
@@ -934,7 +950,7 @@ export const PatientDetails: React.FC = () => {
       }
 
       try {
-        const response = await requestAttachmentAccessLinks.mutateAsync({
+        const response = await requestAttachmentAccessLinksAsync({
           mode: "download",
           attachmentIds: [attachment.id],
         });
@@ -964,7 +980,7 @@ export const PatientDetails: React.FC = () => {
         });
       }
     },
-    [getCachedSignedLink, requestAttachmentAccessLinks, showToast]
+    [getCachedSignedLink, requestAttachmentAccessLinksAsync, showToast]
   );
 
   const handleDeleteStoredAttachment = useCallback(
