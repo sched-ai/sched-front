@@ -474,10 +474,15 @@ export const PatientDetails: React.FC = () => {
   const completeAttachments = useCompleteAppointmentAttachments(id || "");
   const { mutateAsync: requestAttachmentAccessLinksAsync } = useAppointmentAttachmentAccessLinks(id || "");
   const deleteAttachment = useDeleteAppointmentAttachment(id || "");
+  const requestAttachmentAccessLinksRef = useRef(requestAttachmentAccessLinksAsync);
 
   useEffect(() => {
     queuedFilesRef.current = queuedFiles;
   }, [queuedFiles]);
+
+  useEffect(() => {
+    requestAttachmentAccessLinksRef.current = requestAttachmentAccessLinksAsync;
+  }, [requestAttachmentAccessLinksAsync]);
 
   useEffect(() => {
     return () => {
@@ -583,7 +588,7 @@ export const PatientDetails: React.FC = () => {
     let isCancelled = false;
     missingPreviewIds.forEach((attachmentId) => previewRequestsInFlightRef.current.add(attachmentId));
 
-    requestAttachmentAccessLinksAsync({
+    requestAttachmentAccessLinksRef.current({
         mode: "preview",
         attachmentIds: missingPreviewIds,
       })
@@ -615,7 +620,7 @@ export const PatientDetails: React.FC = () => {
     return () => {
       isCancelled = true;
     };
-  }, [activeTab, accessLinks, requestAttachmentAccessLinksAsync, storedImageIds]);
+  }, [activeTab, accessLinks, storedImageKey]);
 
   const updateQueuedFile = useCallback((fileId: string, updater: (file: QueuedUploadedFile) => QueuedUploadedFile) => {
     setQueuedFiles((prev) => prev.map((file) => (file.id === fileId ? updater(file) : file)));
