@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { useUser } from "@/context/user";
 import { useDeleteWorkplace } from "@/hooks/api/useDeleteWorkplace";
-import { useUpdateCompanyPhone } from "@/hooks/api/useUpdateCompanyPhone";
+import { useUpdateProfile } from "@/hooks/api/useUpdateProfile";
 import useToast from "@/hooks/useToast";
 import { formatCnpj, formatCpf, formatPhone } from "@/util/helper";
 import { useNavigate } from "react-router-dom";
@@ -44,7 +44,7 @@ const getDayRangeSummary = (days: DayKey[]) => {
 export const Configuracoes = () => {
   const { userData, refreshUser } = useUser();
   const { showToast } = useToast();
-  const { mutateAsync: updateCompanyPhone, isPending: isUpdatingCompanyPhone } = useUpdateCompanyPhone();
+  const { mutateAsync: updateProfile, isPending: isUpdatingProfile } = useUpdateProfile();
   const { mutateAsync: deleteWorkplace, isPending: isDeletingWorkplace } = useDeleteWorkplace();
 
   const [isProfileSaving, setIsProfileSaving] = useState(false);
@@ -54,14 +54,18 @@ export const Configuracoes = () => {
   const navigate = useNavigate();
 
   const companyType = userData?.membership?.company?.companyType === "AUTONOMO" ? "Autônomo" : "Empresa";
+  const isAutonomo = companyType === "Autônomo";
+
+  const initialDoc = userData?.membership?.company?.document ?? "";
+  const [hasCnpj, setHasCnpj] = useState(() => initialDoc.replace(/\D/g, "").length > 11);
 
   const [profileForm, setProfileForm] = useState({
     name: userData?.name ?? "",
     accountType: companyType,
-    document: userData?.membership?.company?.document ? maskDocument(userData.membership.company.document) : "",
+    document: initialDoc ? maskDocument(initialDoc) : "",
     email: userData?.email ?? "",
-    phone: maskPhone(userData?.membership?.company?.phone ?? ""),
-    description: "",
+    phone: maskPhone((userData?.membership?.company?.phone ?? "").replace(/^55/, "")),
+    description: userData?.membership?.company?.description ?? "",
   });
 
   const syncProfileFromUser = useCallback(() => {
@@ -71,7 +75,8 @@ export const Configuracoes = () => {
       accountType: userData?.membership?.company?.companyType === "AUTONOMO" ? "Autônomo" : "Empresa",
       document: userData?.membership?.company?.document ? maskDocument(userData.membership.company.document) : "",
       email: userData?.email ?? "",
-      phone: maskPhone(userData?.membership?.company?.phone ?? ""),
+      phone: maskPhone((userData?.membership?.company?.phone ?? "").replace(/^55/, "")),
+      description: userData?.membership?.company?.description ?? "",
     }));
   }, [userData]);
 
@@ -130,8 +135,8 @@ export const Configuracoes = () => {
 
   const handleProfileSave = async () => {
     const cleanPhone = profileForm.phone.replace(/\D/g, "");
-    const originalPhone = (userData?.membership?.company?.phone ?? "").replace(/\D/g, "");
-
+    const finalPhone = cleanPhone ? `55${cleanPhone}` : "";
+    
     if (cleanPhone && cleanPhone.length !== 11) {
       showToast({
         label: "Telefone inválido",
@@ -144,9 +149,12 @@ export const Configuracoes = () => {
 
     setIsProfileSaving(true);
     try {
-      if (cleanPhone !== originalPhone && cleanPhone.length === 11) {
-        await updateCompanyPhone(cleanPhone);
-      }
+      await updateProfile({
+        name: profileForm.name,
+        phone: finalPhone,
+        document: profileForm.document.replace(/\D/g, ""),
+        description: profileForm.description,
+      });
 
       showToast({
         label: "Perfil atualizado",
@@ -288,34 +296,67 @@ export const Configuracoes = () => {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-slate-700">Documento</label>
+                <div className="flex items-center gap-2 mb-1">
+                  <label className="text-sm font-medium text-slate-700">
+                    {hasCnpj && isAutonomo ? "CNPJ" : (!hasCnpj && isAutonomo ? "CPF" : "CNPJ/CPF")}
+                  </label>
+                  {isAutonomo && (
+                    <label className="flex items-center gap-1.5 ml-auto text-sm text-slate-600 cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={hasCnpj} 
+                        onChange={(e) => {
+                          setHasCnpj(e.target.checked);
+                          // We could clear formatting but let's keep it simple
+                        }}
+                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500" 
+                      />
+                      <span>Possui CNPJ?</span>
+                    </label>
+                  )}
+                </div>
                 <input
                   type="text"
+                  maxLength={(!isAutonomo || hasCnpj) ? 18 : 14}
                   value={profileForm.document}
-                  onChange={(e) =>
+                  placeholder={(!isAutonomo || hasCnpj) ? "00.000.000/0001-00" : "000.000.000-00"}
+                  onChange={(e) => {
+                    const raw = e.target.value.replace(/\D/g, "");
+                    const isNowCnpj = !isAutonomo || hasCnpj;
+                    let formatted = raw;
+                    if (isNowCnpj) {
+                      formatted = formatCnpj(raw.slice(0, 14));
+                    } else {
+                      formatted = formatCpf(raw.slice(0, 11));
+                    }
                     setProfileForm((prev) => ({
                       ...prev,
-                      document: maskDocument(e.target.value),
-                    }))
-                  }
+                      document: formatted,
+                    }));
+                  }}
                   className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition-colors hover:border-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                 />
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-slate-700">Telefone</label>
-                <input
-                  type="text"
-                  maxLength={15}
-                  value={profileForm.phone}
-                  onChange={(e) =>
-                    setProfileForm((prev) => ({
-                      ...prev,
-                      phone: maskPhone(e.target.value),
-                    }))
-                  }
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition-colors hover:border-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                />
+                <div className="flex items-center w-full bg-white border border-slate-300 rounded-lg px-3 py-0.5 text-sm transition-all focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 overflow-hidden">
+                    <div className="flex items-center gap-2 border-r border-slate-200 text-slate-500 select-none w-fit pr-1">
+                        <p className="font-medium leading-none text-[14px]">+55</p>
+                    </div>
+                    <input
+                      type="text"
+                      maxLength={15}
+                      value={profileForm.phone}
+                      onChange={(e) =>
+                        setProfileForm((prev) => ({
+                          ...prev,
+                          phone: maskPhone(e.target.value),
+                        }))
+                      }
+                      className="w-full bg-transparent pl-1 pr-3 py-2 text-slate-900 outline-none placeholder:text-slate-400"
+                    />
+                </div>
               </div>
 
               <div className="space-y-1.5 md:col-span-2">
@@ -356,10 +397,10 @@ export const Configuracoes = () => {
                   </Button>
                   <Button
                     onClick={handleProfileSave}
-                    disabled={isProfileSaving || isUpdatingCompanyPhone}
+                    disabled={isProfileSaving || isUpdatingProfile}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-4"
                     >
-                    {isProfileSaving || isUpdatingCompanyPhone ? "Salvando..." : "Salvar"}
+                    {isProfileSaving || isUpdatingProfile ? "Salvando..." : "Salvar"}
                   </Button>
                 </div>
               }

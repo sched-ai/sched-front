@@ -21,6 +21,8 @@ interface Step1Props {
   employeeId: string;
   companyName: string;
   setCompanyName: (v: string) => void;
+  description: string;
+  setDescription: (v: string) => void;
   cnpj: string;
   handleCnpjChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   companyArea: string;
@@ -50,6 +52,8 @@ export default function Step1({
   employeeId,
   companyName,
   setCompanyName,
+  description,
+  setDescription,
   cnpj,
   handleCnpjChange,
   // companyArea,
@@ -222,32 +226,39 @@ export default function Step1({
                   }}
                 />
               </div>
-              {/* <div className="w-full">
-                <Input
-                  type="text"
-                  label="Principal área de atuação"
-                  id="companyArea"
-                  value={companyArea}
-                  onChange={(e) => setCompanyArea(e.target.value)}
-                  placeholder="Ex: Odontologia"
-                  required
-                />
-              </div> */}
             </>
           )}
           
-            <div className="w-full">
+              <div className="w-full">
                 <Input
                   type="text"
-                  label="Número de telefone"
-                  id="phoneNumber"
-                  value={phoneNumber}
-                  onChange={handlePhoneChange}
-                  placeholder="(00) 00000-0000"
-                  required
-                  isRequired
-                  maxLength={15}
+                  label="Descrição do seu negócio (opcional)"
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Fale um pouco sobre o que você realiza"
                 />
+              </div>
+              
+              <div className="w-full flex-col flex justify-end">
+                <Label htmlFor="phoneNumber" className="text-sm mb-2 font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    Número de telefone <span className="text-red-500">*</span>
+                </Label>
+                <div className="flex items-center w-full bg-white border border-slate-200 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary rounded-[10px] px-3 transition-colors overflow-hidden h-[50px] mt-0.5">
+                    <div className="flex items-center gap-2 border-r border-slate-200 text-slate-500 select-none w-fit pr-2">
+                        <p className="font-medium leading-none text-slate-500">+55</p>
+                    </div>
+                    <input
+                      id="phoneNumber"
+                      type="text"
+                      maxLength={15}
+                      value={phoneNumber}
+                      onChange={handlePhoneChange}
+                      placeholder="(00) 00000-0000"
+                      required
+                      className="w-full bg-transparent pl-3 pr-3 text-sm text-slate-900 outline-none placeholder:text-muted-foreground"
+                    />
+                </div>
               </div>
             <div className="w-full">
             <label className="block mb-2 font-medium text-[16px] text-[#384455]">Onde você nos conheceu?</label>
