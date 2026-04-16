@@ -1179,13 +1179,6 @@ export const PatientDetails: React.FC = () => {
                   {statusLabel}
                 </div>
               </div>
-
-              <div className="pt-20 border-t border-slate-100">
-                <p className="text-xs text-slate-500 uppercase tracking-wide mb-2">Observação inicial</p>
-                <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                  {fetchedAppointment?.description || "Sem observações registradas para este atendimento."}
-                </div>
-              </div>
             </div>
           </div>
 
