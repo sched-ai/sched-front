@@ -51,6 +51,7 @@ export const RenderStep = ({
   const [employeeId, setProfessionalId] = useState("");
 
   const [companyName, setCompanyName] = useState("");
+  const [description, setDescription] = useState("");
   const [cnpj, setCnpj] = useState("");
   const [hasCnpj, setHasCnpj] = useState(true);
   const [companyArea, setCompanyArea] = useState("");
@@ -466,6 +467,7 @@ export const RenderStep = ({
       type: userType === "autonomo" ? "AUTONOMO" : "EMPRESA",
       professionalName: userType === "autonomo" ? userData?.name : undefined,
       fieldOfWork: userType === "autonomo" ? area : companyArea,
+      description: description,
       professionalLicense: userType === "autonomo" && !hasCnpj ? employeeId.replace(/\D/g, "") : undefined,
       companyName: userType === "empresa" ? companyName : undefined,
       howFound: referrer === "outro" ? referrerOther : referrer,
@@ -584,6 +586,8 @@ export const RenderStep = ({
           employeeId={employeeId}
           companyName={companyName}
           setCompanyName={setCompanyName}
+          description={description}
+          setDescription={setDescription}
           cnpj={cnpj}
           handleCnpjChange={handleCnpjChange}
           companyArea={companyArea}
