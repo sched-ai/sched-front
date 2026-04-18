@@ -1,6 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
-import useAPI from "../useAPI";
+import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import useAPI from '../useAPI';
 
 export interface IWorkSchedule {
   dayOfWeek: number;
@@ -57,25 +57,26 @@ export const useGetUser = ({ onSuccessFn, enabled = true }: UseGetUserProps = {}
   const { get } = useAPI<UserEnvelope>();
 
   const query = useQuery<IUser, Error, IUser>({
-    queryKey: ["user"],
+    queryKey: ['user'],
     queryFn: () =>
       get({
-        label: "User",
+        label: 'User',
         autoClose: false,
         showSuccessFeedback: false,
-        endpoint: "user/me",
+        endpoint: 'user/me',
       }).then((response) => {
         const payload =
-          response?.data && typeof response.data === "object"
+          response?.data && typeof response.data === 'object'
             ? response.data
             : response;
 
         if (!payload) {
-          throw new Error("Empty response");
+          throw new Error('Empty response');
         }
         return payload as IUser;
       }),
     enabled,
+    retry: false,
   });
 
   useEffect(() => {
