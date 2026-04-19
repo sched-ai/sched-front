@@ -56,24 +56,59 @@ const weekDaysPt = [
 ] as const;
 
 const pad = (v: number) => String(v).padStart(2, "0");
-const timeFromLocal = (d: Date) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-const monthFromLocal = (d: Date) => pad(d.getMonth() + 1);
-const yearFromLocal = (d: Date) => d.getFullYear();
+type ApiDateParts = {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+  dayIdx: number;
+};
+
+const parseApiDateParts = (value: string): ApiDateParts => {
+  // Preserve wall-clock values from API ISO string to avoid timezone shifts in UI.
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+
+  if (match) {
+    const [, y, m, d, hh, mm] = match;
+    const year = Number(y);
+    const month = Number(m);
+    const day = Number(d);
+    const hour = Number(hh);
+    const minute = Number(mm);
+    const dayIdx = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+
+    return { year, month, day, hour, minute, dayIdx };
+  }
+
+  const date = new Date(value);
+  return {
+    year: date.getUTCFullYear(),
+    month: date.getUTCMonth() + 1,
+    day: date.getUTCDate(),
+    hour: date.getUTCHours(),
+    minute: date.getUTCMinutes(),
+    dayIdx: date.getUTCDay(),
+  };
+};
+
+const timeFromParts = (p: Pick<ApiDateParts, "hour" | "minute">) => `${pad(p.hour)}:${pad(p.minute)}`;
+const monthFromParts = (p: Pick<ApiDateParts, "month">) => pad(p.month);
+const yearFromParts = (p: Pick<ApiDateParts, "year">) => p.year;
 
 const toTimeBlockEvent = (tb: TimeBlockOccurrenceAPI): EventType => {
-  const start = new Date(tb.startDate);
-  const end = new Date(tb.endDate);
-  const dayIdx = start.getDay();
+  const start = parseApiDateParts(tb.startDate);
+  const end = parseApiDateParts(tb.endDate);
 
   return {
     id: tb.id,
     title: tb.reason || "Bloqueio",
-    day: weekDaysPt[dayIdx],
-    dayNumber: start.getDate(),
-    start: timeFromLocal(start),
-    end: timeFromLocal(end),
-    month: monthFromLocal(start),
-    year: yearFromLocal(start),
+    day: weekDaysPt[start.dayIdx],
+    dayNumber: start.day,
+    start: timeFromParts(start),
+    end: timeFromParts(end),
+    month: monthFromParts(start),
+    year: yearFromParts(start),
     type: "bloqueio",
     isRecurring: !!tb.frequency || !!tb.isInfiniteRecurring,
   };
@@ -81,9 +116,8 @@ const toTimeBlockEvent = (tb: TimeBlockOccurrenceAPI): EventType => {
 
 
 const toAppointmentEvent = (a: AppointmentAPI): EventType => {
-  const start = new Date(a.startDate);
-  const end = new Date(a.endDate);
-  const dayIdx = start.getDay();
+  const start = parseApiDateParts(a.startDate);
+  const end = parseApiDateParts(a.endDate);
 
   const titleParts: string[] = [];
   if (a.clientName) titleParts.push(a.clientName);
@@ -96,12 +130,12 @@ const toAppointmentEvent = (a: AppointmentAPI): EventType => {
     serviceId: a.serviceId ?? undefined,
     employeeId: a.employeeId ?? undefined,
     professionalName: a.professionalName ?? undefined,
-    day: weekDaysPt[dayIdx],
-    dayNumber: start.getDate(),
-    start: timeFromLocal(start),
-    end: timeFromLocal(end),
-    month: monthFromLocal(start),
-    year: yearFromLocal(start),
+    day: weekDaysPt[start.dayIdx],
+    dayNumber: start.day,
+    start: timeFromParts(start),
+    end: timeFromParts(end),
+    month: monthFromParts(start),
+    year: yearFromParts(start),
     type: "consulta",
   };
 };

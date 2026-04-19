@@ -24,6 +24,16 @@ import type { Matcher } from "react-day-picker";
 import type { TimePickerProps } from "antd";
 import { TimePickerField } from "./TimePickerField";
 
+const pad2 = (value: number) => String(value).padStart(2, "0");
+
+const buildUtcLikeIso = (date: { day: number; month: number; year: number }, hour: string) => {
+  const [hStr = "0", mStr = "0"] = hour.split(":");
+  const h = Number(hStr);
+  const m = Number(mStr);
+
+  return `${date.year}-${pad2(date.month)}-${pad2(date.day)}T${pad2(h)}:${pad2(m)}:00.000Z`;
+};
+
 interface IProps {
   title: string | undefined;
   setTitle: Dispatch<SetStateAction<string | undefined>>;
@@ -127,16 +137,26 @@ export const AppoimentContent = ({
         return;
     }
 
-    const [startH, startM] = startHour.split(":").map((s) => Number(s));
-    const startDate = new Date(Number(year), Number(month) - 1, Number(day), startH ?? 0, startM ?? 0);
+    const [startH = 0, startM = 0] = startHour.split(":").map((s) => Number(s));
+    if (Number.isNaN(startH) || Number.isNaN(startM)) {
+      console.error("Invalid start hour", startHour);
+      return;
+    }
 
     let duration: number | undefined = undefined;
     if (endHour) {
-      const [endH, endM] = endHour.split(":").map((s) => Number(s));
-      const endDate = new Date(Number(year), Number(month) - 1, Number(day), endH ?? 0, endM ?? 0);
-      const diffMs = endDate.getTime() - startDate.getTime();
-      if (diffMs > 0) {
-        duration = Math.floor(diffMs / 60000); // minutes
+      const [endH = 0, endM = 0] = endHour.split(":").map((s) => Number(s));
+      if (Number.isNaN(endH) || Number.isNaN(endM)) {
+        console.error("Invalid end hour", endHour);
+        return;
+      }
+
+      const startTotalMinutes = startH * 60 + startM;
+      const endTotalMinutes = endH * 60 + endM;
+      const diffMinutes = endTotalMinutes - startTotalMinutes;
+
+      if (diffMinutes > 0) {
+        duration = diffMinutes;
       }
     }
 
@@ -145,7 +165,7 @@ export const AppoimentContent = ({
       serviceId: service || undefined,
       workplaceId: location || undefined,
       employeeId: professional || undefined,
-      startDate: startDate.toISOString(),
+      startDate: buildUtcLikeIso({ day, month, year }, startHour),
       duration,
     };
 

@@ -10,6 +10,16 @@ import type { Matcher } from "react-day-picker";
 import type { TimePickerProps } from "antd";
 import { TimePickerField } from "./TimePickerField";
 
+const pad2 = (value: number) => String(value).padStart(2, "0");
+
+const buildUtcLikeIso = (year: number, month: number, day: number, hour: string) => {
+  const [hStr = "0", mStr = "0"] = hour.split(":");
+  const h = Number(hStr);
+  const m = Number(mStr);
+
+  return `${year}-${pad2(month)}-${pad2(day)}T${pad2(h)}:${pad2(m)}:00.000Z`;
+};
+
 interface IProps {
   title: string | undefined;
   setTitle: (val: string) => void;
@@ -143,28 +153,18 @@ export const BlockContent = ({
 
     const [yearStr, monthStr, dayStr] = formattedDate.split("-");
 
-    const [startHStr = "0", startMStr = "0"] = (startHour || "00:00").split(":");
-    const [endHStr = "0", endMStr = "0"] = (endHour || "00:00").split(":");
+    const parsedYear = Number(yearStr);
+    const parsedMonth = Number(monthStr);
+    const parsedDay = Number(dayStr);
 
-    const startDateLocal = new Date(
-      Number(yearStr),
-      Number(monthStr) - 1,
-      Number(dayStr),
-      Number(startHStr) ?? 0,
-      Number(startMStr) ?? 0,
-    );
-
-    const endDateLocal = new Date(
-      Number(yearStr),
-      Number(monthStr) - 1,
-      Number(dayStr),
-      Number(endHStr) ?? 0,
-      Number(endMStr) ?? 0,
-    );
+    if (Number.isNaN(parsedYear) || Number.isNaN(parsedMonth) || Number.isNaN(parsedDay)) {
+      console.error("Data inválida para bloqueio", formattedDate);
+      return;
+    }
 
     const payload = {
-      startDate: startDateLocal,
-      endDate: endDateLocal,
+      startDate: buildUtcLikeIso(parsedYear, parsedMonth, parsedDay, startHour),
+      endDate: buildUtcLikeIso(parsedYear, parsedMonth, parsedDay, endHour),
       reason: title,
       isInfiniteRecurring: repeatEnabled,
       frequency: repeatEnabled ? frequency : null,
