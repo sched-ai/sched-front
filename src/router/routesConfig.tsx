@@ -14,6 +14,8 @@ import LandingPage from '../pages/LandingPage'
 import LegalPage from '../pages/LegalPage'
 import { Configuracoes } from '@/pages/Configuracoes'
 import LocationSettings from '@/pages/Configuracoes/LocationSettings'
+import { ForgotPassword } from '@/pages/ForgotPassword'
+import { ResetPassword } from '@/pages/ResetPassword'
 
 export interface RouteConfig {
   path: string
@@ -24,128 +26,140 @@ export interface RouteConfig {
 
 export const routesConfig: RouteConfig[] = [
   {
-    path: "/signin",
+    path: '/signin',
     element: <SignIn />,
     template: false,
     authRoute: false
   },
   {
-    path: "/signup",
+    path: '/forgot-password',
+    element: <ForgotPassword />,
+    template: false,
+    authRoute: false
+  },
+  {
+    path: '/reset-password',
+    element: <ResetPassword />,
+    template: false,
+    authRoute: false
+  },
+  {
+    path: '/signup',
     element: <SignUp />,
     template: false,
     authRoute: false
   },
   {
-    path: "/newUser",
+    path: '/newUser',
     element: <>TESTE</>,
     template: false,
     authRoute: false
   },
   {
-    path: "/landing",
+    path: '/landing',
     element: <LandingPage />,
     template: false,
     authRoute: false
   },
   {
-    path: "/onboarding",
+    path: '/onboarding',
     element: <Onboarding />,
     template: false,
     authRoute: true
   },
   {
-    path: "/",
+    path: '/',
     element: <Home />,
     template: true,
     authRoute: true
   },
   {
-    path: "/appointment",
+    path: '/appointment',
     element: <Atendimentos />,
     template: true,
     authRoute: true
   },
   {
-    path: "/patients",
+    path: '/patients',
     element: <Pacientes />,
     template: true,
     authRoute: true
   },
   {
-    path: "/appointment/:id",
+    path: '/appointment/:id',
     element: <PatientDetails />,
     template: true,
     authRoute: true
   },
   {
-    path: "/patients/new",
+    path: '/patients/new',
     element: <CreateClient />,
     template: true,
     authRoute: true
   },
   {
-    path: "/patients/:id/edit",
+    path: '/patients/:id/edit',
     element: <CreateClient />,
     template: true,
     authRoute: true
   },
   {
-    path: "/patients/:id/history",
+    path: '/patients/:id/history',
     element: <PatientHistory />,
     template: true,
     authRoute: true
   },
   {
-    path: "/services",
+    path: '/services',
     element: <Servicos />,
     template: true,
     authRoute: true
   },
   {
-    path: "/settings",
+    path: '/settings',
     element: <Configuracoes />,
     template: true,
     authRoute: true
   },
   {
-    path: "/settings/locations/new",
+    path: '/settings/locations/new',
     element: <LocationSettings />,
     template: true,
     authRoute: true
   },
   {
-    path: "/settings/locations/:id/edit",
+    path: '/settings/locations/:id/edit',
     element: <LocationSettings />,
     template: true,
     authRoute: true
   },
   {
-    path: "*",
+    path: '*',
     element: <Error />,
     template: false,
     authRoute: true
   },
   {
-    path: "/politica-privacidade",
-    element: <LegalPage title="Política de Privacidade" />,
+    path: '/politica-privacidade',
+    element: <LegalPage title='Política de Privacidade' />,
     template: false,
     authRoute: false
   },
   {
-    path: "/termos-uso",
-    element: <LegalPage title="Termos de condições de uso" />,
+    path: '/termos-uso',
+    element: <LegalPage title='Termos de condições de uso' />,
     template: false,
     authRoute: false
   },
   {
-    path: "/termos-medico",
-    element: <LegalPage title="Termos e Condições de uso (Médico)" />,
+    path: '/termos-medico',
+    element: <LegalPage title='Termos e Condições de uso (Médico)' />,
     template: false,
     authRoute: false
   },
   {
-    path: "/termos-paciente",
-    element: <LegalPage title="Termos e Condições de Uso (Paciente)" />,
+    path: '/termos-paciente',
+    element: <LegalPage title='Termos e Condições de Uso (Paciente)' />,
     template: false,
     authRoute: false
   },

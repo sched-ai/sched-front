@@ -1,25 +1,24 @@
-import { Button } from "../../components/ui/button";
-import abstract from "../../assets/abstract_waves.jpg";
-import { useNavigate } from "react-router-dom";
-import React, { useState } from "react";
-import { useSignIn } from "@/hooks/api/auth/useSignIn";
-import { toast } from "sonner";
-import { Eye, EyeOff } from "lucide-react";
+import { Button } from '../../components/ui/button';
+import abstract from '../../assets/abstract_waves.jpg';
+import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useSignIn } from '@/hooks/api/auth/useSignIn';
+import { toast } from 'sonner';
+import { Eye, EyeOff } from 'lucide-react';
 
 export const SignIn = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = React.useState("");
-  const [password, setPassword] = React.useState("");
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   const signIn = useSignIn({
     onSuccessFn: () => {
-      navigate("/");
+      navigate('/');
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onErrorFn: (err: any) => {
       const errorMessage =
-        err?.response?.data?.message || "Email ou senha inválidos.";
+        err?.response?.data?.message || err?.response?.data?.error || 'Email ou senha inválidos.';
       toast.error(errorMessage);
     },
   });
@@ -44,7 +43,7 @@ export const SignIn = () => {
             className="flex lg:hidden font-semibold"
             type="button"
             onClick={() => {
-                navigate("/signup");
+              navigate('/signup');
             }}
           >
             Cadastre-se
@@ -63,7 +62,7 @@ export const SignIn = () => {
               className="w-full max-w-[394px] font-semibold"
               type="button"
               onClick={() => {
-                navigate("/signup");
+                navigate('/signup');
               }}
             >
               CADASTRE-SE
@@ -73,7 +72,7 @@ export const SignIn = () => {
             <form
               onSubmit={handleLogin}
               className="space-y-6 px-6 py-8 lg:px-10 lg:py-14 shadow-custom
-                            [background-clip:padding-box,border-box] 
+                            [background-clip:padding-box,border-box]
                             backdrop-blur-md bg-black/50"
             >
               <div className="text-start text-white mb-12">
@@ -88,50 +87,62 @@ export const SignIn = () => {
                 <input
                   id="email"
                   name="email"
-                  type="text"
+                  type="email"
+                  autoComplete="email"
                   className="peer h-12 w-full border-2 px-2 bg-white/5 rounded-lg border-gray-300 placeholder-transparent focus:outline-none focus:border-blue-600 focus:border-2 text-white"
                   placeholder="seu.email@exemplo.com"
                   onChange={(e) => setEmail(e.target.value)}
                 />
                 <label
                   htmlFor="email"
-                  className="absolute left-3 -top-6 text-sm text-white transition-all 
-                    peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 
+                  className="absolute left-3 -top-6 text-sm text-white transition-all
+                    peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400
                     peer-focus:-top-6 peer-focus:text-sm peer-focus:left-0"
                 >
                   Email
                 </label>
               </div>
 
-              <div className="relative">
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  className="peer h-12 w-full px-2 bg-white/5 rounded-lg border-gray-300 placeholder-transparent focus:outline-none focus:border-blue-600 border-2 text-white"
-                  placeholder="seu.email@exemplo.com"
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-                <div
-                  className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
+              <div className="space-y-2">
+                <div className="relative">
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
+                    className="peer h-12 w-full px-2 bg-white/5 rounded-lg border-gray-300 placeholder-transparent focus:outline-none focus:border-blue-600 border-2 text-white"
+                    placeholder="sua senha"
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
+                  <label
+                    htmlFor="password"
+                    className="absolute left-3 -top-6 text-sm text-white transition-all
+                      peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400
+                      peer-focus:-top-6 peer-focus:text-sm peer-focus:left-0"
+                  >
+                    Senha
+                  </label>
                 </div>
-                <label
-                  htmlFor="password"
-                  className="absolute left-3 -top-6 text-sm text-white transition-all 
-                    peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 
-                    peer-focus:-top-6 peer-focus:text-sm peer-focus:left-0"
+                <Button
+                  variant="link"
+                  type="button"
+                  className="h-auto justify-start px-0 py-0 text-[#6cacff]"
+                  onClick={() => navigate('/forgot-password')}
                 >
-                  Senha
-                </label>
-                {/* TODO - HABILITAR TROCA DE SENHA */}
-                {/* <Button variant="link" type="button" className="text-[#6cacff]">Esqueci minha senha</Button> */}
+                  Esqueci minha senha
+                </Button>
               </div>
 
               <Button
@@ -146,10 +157,10 @@ export const SignIn = () => {
                 <span className="text-white font-light">Novo por aqui? </span>
                 <Button
                   variant="link"
-                  type="button"            
+                  type="button"
                   className="text-[#6cacff] bg-transparent"
                   onClick={() => {
-                    navigate("/signup");
+                    navigate('/signup');
                   }}
                 >
                   Cadastre-se
