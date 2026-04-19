@@ -6,8 +6,8 @@ export interface IUpdateClientPayload {
   name: string;
   cpf: string;
   phone?: string;
-  email?: string;
-  gender?: string;
+  email?: string | null;
+  gender?: string | null;
   photoUrl?: string;
 }
 

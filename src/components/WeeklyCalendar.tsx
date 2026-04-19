@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { format, startOfWeek, addDays, isSameDay } from "date-fns";
-import { Plus } from "lucide-react";
+import { BotMessageSquare, Plus } from "lucide-react";
 import type { AvailableHours } from "@/hooks/api/useGetCalendar";
 
 const weekDays = [
@@ -32,6 +32,7 @@ export type EventType = {
 	employeeId?: string;
 	professionalName?: string;
 	isRecurring?: boolean;
+  createdByAI?: boolean;
 };
 
 
@@ -517,6 +518,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                         const isShort = height <= 50;
                         const isConsultation = ev.type === 'consulta';
                         const hasOverlap = maxCols[idx] > 1;
+                        const shouldShowAIBadge = Boolean(ev.createdByAI) && isConsultation && !isShort;
                         
                         const col = columns[idx];
                         const totalCols = maxCols[idx];
@@ -570,6 +572,12 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                               {!isShort && hasOverlap && ev.professionalName && (
                                 <div className={`text-[9px] truncate mt-0.5 font-medium tracking-tight opacity-80`}>
                                   {ev.professionalName}
+                                </div>
+                              )}
+
+                              {shouldShowAIBadge && (
+                                <div className="absolute right-0 bottom-0 rounded-tl-md px-1 py-0.5 bg-black/15 backdrop-blur-[1px]" title="Agendamento criado por IA">
+                                  <BotMessageSquare className="w-3 h-3 opacity-90" />
                                 </div>
                               )}
                             </div>

@@ -30,6 +30,7 @@ interface AppointmentAPI {
   workplaceName?: string | null;
   employeeId?: string | null;
   professionalName?: string | null;
+  createdByAI?: boolean | null;
 }
 
 interface ICalendar {
@@ -130,6 +131,7 @@ const toAppointmentEvent = (a: AppointmentAPI): EventType => {
     serviceId: a.serviceId ?? undefined,
     employeeId: a.employeeId ?? undefined,
     professionalName: a.professionalName ?? undefined,
+    createdByAI: Boolean(a.createdByAI),
     day: weekDaysPt[start.dayIdx],
     dayNumber: start.day,
     start: timeFromParts(start),

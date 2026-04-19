@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { capitalizeFirst } from "@/util/helper";
-import { CalendarDays, Clock, Layers, Pencil, Trash2, MapPin, X, Loader2, User } from "lucide-react";
+import { BotMessageSquare, CalendarDays, Clock, Layers, Pencil, Trash2, MapPin, X, Loader2, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { EventType } from "../WeeklyCalendar";
 import { DeleteConfirmationModal } from "../DeleteConfirmationModal";
@@ -111,9 +111,6 @@ export const ScheduleViewModal = ({
                     <p>{capitalizeFirst(details.title)}</p>
                   </TooltipContent>
                 </Tooltip>
-                <p className="text-slate-400 text-sm">
-                  {isBlock ? "Detalhes do bloqueio" : "Detalhes da consulta"}
-                </p>
               </div>
 
               <div className="flex items-center gap-1 -mt-1 ml-auto">
@@ -148,6 +145,17 @@ export const ScheduleViewModal = ({
             </div>
         </div>
 
+          <div className="flex items-center px-6 gap-2 w-full justify-between">
+            <p className="text-slate-400 text-sm">
+              {isBlock ? "Detalhes do bloqueio" : "Detalhes da consulta"}
+            </p>
+            {selectedEvent?.createdByAI && details.type === "consulta" && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-cyan-400/30 bg-cyan-500/10 px-2 py-0.5 text-[11px] font-medium text-cyan-300">
+                <BotMessageSquare className="h-3 w-3" />
+                Criado por IA
+              </span>
+            )}
+          </div>
           <div className="p-6 pt-2 space-y-6">
             
             <div className="bg-[#1a1e45] rounded-xl p-3 flex flex-col gap-2 border border-slate-700/50">

@@ -41,6 +41,9 @@ const formatPhoneForDisplay = (phone: string) => {
 
 type Gender = 'masculino' | 'feminino' | 'outro';
 
+const isGender = (value: string): value is Gender =>
+  value === 'masculino' || value === 'feminino' || value === 'outro';
+
 const CreateClient = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -57,7 +60,7 @@ const CreateClient = () => {
   const isPending = isCreating || isUpdating;
 
   const [formData, setFormData] = useState({ name: initialName, cpf: "", phone: "", email: "" });
-  const [gender, setGender] = useState<Gender>('outro');
+  const [gender, setGender] = useState<Gender | ''>('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
@@ -68,7 +71,7 @@ const CreateClient = () => {
         phone: formatPhoneForDisplay(clientToEdit.phone || ""),
         email: clientToEdit.email || "",
       });
-      setGender((clientToEdit.gender as Gender) || 'outro');
+      setGender(isGender(String(clientToEdit.gender || '')) ? (clientToEdit.gender as Gender) : '');
     }
   }, [clientToEdit, isEditMode]);
 
@@ -104,8 +107,8 @@ const CreateClient = () => {
         name: formData.name,
         cpf: formData.cpf,
         phone: formData.phone ? `55${formData.phone.replace(/\D/g, "")}` : "",
-        email: formData.email,
-        gender: gender,
+        email: formData.email.trim() || null,
+        gender: gender || null,
         photoUrl: "",
       };
 
@@ -256,6 +259,14 @@ const CreateClient = () => {
                              </div>
                              <input type="radio" className="hidden" name="gender" value="outro" checked={gender === 'outro'} onChange={() => setGender('outro')} />
                              <span className={`text-sm ${gender === 'outro' ? 'text-slate-900 font-medium' : 'text-slate-600 group-hover:text-slate-700'}`}>Outro</span>
+                        </label>
+
+                        <label className="flex items-center gap-2 cursor-pointer group">
+                            <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${gender === '' ? 'border-blue-600' : 'border-slate-300 group-hover:border-slate-400'}`}>
+                              {gender === '' && <div className="w-3 h-3 rounded-full bg-blue-600" />}
+                            </div>
+                            <input type="radio" className="hidden" name="gender" value="" checked={gender === ''} onChange={() => setGender('')} />
+                            <span className={`text-sm ${gender === '' ? 'text-slate-900 font-medium' : 'text-slate-600 group-hover:text-slate-700'}`}>Não informar</span>
                         </label>
                     </div>
                 </div>
