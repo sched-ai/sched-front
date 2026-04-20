@@ -101,14 +101,17 @@ export const formatCpf = (value: string) => {
 
 
 export const formatPhone = (value: string) => {
-  const cleaned = value.replace(/\D/g, "");
-  const len = cleaned.length;
+	const cleaned = value.replace(/\D/g, "");
+	const normalized = cleaned.startsWith("55") && cleaned.length > 11
+		? cleaned.slice(2)
+		: cleaned;
+	const len = normalized.length;
 
   if (len === 0) return "";
-  if (len <= 2) return `(${cleaned}`;
-  if (len <= 6) return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2)}`;
-  if (len <= 10) return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 6)}-${cleaned.slice(6)}`;
-  return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 7)}-${cleaned.slice(7, 11)}`;
+	if (len <= 2) return `(${normalized}`;
+	if (len <= 6) return `(${normalized.slice(0, 2)}) ${normalized.slice(2)}`;
+	if (len <= 10) return `(${normalized.slice(0, 2)}) ${normalized.slice(2, 6)}-${normalized.slice(6)}`;
+	return `(${normalized.slice(0, 2)}) ${normalized.slice(2, 7)}-${normalized.slice(7, 11)}`;
 };
 
 export const formatCurrency = (value: any, precision=2) => {
