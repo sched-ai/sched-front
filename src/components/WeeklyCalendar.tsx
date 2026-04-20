@@ -271,7 +271,16 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 			endPos,
 			duration: endPos.totalPosition - startPos.totalPosition
 		};
-	});
+	}).filter(event => {
+    // Hide block events if the day is entirely unavailable
+    if (event.type === 'bloqueio' && availableHours && event.dayIdx >= 0) {
+      const dayData = availableHours[String(event.dayIdx)];
+      if (!dayData || dayData.startMinute === null || dayData.endMinute === null) {
+        return false;
+      }
+    }
+    return true;
+  });
 
   const blockedCells = React.useMemo(() => {
     const blocked = new Set<string>();
@@ -576,7 +585,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                               )}
 
                               {shouldShowAIBadge && (
-                                <div className="absolute right-0 bottom-0 rounded-tl-md px-1 py-0.5 bg-black/15 backdrop-blur-[1px]" title="Agendamento criado por IA">
+                                <div className="absolute right-0 bottom-0 rounded-tl-md px-1 py-0.5" title="Agendamento criado por IA">
                                   <BotMessageSquare className="w-3 h-3 opacity-90" />
                                 </div>
                               )}

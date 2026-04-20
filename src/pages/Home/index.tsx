@@ -41,6 +41,7 @@ export const Home = () => {
     month: number;
     year: number;
     hour: string;
+    endHour?: string;
   } | null>(null);
   const [scheduleDraftEvent, setScheduleDraftEvent] = useState<{
     day: number;
@@ -80,11 +81,46 @@ export const Home = () => {
     hour: string,
     rect?: DOMRect
   ) => {
-    setScheduleFormSelectedDateTime({ ...date, hour });
-  const [startH = "0", startM = "0"] = hour.split(":");
-  const nextHour = Math.min(23, Number(startH) + 1);
-  const defaultEnd = `${String(nextHour).padStart(2, "0")}:${startM}`;
-  setScheduleDraftEvent({ ...date, startHour: hour, endHour: defaultEnd, type: 'consulta' });
+    const weekStart = new Date(date.year, date.month - 1, date.day);
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay()); // get sunday
+
+    const dayNames = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+
+    const dayEvents = data.events.filter((ev: EventType) => {
+      const evMonth = typeof ev.month === 'string' ? Number(ev.month) : ev.month;
+      const evYear = Number(ev.year);
+      
+      let evDateMatches = false;
+      if (typeof ev.dayNumber === 'number') {
+        evDateMatches = ev.dayNumber === date.day && evMonth === date.month && evYear === date.year;
+      } else {
+        const dayIndex = dayNames.indexOf(ev.day);
+        const eventDate = new Date(weekStart);
+        eventDate.setDate(weekStart.getDate() + dayIndex);
+        evDateMatches = eventDate.getDate() === date.day && (eventDate.getMonth() + 1) === date.month && eventDate.getFullYear() === date.year;
+      }
+      return evDateMatches;
+    });
+
+    const [startH = "0", startM = "0"] = hour.split(":");
+    const hourMin = Number(startH) * 60 + Number(startM);
+    let nextStartMin = hourMin + 60; // Max 1 hour
+
+    for (const ev of dayEvents) {
+      if (!ev.start) continue;
+      const [evH = "0", evM = "0"] = ev.start.split(":");
+      const evMin = Number(evH) * 60 + Number(evM);
+      if (evMin > hourMin && evMin < nextStartMin) {
+        nextStartMin = evMin;
+      }
+    }
+
+    const nextHourRaw = Math.floor(nextStartMin / 60);
+    const nextMinRaw = nextStartMin % 60;
+    const defaultEnd = `${String(nextHourRaw).padStart(2, "0")}:${String(nextMinRaw).padStart(2, "0")}`;
+
+    setScheduleFormSelectedDateTime({ ...date, hour, endHour: defaultEnd });
+    setScheduleDraftEvent({ ...date, startHour: hour, endHour: defaultEnd, type: 'consulta' });
     setSelectedEvent(null);
     
     if (rect) {

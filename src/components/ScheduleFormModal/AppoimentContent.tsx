@@ -26,12 +26,12 @@ import { TimePickerField } from "./TimePickerField";
 
 const pad2 = (value: number) => String(value).padStart(2, "0");
 
-const buildUtcLikeIso = (date: { day: number; month: number; year: number }, hour: string) => {
+const buildLocalIso = (date: { day: number; month: number; year: number }, hour: string) => {
   const [hStr = "0", mStr = "0"] = hour.split(":");
   const h = Number(hStr);
   const m = Number(mStr);
 
-  return `${date.year}-${pad2(date.month)}-${pad2(date.day)}T${pad2(h)}:${pad2(m)}:00.000Z`;
+  return `${date.year}-${pad2(date.month)}-${pad2(date.day)}T${pad2(h)}:${pad2(m)}:00`;
 };
 
 interface IProps {
@@ -165,7 +165,7 @@ export const AppoimentContent = ({
       serviceId: service || undefined,
       workplaceId: location || undefined,
       employeeId: professional || undefined,
-      startDate: buildUtcLikeIso({ day, month, year }, startHour),
+      startDate: buildLocalIso({ day, month, year }, startHour),
       duration,
     };
 

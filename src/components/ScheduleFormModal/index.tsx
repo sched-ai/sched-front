@@ -39,6 +39,7 @@ interface FormModalProps {
     month?: number;
     year?: number;
     hour: string;
+    endHour?: string;
   } | null;
   selectedEvent?: EventType | null;
   onClose?: () => void;
@@ -160,18 +161,7 @@ export const ScheduleFormModal = ({
     const availability = getDayAvailability(date);
     if (!availability) return null;
 
-    const now = new Date();
-    const isToday =
-      date.getDate() === now.getDate() &&
-      date.getMonth() === now.getMonth() &&
-      date.getFullYear() === now.getFullYear();
-
-    if (!isToday) return availability;
-
-    const nowMinute = now.getHours() * 60 + now.getMinutes();
-    const startMinute = Math.max(availability.startMinute, nowMinute);
-    if (startMinute >= availability.endMinute) return null;
-    return { startMinute, endMinute: availability.endMinute };
+    return availability;
   }, [getDayAvailability]);
 
   const isDateSelectable = useCallback((date: Date) => {
@@ -252,7 +242,7 @@ export const ScheduleFormModal = ({
       ? `event:${String(selectedEvent.id)}:${selectedEvent.start}:${selectedEvent.end}:${selectedEvent.dayNumber ?? selectedEvent.day}:${selectedEvent.month}:${selectedEvent.year}:${selectedEvent.type ?? "consulta"}`
       : null;
     const selectedDateTimeKey = selectedDateTime
-      ? `date:${selectedDateTime.day}:${selectedDateTime.month ?? ""}:${selectedDateTime.year ?? ""}:${selectedDateTime.hour}`
+      ? `date:${selectedDateTime.day}:${selectedDateTime.month ?? ""}:${selectedDateTime.year ?? ""}:${selectedDateTime.hour}:${selectedDateTime.endHour ?? ""}`
       : null;
     const sourceKey = selectedEventKey ?? selectedDateTimeKey ?? "new";
 
@@ -314,7 +304,7 @@ export const ScheduleFormModal = ({
 
     if (selectedDateTime) {
       setStartHour(selectedDateTime.hour);
-      setEndHour(getEndHour(selectedDateTime.hour));
+      setEndHour(selectedDateTime.endHour || getEndHour(selectedDateTime.hour));
       setTitle("");
       setLocation("");
       setService("");
