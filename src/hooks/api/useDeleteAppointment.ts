@@ -14,7 +14,7 @@ export const useDeleteAppointment = ({ onSuccessFn }: IUseMutationParams) => {
     mutationFn: (id: string) =>
       patch({
         endpoint: `appointment/${id}/cancel`,
-        label: "Cancelamento de agendamento",
+        label: "Agendamento",
         body: {}
       }),
 

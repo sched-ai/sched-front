@@ -17,7 +17,7 @@ export const useUpdateAppointment = ({ onSuccessFn, onErrorFn }: IUseMutationPar
       update({
         endpoint: `appointment/${id}`,
         body: payload,
-        label: "Atualização de consulta",
+        label: "Agendamento",
         getErrorMessage: getAppointmentErrorMessage,
       }),
 

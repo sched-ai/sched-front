@@ -17,7 +17,7 @@ export const useDeleteTimeBlockInstance = ({ onSuccessFn }: IUseMutationParams) 
       destroyWithBody({
         endpoint: `time-blocks/${id}/instances/${date}?deleteType=${deleteType}`,
         body: { deleteType },
-        label: "Exclusão de instância de bloqueio",
+        label: "Bloqueio",
       }),
 
     onSuccess: () => {

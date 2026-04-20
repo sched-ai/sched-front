@@ -10,6 +10,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ArrowRight,
+  User,
+  BotMessageSquare,
 } from "lucide-react";
 import { format } from "date-fns";
 import { useGetAllAppointments, type AppointmentAPI } from "@/hooks/api/useGetAllAppointments";
@@ -251,7 +253,7 @@ export const Atendimentos = () => {
             <table className="w-full min-w-[760px]">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50">
-                  {["Paciente", "Serviço", "Data", "Horário", "Status", ""].map((column) => (
+                  {["Paciente", "Serviço", "Data", "Horário", "Origem", "Status", ""].map((column) => (
                     <th
                       key={column}
                       className="px-5 py-3 text-left text-xs text-slate-500 uppercase tracking-wide font-medium"
@@ -265,7 +267,7 @@ export const Atendimentos = () => {
               <tbody>
                 {isLoading ? (
                   <tr>
-                    <td colSpan={6} className="px-5 py-10 text-center text-slate-400 text-sm">
+                    <td colSpan={7} className="px-5 py-10 text-center text-slate-400 text-sm">
                       Carregando atendimentos...
                     </td>
                   </tr>
@@ -275,7 +277,7 @@ export const Atendimentos = () => {
 
                 {!isLoading && appointments.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-5 py-10 text-center text-slate-400 text-sm">
+                    <td colSpan={7} className="px-5 py-10 text-center text-slate-400 text-sm">
                       Nenhum atendimento encontrado.
                     </td>
                   </tr>
@@ -379,6 +381,19 @@ function paginatedRows(appointments: AppointmentAPI[], navigate: ReturnType<type
         <td className="px-5 py-4 text-slate-600">{atendimento.service?.name || "-"}</td>
         <td className="px-5 py-4 text-slate-600">{format(start, "dd/MM/yyyy")}</td>
         <td className="px-5 py-4 text-slate-600">{format(start, "HH:mm")}</td>
+        <td className="px-5 py-4">
+          {atendimento.createdByAI ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full w-[86px] justify-between bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
+              <BotMessageSquare className="w-3.5 h-3.5" />
+              Agente
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 rounded-full w-[86px] justify-between bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
+              <User className="w-3.5 h-3.5" />
+              Manual
+            </span>
+          )}
+        </td>
         <td className="px-5 py-4">
           <span className={`inline-flex items-center gap-1.5 ${visual.color}`}>
             <span className={`w-1.5 h-1.5 rounded-full ${visual.dot}`} />

@@ -11,7 +11,7 @@ export const useDeleteService = ({ onSuccessFn }: IUseMutationParams) => {
     mutationFn: (serviceId: string) => 
       destroy({
         endpoint: `services/${serviceId}`,
-        label: "Exclusão de Serviço",
+        label: "Serviço",
       }),
     
     onSuccess: () => {

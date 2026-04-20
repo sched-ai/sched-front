@@ -27,7 +27,7 @@ export const useUpdateService = ({ onSuccessFn }: IUseMutationParams) => {
       update({
         endpoint: `services/${id}`,
         body: payload,
-        label: "Atualização de Serviço",
+        label: "Serviço",
       }),
 
     onSuccess: (data) => {

@@ -244,8 +244,8 @@ export default function Step1({
                 <Label htmlFor="phoneNumber" className="text-sm mb-2 font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                     Número de telefone <span className="text-red-500">*</span>
                 </Label>
-                <div className="flex items-center w-full bg-white border border-slate-200 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary rounded-[10px] px-3 transition-colors overflow-hidden h-[50px] mt-0.5">
-                    <div className="flex items-center gap-2 border-r border-slate-200 text-slate-500 select-none w-fit pr-2">
+                <div className="flex items-center w-full bg-white border-2 border-[#7079839e] hover:border-primary focus-within:border-primary rounded-[10px] px-3 transition-colors overflow-hidden h-[50px] mt-0.5">
+                    <div className="flex items-center gap-2 border-r border-[#7079839e] text-slate-500 select-none w-fit pr-2">
                         <p className="font-medium leading-none text-slate-500">+55</p>
                     </div>
                     <input

@@ -22,7 +22,7 @@ export const useCreateService = ({ onSuccessFn }: IUseMutationParams) => {
       post({
         endpoint: "services",
         body: serviceData,
-        label: "Criação de Serviço",
+        label: "Serviço",
       }),
     
     onSuccess: () => {

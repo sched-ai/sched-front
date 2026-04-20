@@ -20,7 +20,7 @@ export const useCreateEmployee = ({ onSuccessFn }: IUseMutationParams) => {
       post({
         endpoint: "user/employee",
         body: employeeData,
-        label: "Criação de Funcionário",
+        label: "Funcionário",
       }),
     
     onSuccess: () => {

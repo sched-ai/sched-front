@@ -110,18 +110,49 @@ export const AppoimentContent = ({
   const isPending = isCreating || isUpdating;
 
   const rawWorkplaces = userData?.membership.company.workplaces;
-  const workplaces = Array.isArray(rawWorkplaces)
+  const allWorkplaces = Array.isArray(rawWorkplaces)
     ? rawWorkplaces
     : rawWorkplaces
       ? [rawWorkplaces]
       : [];
 
+  const workplaces = allWorkplaces.filter(wp => {
+    if (!selectedDateTime || !startHour) return true;
+    
+    const dayOfWeek = new Date(
+      selectedDateTime.year, 
+      selectedDateTime.month - 1, 
+      selectedDateTime.day
+    ).getDay();
+
+    const sched = wp.schedule?.[String(dayOfWeek)];
+    if (!sched || sched.startMinute === null || sched.endMinute === null) {
+      return false;
+    }
+
+    const [hStr, mStr] = startHour.split(":");
+    const startMins = Number(hStr) * 60 + Number(mStr);
+
+    if (startMins < sched.startMinute || startMins >= sched.endMinute) {
+      return false;
+    }
+
+    if (endHour) {
+      const [eH, eM] = endHour.split(":");
+      const endMins = Number(eH) * 60 + Number(eM);
+      if (endMins > sched.endMinute) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+
   useEffect(() => {
-    if (!location && workplaces.length > 0) {
+    if (workplaces.length > 0 && (!location || !workplaces.find((w) => String(w.id) === location))) {
       setLocation(String(workplaces[0].id));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location, workplaces]);
+  }, [workplaces, location, setLocation]);
 
   const handleCreateConsultation = (e: React.FormEvent) => {
     e.preventDefault();

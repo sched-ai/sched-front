@@ -9,7 +9,12 @@ import { useUpdateProfile } from "@/hooks/api/useUpdateProfile";
 import useToast from "@/hooks/useToast";
 import { formatCnpj, formatCpf, formatPhone } from "@/util/helper";
 import { useNavigate } from "react-router-dom";
-import type { DayKey, LocationData } from "./components/LocationModal";
+import type { DayKey, LocationData as OriginalLocationData } from "./components/LocationModal";
+
+type LocationData = OriginalLocationData & {
+  rawSchedule: { day: DayKey; start: string; end: string }[];
+  isFlexible: boolean;
+};
 
 const DAY_KEYS: DayKey[] = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
@@ -35,10 +40,22 @@ const getDayRangeSummary = (days: DayKey[]) => {
   if (days.length === 0) return "Sem dias ativos";
 
   const ordered = DAY_KEYS.filter((day) => days.includes(day));
-  if (ordered.length === 7) return "Dom - Sáb";
+  if (ordered.length === 7) return "Todos os dias";
   if (ordered.length === 1) return ordered[0];
 
-  return `${ordered[0]} - ${ordered[ordered.length - 1]}`;
+  const indices = ordered.map(d => DAY_KEYS.indexOf(d));
+  let isConsecutive = true;
+  for (let i = 1; i < indices.length; i++) {
+    if (indices[i] !== indices[i - 1] + 1) {
+      isConsecutive = false;
+      break;
+    }
+  }
+
+  if (isConsecutive) {
+    return `${ordered[0]} a ${ordered[ordered.length - 1]}`;
+  }
+  return ordered.join(", ");
 };
 
 export const Configuracoes = () => {
@@ -103,9 +120,17 @@ export const Configuracoes = () => {
         .filter((entry) => entry.value.startMinute !== null && entry.value.endMinute !== null)
         .sort((a, b) => a.day - b.day);
 
-      const activeDays = activeEntries
-        .map((entry) => DOW_TO_KEY[entry.day])
-        .filter((day): day is DayKey => Boolean(day));
+      const rawSchedule = activeEntries.map((entry) => {
+        const d = DOW_TO_KEY[entry.day];
+        return {
+          day: d,
+          start: minutesToTime(entry.value.startMinute!),
+          end: minutesToTime(entry.value.endMinute!),
+        };
+      });
+
+      const activeDays = rawSchedule.map(s => s.day).filter(Boolean);
+      const isFlexible = new Set(rawSchedule.map(s => `${s.start}-${s.end}`)).size > 1;
 
       const firstActive = activeEntries[0];
       const fallbackStart = 9 * 60;
@@ -126,6 +151,8 @@ export const Configuracoes = () => {
         activeDays: activeDays.length > 0 ? activeDays : ["Seg", "Ter", "Qua", "Qui", "Sex"],
         startTime: minutesToTime(firstActive?.value.startMinute ?? fallbackStart),
         endTime: minutesToTime(firstActive?.value.endMinute ?? fallbackEnd),
+        rawSchedule,
+        isFlexible,
       };
     });
   }, [userData]);
@@ -415,7 +442,7 @@ export const Configuracoes = () => {
                 <div className="flex gap-3">
                   <Button onClick={openAddLocation} className="bg-blue-600 hover:bg-blue-700 text-white">
                     <Plus className="w-4 h-4 mr-2" />
-                    Criar local de atendimento
+                    Adicionar
                   </Button>
                 </div>
               )}
@@ -458,7 +485,7 @@ export const Configuracoes = () => {
                           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-600">
                             <span>{locationTypeLabel}</span>
                             <span>{getDayRangeSummary(location.activeDays)}</span>
-                            <span>{location.startTime} - {location.endTime}</span>
+                            <span>{location.isFlexible ? "Horários variados" : `${location.startTime} - ${location.endTime}`}</span>
                           </div>
                         </button>
 
@@ -527,21 +554,37 @@ export const Configuracoes = () => {
                           </div>
 
                           <div>
-                            <h3 className="text-sm font-semibold text-slate-900 mb-2">Dias de atendimento</h3>
-                            <div className="flex flex-wrap gap-2 text-sm text-slate-700">
-                              {location.activeDays.length > 0 ? location.activeDays.map((day) => (
-                                <span key={`${location.id}-${day}`} className="rounded-md border border-slate-300 bg-white px-3 py-1.5">
-                                  {day}
-                                </span>
-                              )) : <span>Sem dias ativos</span>}
-                            </div>
-                          </div>
-
-                          <div>
-                            <h3 className="text-sm font-semibold text-slate-900 mb-2">Horário</h3>
-                            <p className="text-sm text-slate-700">
-                              {location.startTime} - {location.endTime}
-                            </p>
+                            <h3 className="text-sm font-semibold text-slate-900 mb-3">Horários de atendimento</h3>
+                            {location.isFlexible ? (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-sm text-slate-700">
+                                {location.rawSchedule.map((s) => (
+                                  <div key={s.day} className="flex justify-between items-center rounded-md border border-slate-200 bg-white px-3 py-2">
+                                    <span className="font-medium text-slate-900">{s.day}</span>
+                                    <span>{s.start} - {s.end}</span>
+                                  </div>
+                                ))}
+                                {location.rawSchedule.length === 0 && (
+                                  <span className="col-span-full">Sem dias ativos</span>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="flex flex-wrap gap-2 text-sm text-slate-700">
+                                {location.activeDays.length > 0 ? (
+                                  <>
+                                    {location.activeDays.map((day) => (
+                                      <span key={`${location.id}-${day}`} className="rounded-md border border-slate-300 bg-white px-3 py-1.5">
+                                        {day}
+                                      </span>
+                                    ))}
+                                    <span className="rounded-md border border-slate-200 bg-slate-100 flex items-center justify-center px-4 py-1.5 font-medium ml-1">
+                                      {location.startTime} - {location.endTime}
+                                    </span>
+                                  </>
+                                ) : (
+                                  <span>Sem dias ativos</span>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
                       )}

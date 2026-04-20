@@ -14,7 +14,7 @@ export const useDeleteTimeBlock = ({ onSuccessFn }: IUseMutationParams) => {
     mutationFn: (id: string) =>
       destroy({
         endpoint: `time-blocks/${id}`,
-        label: "Exclusão de bloqueio",
+        label: "Bloqueio",
       }),
 
     onSuccess: () => {

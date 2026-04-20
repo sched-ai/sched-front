@@ -12,6 +12,7 @@ export interface AppointmentAPI {
   clientName: string | null;
   workplaceId: string | null;
   serviceId: string | null;
+  createdByAI: boolean;
   employee?: { name: string } | null;
   client?: { 
     id?: string;
