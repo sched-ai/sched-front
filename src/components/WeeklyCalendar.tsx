@@ -349,12 +349,12 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                   return (
                     <div
                       key={day}
-                      className={`py-4 text-center flex flex-col items-center gap-1.5 ${idx >= 5 ? 'bg-gray-50/40' : ''}`}
+                      className={`py-3 text-center flex flex-col items-center gap-1.5 ${idx >= 5 ? 'bg-gray-50/40' : ''}`}
                     >
                       <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${isToday ? 'text-blue-600' : 'text-gray-400'}`}>
                         {day.substring(0, 3)}
                       </span>
-                      <div className={`text-xl font-medium flex items-center justify-center w-9 h-9 rounded-full transition-all duration-300 ${
+                      <div className={`text-[14px] font-medium flex items-center justify-center w-7 h-7 rounded-full transition-all duration-300 ${
                         isToday 
                           ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30 scale-110" 
                           : "text-gray-700 hover:bg-gray-100"

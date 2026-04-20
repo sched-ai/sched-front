@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Building2, Globe } from 'lucide-react';
 import axios from 'axios';
 
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import CustomRadioInput from '@/components/CustomRadioInput';
 
 import { useUser } from '@/context/user';
 import { useCreateWorkplace } from '@/hooks/api/useCreateWorkplace';
+import { useCreateOnlineWorkplace } from '@/hooks/api/useCreateOnlineWorkplace';
 import { useUpdateWorkplaceAddress } from '@/hooks/api/useUpdateWorkplaceAddress';
 import { useUpdateWorkplaceSchedule, type WorkplaceSchedule } from '@/hooks/api/useUpdateWorkplaceSchedule';
 import useToast from '@/hooks/useToast';
@@ -54,12 +55,31 @@ const getSectionStatusClass = (isDirty: boolean, isSaving: boolean) => {
 
 type SaveSectionOutcome = 'saved' | 'invalid' | 'failed';
 
+type WorkplaceScheduleEntry = {
+  startMinute: number | null;
+  endMinute: number | null;
+};
+
+type WorkplaceFromUser = {
+  id: string;
+  nickname?: string;
+  isOnline?: boolean;
+  address?: string;
+  neighborhood?: string;
+  number?: string;
+  complement?: string;
+  city?: string;
+  state?: string;
+  schedule?: Record<string, WorkplaceScheduleEntry | null> | null;
+};
+
 export default function LocationSettings() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { userData, refreshUser } = useUser();
   const { showToast } = useToast();
   const { mutateAsync: createWorkplace, isPending: isCreatingWorkplace } = useCreateWorkplace();
+  const { mutateAsync: createOnlineWorkplace, isPending: isCreatingOnlineWorkplace } = useCreateOnlineWorkplace();
   const { mutateAsync: updateWorkplaceAddress, isPending: isSavingAddress } = useUpdateWorkplaceAddress();
   const { mutateAsync: updateWorkplaceSchedule, isPending: isSavingSchedule } = useUpdateWorkplaceSchedule();
 
@@ -153,9 +173,9 @@ export default function LocationSettings() {
         ? userData.membership.company.workplaces
         : [userData.membership.company.workplaces];
 
-      const wp = workplaces.find((w: any) => w.id === id);
+      const wp = (workplaces as WorkplaceFromUser[]).find((w) => w.id === id);
       if (wp) {
-        const isOnline = (wp.nickname || "").toLowerCase().includes("online");
+        const isOnline = Boolean(wp.isOnline);
         setAttendOnline(isOnline);
 
         setLocationForm({
@@ -172,17 +192,25 @@ export default function LocationSettings() {
 
         // Map schedule from minutes to time strings if available
         if (wp.schedule) {
-          const newSchedule = { ...schedule };
+          const newSchedule: Record<DayKey, DaySchedule> = {
+            segunda: { working: true, start: '09:00', end: '18:00' },
+            terça: { working: true, start: '09:00', end: '18:00' },
+            quarta: { working: true, start: '09:00', end: '18:00' },
+            quinta: { working: true, start: '09:00', end: '18:00' },
+            sexta: { working: true, start: '09:00', end: '18:00' },
+            sábado: { working: false, start: '09:00', end: '12:00' },
+            domingo: { working: false, start: '09:00', end: '12:00' },
+          };
           let isFixo = true;
           let firstStart: string | null = null;
           let firstEnd: string | null = null;
           const mapDOW: Record<number, DayKey> = { 0: "domingo", 1: "segunda", 2: "terça", 3: "quarta", 4: "quinta", 5: "sexta", 6: "sábado" };
 
           const loadedDays: DayKey[] = [];
-          Object.entries(wp.schedule).forEach(([dayIdx, val]: [string, any]) => {
+          Object.entries(wp.schedule as Record<string, WorkplaceScheduleEntry | null>).forEach(([dayIdx, val]) => {
             const numDay = Number(dayIdx);
             const dayKey = mapDOW[numDay];
-            if (dayKey && val.startMinute !== null && val.endMinute !== null) {
+            if (dayKey && val && val.startMinute !== null && val.endMinute !== null) {
               const startH = String(Math.floor(val.startMinute / 60)).padStart(2, "0");
               const startM = String(val.startMinute % 60).padStart(2, "0");
               const endH = String(Math.floor(val.endMinute / 60)).padStart(2, "0");
@@ -394,7 +422,7 @@ export default function LocationSettings() {
   };
 
   const hasUnsavedChanges = isAddressDirty || isScheduleDirty;
-  const isSavingAny = isSavingAddress || isSavingSchedule || isCreatingWorkplace;
+  const isSavingAny = isSavingAddress || isSavingSchedule || isCreatingWorkplace || isCreatingOnlineWorkplace;
 
   const buildSchedulePayload = (): WorkplaceSchedule | null => {
     if (scheduleMode === 'fixo' && fixedDays.length === 0) {
@@ -502,7 +530,7 @@ export default function LocationSettings() {
     }
 
     if (!isEditing) {
-      if (!locationForm.address || !locationForm.city || !locationForm.state || !locationForm.neighborhood || !locationForm.number || !locationForm.name) {
+      if (!attendOnline && (!locationForm.address || !locationForm.city || !locationForm.state || !locationForm.neighborhood || !locationForm.number || !locationForm.name)) {
         showToast({
           label: 'Atenção',
           message: 'Preencha todos os campos obrigatórios do endereço (incluindo apelido).',
@@ -515,16 +543,23 @@ export default function LocationSettings() {
       if (!payloadSchedule) return;
 
       try {
-        await createWorkplace({
-          nickname: locationForm.name.trim(),
-          address: locationForm.address.trim(),
-          number: locationForm.number.trim(),
-          neighborhood: locationForm.neighborhood.trim(),
-          city: locationForm.city.trim(),
-          state: locationForm.state.trim(),
-          complement: locationForm.complement?.trim() || '',
-          schedule: payloadSchedule,
-        });
+        if (attendOnline) {
+          await createOnlineWorkplace({
+            nickname: locationForm.name?.trim() || 'Atendimento Online',
+            schedule: payloadSchedule,
+          });
+        } else {
+          await createWorkplace({
+            nickname: locationForm.name?.trim() || "",
+            address: locationForm.address?.trim() || "",
+            number: locationForm.number?.trim() || "",
+            neighborhood: locationForm.neighborhood?.trim() || "",
+            city: locationForm.city?.trim() || "",
+            state: locationForm.state?.trim() || "",
+            complement: locationForm.complement?.trim() || "",
+            schedule: payloadSchedule,
+          });
+        }
 
         setIsAddressDirty(false);
         setIsScheduleDirty(false);
@@ -618,6 +653,47 @@ export default function LocationSettings() {
             <ArrowLeft className="w-5 h-5 text-slate-800" /> Voltar
           </Button>
         </div>
+
+        {!isEditing && (
+          <div className="border border-border rounded-lg bg-card shadow-sm p-6 space-y-6">
+            <div>
+              <h2 className="text-lg font-semibold">Qual é o tipo deste local?</h2>
+              <p className="text-sm text-muted-foreground mt-1">Selecione se os atendimentos neste local serão presenciais ou remotos.</p>
+            </div>
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <CustomRadioInput
+                  label="Endereço Físico"
+                  htmlFor="tipoFisico"
+                  name="tipoLocal"
+                  Icon={Building2}
+                  value="fisico"
+                  checked={!attendOnline}
+                  subtitle="Consultório ou escritório físico"
+                  onChange={() => {
+                    setAttendOnline(false);
+                    setIsAddressDirty(true);
+                  }}
+                />
+              </div>
+              <div className="flex-1">
+                <CustomRadioInput
+                  label="Atendimento Online"
+                  htmlFor="tipoOnline"
+                  name="tipoLocal"
+                  Icon={Globe}
+                  value="online"
+                  checked={attendOnline}
+                  subtitle="Atendimentos remotos por vídeo"
+                  onChange={() => {
+                    setAttendOnline(true);
+                    setIsAddressDirty(true);
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Formulário do Local */}
         {!attendOnline ? (

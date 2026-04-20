@@ -22,6 +22,7 @@ export interface IMembership {
       city: string;
       complement: string | null;
       id: string;
+      isOnline: boolean;
       neighborhood: string;
       nickname: string;
       number: string;

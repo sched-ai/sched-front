@@ -4,14 +4,14 @@ import { useState } from "react";
 import { format, addWeeks, subWeeks } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ScheduleFormModal } from "@/components/ScheduleFormModal";
-import { ListFilter, Plus } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Plus } from "lucide-react";
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from "@/components/ui/select";
 import useGetCalendar from "@/hooks/api/useGetCalendar";
 import { Spinner } from "@/components/ui/spinner";
 import { ScheduleViewModal } from "@/components/ScheduleViewModal";
@@ -20,9 +20,9 @@ import { capitalizeFirst } from "@/util/helper";
 export const Home = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isScheduleFormOpen, setIsScheduleFormOpen] = useState(false);
-  const [filterType, setFilterType] = useState<"all" | "consulta" | "bloqueio">(
-    "all",
-  );
+  // const [filterType, setFilterType] = useState<"all" | "consulta" | "bloqueio">(
+  //   "all",
+  // );
 
   const handlePreviousWeek = () => {
     setCurrentDate((prev) => subWeeks(prev, 1));
@@ -283,7 +283,7 @@ export const Home = () => {
           </div>
           <div className="flex items-center gap-3">
             <Button
-              className="h-[48px] !text-[15px] font-medium bg-gradient-to-r from-blue-700 to-blue-600 hover:from-blue-800 hover:to-blue-700 text-white shadow-lg shadow-blue-500/20 transition-all duration-300 hover:shadow-blue-500/30 rounded-xl px-6"
+              className="h-[48px] !text-[15px] font-medium bg-gradient-to-r bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20 transition-all duration-300 hover:shadow-blue-500/30 rounded-xl px-6"
               onClick={() => {
                 setIsScheduleViewOpen(false);
                 setScheduleViewDetails(null);
@@ -293,7 +293,7 @@ export const Home = () => {
             >
               <Plus className="w-5 h-5 mr-1" /> Agendar
             </Button>
-            <Select
+            {/* <Select
               value={filterType}
               onValueChange={(value: "all" | "consulta" | "bloqueio") =>
                 setFilterType(value)
@@ -316,7 +316,7 @@ export const Home = () => {
                   Bloqueios
                 </SelectItem>
               </SelectContent>
-            </Select>
+            </Select> */}
           </div>
         </div>
       </header>
@@ -333,7 +333,7 @@ export const Home = () => {
               currentDate={currentDate}
               onDateClick={handleDateClick}
               onEventClick={handleEventClick}
-              filterType={filterType}
+              filterType={'all'}
               isDraftVisible={isScheduleFormOpen}
               draftEvent={scheduleDraftEvent}
             />

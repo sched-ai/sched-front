@@ -111,7 +111,7 @@ export const Configuracoes = () => {
       const fallbackStart = 9 * 60;
       const fallbackEnd = 18 * 60;
 
-      const isOnline = (wp.nickname ?? "").toLowerCase().includes("online");
+      const isOnline = Boolean(wp.isOnline);
 
       return {
         id: wp.id,
