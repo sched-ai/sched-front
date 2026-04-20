@@ -25,6 +25,7 @@ interface AppointmentAPI {
   startDate: string;
   endDate: string;
   clientName?: string | null;
+  serviceName?: string | null;
   serviceId?: string | null;
   workplaceId?: string | null;
   workplaceName?: string | null;
@@ -129,6 +130,7 @@ const toAppointmentEvent = (a: AppointmentAPI): EventType => {
     workplaceId: a.workplaceId ?? undefined,
     workplaceName: a.workplaceName ?? undefined,
     serviceId: a.serviceId ?? undefined,
+    services: a.serviceName ? [a.serviceName] : [],
     employeeId: a.employeeId ?? undefined,
     professionalName: a.professionalName ?? undefined,
     createdByAI: Boolean(a.createdByAI),

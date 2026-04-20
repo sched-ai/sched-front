@@ -10,7 +10,7 @@ export const useGetService = (id: string, enabled = true) => {
     enabled: !!id && enabled,
     queryFn: async () => {
       const response = await get({
-        endpoint: `services/${id}`,
+        endpoint: `services/${id}?includeDeleted=true`,
         label: "Serviço",
         showSuccessFeedback: false,
       });

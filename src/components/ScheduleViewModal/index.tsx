@@ -40,10 +40,11 @@ export const ScheduleViewModal = ({
 }: IProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const hasServiceFallback = Boolean(details?.services && details.services.length > 0);
 
   const { data: service, isLoading: isLoadingService } = useGetService(
     details?.serviceId ?? "",
-    isOpen && !!details?.serviceId
+    isOpen && !!details?.serviceId && !hasServiceFallback
   );
 
   const handleDeleteClick = () => {
