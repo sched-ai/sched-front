@@ -79,6 +79,11 @@ export const Step5 = () => {
   };
 
   const removeService = (id: string) => {
+    if (services.length <= 1) {
+      toast("Cadastre pelo menos um serviço para concluir o onboarding.");
+      return;
+    }
+
     setServices((prev) => prev.filter((svc) => svc.id !== id));
   };
 
@@ -232,10 +237,6 @@ export const Step5 = () => {
 
           <ActionButtons services={services} />
         </div>
-
-        <div className="ml-auto flex items-center gap-3">
-          <SkipButton />
-        </div>
       </div>
     </div>
   );
@@ -311,23 +312,8 @@ function ActionButtons({ services }: { services: Service[] }) {
         disabled={!canProceed || isSaving}
         className="px-4 font-medium"
       >
-        {isSaving ? "Salvando..." : "Salvar"}
+        {isSaving ? "Salvando..." : "Salvar e concluir"}
       </Button>
     </>
-  );
-}
-
-function SkipButton() {
-  const { mutate: nextStep } = useNextStep({});
-
-  const handleSkip = () => {
-    toast("Onboarding concluído com sucesso!");
-    nextStep();
-  };
-
-  return (
-    <Button type="button" variant="ghost" className="px-6" onClick={handleSkip}>
-      Pular
-    </Button>
   );
 }
