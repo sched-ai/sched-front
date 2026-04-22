@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import useAPI from "./useAPI";
 
 export interface MonitoringPaginationMeta {
@@ -126,7 +126,6 @@ export const useGetMonitoringSessionMessages = ({
       const params = new URLSearchParams();
       params.append("page", String(page));
       params.append("limit", String(limit));
-
       return get({
         endpoint: `sched-ai/monitoring/sessions/${sessionId}/messages?${params.toString()}`,
         label: "Mensagens da sessão",
@@ -135,3 +134,19 @@ export const useGetMonitoringSessionMessages = ({
     },
   });
 };
+
+export const useSendMonitoringMessage = () => {
+  const { post } = useAPI<{ success: boolean; messageId: number }>();
+
+  return useMutation({
+    mutationFn: async ({ sessionId, text }: { sessionId: string; text: string }) => {
+      return post({
+        endpoint: `sched-ai/monitoring/sessions/${sessionId}/messages`,
+        body: { text },
+        label: "Enviar mensagem",
+        showSuccessFeedback: false,
+      });
+    },
+  });
+};
+

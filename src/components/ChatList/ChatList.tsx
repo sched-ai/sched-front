@@ -1,4 +1,3 @@
-import { Search, MoreVertical } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { Contact } from "../ChatWindow/ChatWindow";
 
@@ -31,14 +30,14 @@ export function ChatList({ contacts, selectedContact, onSelectContact }: ChatLis
           <h2 className="text-slate-900 font-semibold">Conversas</h2>
           <p className="text-xs text-slate-600 mt-1">Histórico agrupado por usuário</p>
         </div>
-        <div className="flex gap-2 text-slate-600">
+        {/* <div className="flex gap-2 text-slate-600">
           <button className="inline-flex items-center justify-center h-8 w-8 rounded-md border border-slate-200 text-slate-600 hover:bg-slate-100 transition-colors">
             <Search className="size-4" />
           </button>
           <button className="inline-flex items-center justify-center h-8 w-8 rounded-md border border-slate-200 text-slate-600 hover:bg-slate-100 transition-colors">
             <MoreVertical className="size-4" />
           </button>
-        </div>
+        </div> */}
       </div>
 
       <div className="p-3 border-b border-border bg-white">
@@ -51,7 +50,7 @@ export function ChatList({ contacts, selectedContact, onSelectContact }: ChatLis
         />
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto custom-scrollbar">
         {filteredContacts.map((contact) => (
           <button
             key={contact.id}
@@ -84,7 +83,7 @@ export function ChatList({ contacts, selectedContact, onSelectContact }: ChatLis
 
         {!filteredContacts.length && (
           <div className="p-6 text-center text-sm text-slate-600">
-            Nenhuma conversa encontrada para o filtro informado.
+            Nenhuma conversa encontrada
           </div>
         )}
       </div>

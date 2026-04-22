@@ -52,18 +52,27 @@
 
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #141736 #f1f1f1;
+  scrollbar-color: rgba(100, 116, 139, 0.45) transparent;
+  scrollbar-gutter: stable;
 }
 .custom-scrollbar::-webkit-scrollbar {
-  width: 8px;
-  position: relative;
+  width: 10px;
+  height: 10px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #141736;
-  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(148, 163, 184, 0.28) 0%, rgba(100, 116, 139, 0.5) 100%);
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+  min-height: 40px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(148, 163, 184, 0.38) 0%, rgba(71, 85, 105, 0.6) 100%);
+  background-clip: padding-box;
 }
 
 .patient-form-scroll {
