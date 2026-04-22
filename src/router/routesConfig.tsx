@@ -14,6 +14,7 @@ import LandingPage from '../pages/LandingPage'
 import LegalPage from '../pages/LegalPage'
 import { Configuracoes } from '@/pages/Configuracoes'
 import LocationSettings from '@/pages/Configuracoes/LocationSettings'
+import { SchedAI } from '@/pages/SchedAI'
 import { ForgotPassword } from '@/pages/ForgotPassword'
 import { ResetPassword } from '@/pages/ResetPassword'
 
@@ -130,6 +131,12 @@ export const routesConfig: RouteConfig[] = [
   {
     path: '/settings/locations/:id/edit',
     element: <LocationSettings />,
+    template: true,
+    authRoute: true
+  },
+  {
+    path: '/sched-ai',
+    element: <SchedAI />,
     template: true,
     authRoute: true
   },

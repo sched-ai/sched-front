@@ -8,7 +8,7 @@ import {
   useSidebar,
 } from "../../components/ui/sidebar";
 import { NavItem } from "../NavItem";
-import { BriefcaseBusiness, CalendarFold, LogOut, NotepadText, Users, Settings } from "lucide-react";
+import { BriefcaseBusiness, CalendarFold, LogOut, NotepadText, Users, Settings, BotMessageSquare } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { logout } from "@/services/storage";
 import { useNavigate } from "react-router-dom";
@@ -59,6 +59,15 @@ export function AppSidebar() {
                 icon={CalendarFold}
                 iconSize={isSidebarOpen ? 24 : 28}
                 href="/"
+                isSidebarOpen={isSidebarOpen}
+              />
+            </SidebarGroup>
+             <SidebarGroup title="Inteligência Sched" className="p-0 gap-2">
+              <NavItem
+                title="Sched AI"
+                icon={BotMessageSquare}
+                iconSize={isSidebarOpen ? 24 : 28}
+                href="/sched-ai"
                 isSidebarOpen={isSidebarOpen}
               />
             </SidebarGroup>
