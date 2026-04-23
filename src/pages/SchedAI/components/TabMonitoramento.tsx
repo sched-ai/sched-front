@@ -5,13 +5,15 @@ import {
   useGetMonitoringUserSessions,
   useGetMonitoringUsers,
   useSendMonitoringMessage,
+  type MonitoringMessagesResponse,
 } from "@/hooks/api/useSchedAiMonitoring"
 import { formatBusinessHour } from "@/lib/dateTime"
 import { formatPhone } from "@/util/helper"
 import { BotMessageSquare } from "lucide-react"
-import { useEffect, useMemo, useState, type ReactNode } from "react"
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { StorageService } from "@/services"
+import useAPI from "@/hooks/api/useAPI"
 
 const toAvatarLabel = (name: string) => {
   const words = name.split(" ").filter(Boolean)
@@ -45,6 +47,9 @@ export function TabMonitoramento({ headerAction }: { headerAction?: ReactNode } 
   const [loadedMessages, setLoadedMessages] = useState<Message[]>([])
   const [hasMoreMessages, setHasMoreMessages] = useState(true)
   const [hasNextPageInSession, setHasNextPageInSession] = useState(false)
+  const [isFetchingOlder, setIsFetchingOlder] = useState(false)
+
+  const { get } = useAPI<MonitoringMessagesResponse>()
 
   const { mutateAsync: sendMessage, isPending: isSending } = useSendMonitoringMessage()
 
@@ -110,13 +115,16 @@ export function TabMonitoramento({ headerAction }: { headerAction?: ReactNode } 
     }))
   }, [sessionsQuery.data])
 
-  const activeSessionId = sessions[sessionCursor]?.sessionId
+  const latestSessionId = sessions[0]?.sessionId
+  const activeSessionId = latestSessionId
 
+  // A query principal SEMPRE aponta para a sessão mais recente, garantindo que
+  // updates do SSE (que invalidam a query) sempre busquem as novas mensagens.
   const messagesQuery = useGetMonitoringSessionMessages({
-    sessionId: activeSessionId,
-    page: sessionPage,
+    sessionId: latestSessionId,
+    page: 1,
     limit: 30,
-    enabled: Boolean(selectedContact?.id && activeSessionId),
+    enabled: Boolean(selectedContact?.id && latestSessionId),
   })
 
   useEffect(() => {
@@ -167,34 +175,99 @@ export function TabMonitoramento({ headerAction }: { headerAction?: ReactNode } 
 
     setLoadedMessages((current) => mergeOlderMessages(incomingMessages, current))
 
-    const hasNextPage = Boolean(messagesQuery.data.meta.hasNextPage)
-    setHasNextPageInSession(hasNextPage)
-    setHasMoreMessages(hasNextPage || sessionCursor < sessions.length - 1)
-  }, [messagesQuery.data, sessionCursor, sessions.length])
-
-  const handleLoadOlderMessages = () => {
-    if (!activeSessionId) return
-    if (messagesQuery.isFetching || !hasMoreMessages) return
-
-    if (hasNextPageInSession) {
-      setSessionPage((current) => current + 1)
-      return
+    // Só atualizamos os metadados de paginação se ainda estivermos no início
+    if (sessionCursor === 0 && sessionPage === 1) {
+      const hasNextPage = Boolean(messagesQuery.data.meta.hasNextPage)
+      setHasNextPageInSession(hasNextPage)
+      setHasMoreMessages(hasNextPage || sessions.length > 1)
     }
+  }, [messagesQuery.data, sessionCursor, sessionPage, sessions.length])
 
-    if (sessionCursor < sessions.length - 1) {
-      setSessionCursor((current) => current + 1)
-      setSessionPage(1)
-      return
+  const handleLoadOlderMessages = useCallback(async () => {
+    if (!selectedContact?.id || !hasMoreMessages || isFetchingOlder || messagesQuery.isFetching) return
+    setIsFetchingOlder(true)
+
+    try {
+      let targetCursor = sessionCursor
+      let targetPage = sessionPage
+
+      if (hasNextPageInSession) {
+        targetPage += 1
+      } else if (sessionCursor < sessions.length - 1) {
+        targetCursor += 1
+        targetPage = 1
+      } else {
+        setHasMoreMessages(false)
+        setIsFetchingOlder(false)
+        return
+      }
+
+      const targetSessionId = sessions[targetCursor].sessionId
+      const params = new URLSearchParams()
+      params.append("page", String(targetPage))
+      params.append("limit", "30")
+
+      const response = await get({
+        endpoint: `sched-ai/monitoring/sessions/${targetSessionId}/messages?${params.toString()}`,
+        label: "Mensagens antigas",
+        showSuccessFeedback: false,
+      })
+
+      if (response && response.data) {
+        const incomingMessages = response.data.map((message) => ({
+          id: message.id,
+          text: message.text,
+          timestamp: message.timestamp || "Sem horário",
+          sent: message.sent,
+          sessionId: message.sessionId,
+        }))
+
+        setLoadedMessages((current) => mergeOlderMessages(incomingMessages, current))
+        setSessionCursor(targetCursor)
+        setSessionPage(targetPage)
+        
+        const hasNext = Boolean(response.meta?.hasNextPage)
+        setHasNextPageInSession(hasNext)
+        setHasMoreMessages(hasNext || targetCursor < sessions.length - 1)
+      }
+    } catch (e) {
+      console.error("Erro ao carregar mensagens antigas", e)
+    } finally {
+      setIsFetchingOlder(false)
     }
+  }, [
+    selectedContact?.id,
+    hasMoreMessages,
+    isFetchingOlder,
+    messagesQuery.isFetching,
+    hasNextPageInSession,
+    sessionCursor,
+    sessionPage,
+    sessions,
+    get
+  ])
 
-    setHasMoreMessages(false)
-  }
+  // Auto-load de sessões antigas caso a sessão atual não preencha o limite de 30 mensagens
+  // Isso garante que haja mensagens suficientes para gerar o scrollbar
+  useEffect(() => {
+    if (
+      loadedMessages.length > 0 &&
+      loadedMessages.length < 30 &&
+      hasMoreMessages &&
+      !messagesQuery.isFetching
+    ) {
+      const timer = setTimeout(() => {
+        handleLoadOlderMessages()
+      }, 100)
+      return () => clearTimeout(timer)
+    }
+  }, [loadedMessages.length, hasMoreMessages, messagesQuery.isFetching, handleLoadOlderMessages])
 
   const isInitialMessagesLoading =
     selectedContact !== null &&
     (sessionsQuery.isLoading || (messagesQuery.isLoading && loadedMessages.length === 0))
 
-  const isLoadingOlderMessages = messagesQuery.isFetching && loadedMessages.length > 0
+  const isLoadingOlderMessages = isFetchingOlder
 
   const handleSendMessage = async (text: string) => {
     if (!activeSessionId) return

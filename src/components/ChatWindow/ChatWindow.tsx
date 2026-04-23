@@ -1,6 +1,6 @@
 import { MessageSquareText, ChevronDown, Send, Loader2 } from "lucide-react";
 import { formatBusinessHour } from "@/lib/dateTime";
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface ChatWindowProps {
@@ -53,7 +53,7 @@ const formatDateBadge = (value: string) => {
   if (value === "sem-data") return "Sem data";
 
   const today = new Date();
-  const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  const todayKey = `${today.getUTCFullYear()}-${String(today.getUTCMonth() + 1).padStart(2, "0")}-${String(today.getUTCDate()).padStart(2, "0")}`;
   if (value === todayKey) return "HOJE";
 
   const parsed = new Date(`${value}T00:00:00`);
@@ -90,11 +90,22 @@ export function ChatWindow({
   const isAtBottomRef = useRef(true);
   const prevMessagesLengthRef = useRef(0);
 
-  const messagesWithDate = useMemo(() => {
-    return messages.map((message) => ({
-      ...message,
-      dateKey: toDateKey(message.timestamp),
-    }));
+  const groupedMessages = useMemo(() => {
+    const groups: { dateKey: string; messages: (Message & { dateKey: string })[] }[] = [];
+    
+    messages.forEach((message) => {
+      const dateKey = toDateKey(message.timestamp);
+      let currentGroup = groups[groups.length - 1];
+      
+      if (!currentGroup || currentGroup.dateKey !== dateKey) {
+        currentGroup = { dateKey, messages: [] };
+        groups.push(currentGroup);
+      }
+      
+      currentGroup.messages.push({ ...message, dateKey });
+    });
+
+    return groups;
   }, [messages]);
 
   const handleScroll = () => {
@@ -109,7 +120,7 @@ export function ChatWindow({
     }
 
     if (
-      element.scrollTop <= 16 &&
+      element.scrollTop <= 50 &&
       hasMoreMessages &&
       !isLoadingMessages &&
       !isLoadingOlderMessages &&
@@ -120,11 +131,26 @@ export function ChatWindow({
       shouldPreserveScrollRef.current = true;
       loadLockRef.current = true;
 
-      Promise.resolve(onLoadOlderMessages()).finally(() => {
+      onLoadOlderMessages();
+
+      // Fallback de segurança para liberar o lock caso o carregamento seja instantâneo (ex: cache)
+      setTimeout(() => {
         loadLockRef.current = false;
-      });
+      }, 800);
     }
   };
+
+  useEffect(() => {
+    if (isLoadingOlderMessages) {
+      loadLockRef.current = true;
+    } else {
+      // Libera o lock quando o carregamento termina
+      const timer = setTimeout(() => {
+        loadLockRef.current = false;
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoadingOlderMessages]);
 
   useEffect(() => {
     const currentContactId = contact?.id || null;
@@ -178,7 +204,10 @@ export function ChatWindow({
   const scrollToBottom = () => {
     const element = scrollContainerRef.current;
     if (!element) return;
-    element.scrollTop = element.scrollHeight;
+    element.scrollTo({
+      top: element.scrollHeight,
+      behavior: "smooth"
+    });
     setShowScrollButton(false);
   };
 
@@ -247,21 +276,16 @@ export function ChatWindow({
             </div>
           )}
 
-          {!isLoadingMessages && messagesWithDate.map((message, index) => {
-            const previousMessage = messagesWithDate[index - 1];
-            const hasDateChange = !previousMessage || previousMessage.dateKey !== message.dateKey;
+          {!isLoadingMessages && groupedMessages.map((group) => (
+            <div key={group.dateKey} className="flex flex-col space-y-3">
+              <div className="flex items-center justify-center py-2 sticky top-2 z-10">
+                <span className="inline-flex items-center rounded-full border border-slate-200 bg-white/95 backdrop-blur-sm px-3 py-1 text-[11px] font-medium text-slate-600 shadow-sm">
+                  {formatDateBadge(group.dateKey)}
+                </span>
+              </div>
 
-            return (
-              <Fragment key={`${message.sessionId || "session"}-${message.id}`}>
-                {hasDateChange && (
-                  <div className="flex items-center justify-center py-2">
-                    <span className="inline-flex items-center rounded-full border border-slate-200 bg-white/90 px-3 py-1 text-[11px] font-medium text-slate-600 shadow-sm">
-                      {formatDateBadge(message.dateKey)}
-                    </span>
-                  </div>
-                )}
-
-                <div className={`flex ${message.sent ? "justify-end" : "justify-start"}`}>
+              {group.messages.map((message) => (
+                <div key={`${message.sessionId || "session"}-${message.id}`} className={`flex ${message.sent ? "justify-end" : "justify-start"}`}>
                   <div
                     className={`max-w-md px-3 py-2 rounded-lg border shadow-sm ${
                       message.sent
@@ -279,22 +303,22 @@ export function ChatWindow({
                     </span>
                   </div>
                 </div>
-              </Fragment>
-            );
-          })}
+              ))}
+            </div>
+          ))}
         </div>
       </div>
 
       {showScrollButton && (
         <button
           onClick={scrollToBottom}
-          className="absolute bottom-20 right-8 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-all flex items-center justify-center animate-in fade-in slide-in-from-bottom-4 z-10"
+          className="absolute bottom-20 right-8 p-3 bg-green-500 text-white rounded-full shadow-lg hover:bg-green-400 cursor-pointer transition-all flex items-center justify-center animate-in fade-in slide-in-from-bottom-4 z-10"
           title="Novas mensagens"
         >
           <ChevronDown className="size-5" />
           <span className="absolute -top-1 -right-1 flex h-3 w-3">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500 border-2 border-white"></span>
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500 border-2 border-white"></span>
           </span>
         </button>
       )}
