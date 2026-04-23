@@ -102,6 +102,36 @@
   background-clip: padding-box;
 }
 
+html.landing-page-scroll,
+body.landing-page-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.5) rgba(148, 163, 184, 0.15);
+}
+
+html.landing-page-scroll::-webkit-scrollbar,
+body.landing-page-scroll::-webkit-scrollbar {
+  width: 12px;
+}
+
+html.landing-page-scroll::-webkit-scrollbar-track,
+body.landing-page-scroll::-webkit-scrollbar-track {
+  background: #fff;
+}
+
+html.landing-page-scroll::-webkit-scrollbar-thumb,
+body.landing-page-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(21, 93, 252, 0.45) 0%, rgba(37, 99, 235, 0.65) 100%);
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+}
+
+html.landing-page-scroll::-webkit-scrollbar-thumb:hover,
+body.landing-page-scroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(21, 93, 252, 0.55) 0%, rgba(30, 64, 175, 0.78) 100%);
+  background-clip: padding-box;
+}
+
 body {
   min-height: 100vh;
   height: 100%;

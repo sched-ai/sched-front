@@ -10,6 +10,7 @@ function useOnScreen(options: IntersectionObserverInit) {
     const [isVisible, setVisible] = useState(false)
 
     useEffect(() => {
+        const currentRef = ref.current
         const observer = new IntersectionObserver(([entry]) => {
             if (entry.isIntersecting) {
                 setVisible(true)
@@ -17,12 +18,12 @@ function useOnScreen(options: IntersectionObserverInit) {
             }
         }, options)
 
-        if (ref.current) {
-            observer.observe(ref.current)
+        if (currentRef) {
+            observer.observe(currentRef)
         }
 
         return () => {
-            if (ref.current) observer.unobserve(ref.current)
+            if (currentRef) observer.unobserve(currentRef)
         }
     }, [ref, options])
 
@@ -169,6 +170,20 @@ export default function LandingPage() {
         const handleScroll = () => setScrolled(window.scrollY > 20)
         window.addEventListener('scroll', handleScroll)
         return () => window.removeEventListener('scroll', handleScroll)
+    }, [])
+
+    useEffect(() => {
+        const previousScrollBehavior = document.documentElement.style.scrollBehavior
+
+        document.documentElement.classList.add('landing-page-scroll')
+        document.body.classList.add('landing-page-scroll')
+        document.documentElement.style.scrollBehavior = 'smooth'
+
+        return () => {
+            document.documentElement.classList.remove('landing-page-scroll')
+            document.body.classList.remove('landing-page-scroll')
+            document.documentElement.style.scrollBehavior = previousScrollBehavior
+        }
     }, [])
 
     useEffect(() => {
