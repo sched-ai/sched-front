@@ -230,7 +230,7 @@ export function TabMonitoramento({ headerAction }: { headerAction?: ReactNode } 
             <div>
               <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Monitoramento de Conversas</h3>
               <p className="text-sm text-muted-foreground">
-                Conversas agrupadas por usuário, com histórico contínuo em lotes de 30 mensagens.
+                Acompanhe as conversas da IA com seus pacientes de forma organizada e em tempo real.
               </p>
             </div>
           </div>
