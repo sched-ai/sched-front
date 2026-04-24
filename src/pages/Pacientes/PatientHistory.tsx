@@ -17,6 +17,7 @@ import {
 
 import { DeleteNoteModal } from "@/components/DeleteNoteModal";
 import { PatientHeader } from "@/components/PatientHeader";
+import { RichTextNoteEditor } from "@/components/RichTextNoteEditor";
 import { Button } from "@/components/ui/button";
 import {
   type AppointmentAttachmentAPI,
@@ -26,6 +27,11 @@ import { useCreateAnnotation } from "@/hooks/api/useCreateAnnotation";
 import { type AppointmentAPI, useGetAllAppointments } from "@/hooks/api/useGetAllAppointments";
 import { useGetClient } from "@/hooks/api/useGetClient";
 import useToast from "@/hooks/useToast";
+import {
+  isRichTextContentEmpty,
+  normalizeRichTextContent,
+  richTextToPlainText,
+} from "@/util/richText";
 
 type SignedLinkCacheEntry = {
   url: string;
@@ -139,7 +145,6 @@ export const PatientHistory = () => {
   const [expandedAttachmentsAppointmentId, setExpandedAttachmentsAppointmentId] = useState<string | null>(null);
   const [attachmentLinks, setAttachmentLinks] = useState<SignedLinkCache>({});
   const [loadingPreviewAppointmentId, setLoadingPreviewAppointmentId] = useState<string | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     requestAttachmentAccessLinksRef.current = requestAttachmentAccessLinksAsync;
@@ -160,7 +165,10 @@ export const PatientHistory = () => {
   };
 
   const handleSaveNote = async (appointment: AppointmentAPI) => {
-    if (!noteText.trim()) return;
+    const normalizedNote = normalizeRichTextContent(noteText);
+
+    if (isRichTextContentEmpty(normalizedNote)) return;
+
     const targetClientId = appointment.clientId || patient.id || "";
     if (!targetClientId) return;
 
@@ -168,7 +176,7 @@ export const PatientHistory = () => {
       await createAnnotation({
         appointmentId: appointment.id,
         clientId: targetClientId,
-        content: noteText,
+        content: normalizedNote,
       });
 
       setEditingAptId(null);
@@ -181,14 +189,6 @@ export const PatientHistory = () => {
   const handleDeleteNote = (annotationId: string) => {
     setNoteToDelete(annotationId);
   };
-
-  useEffect(() => {
-    if (editingAptId && textareaRef.current) {
-      textareaRef.current.focus();
-      const len = textareaRef.current.value.length;
-      textareaRef.current.setSelectionRange(len, len);
-    }
-  }, [editingAptId]);
 
   const getCachedAttachmentLink = useCallback(
     (appointmentId: string, mode: "preview" | "download", attachmentId: string) => {
@@ -493,13 +493,13 @@ export const PatientHistory = () => {
                             {[latestAnnotation].map((note) => {
                               const noteDate = new Date(note.createdAt);
                               const noteDateFormatted = format(noteDate, "dd/MM/yyyy 'às' HH:mm");
-                              const noteContent = note.content || "";
+                              const noteContentHtml = normalizeRichTextContent(note.content || "");
+                              const noteContentPlain = richTextToPlainText(noteContentHtml);
                               const isExpanded = expandedCards[note.id];
-                              const shouldTruncate = noteContent.length > 200;
-                              const displayedText =
-                                isExpanded || !shouldTruncate
-                                  ? noteContent
-                                  : `${noteContent.slice(0, 200)}...`;
+                              const shouldTruncate = noteContentPlain.length > 200;
+                              const displayedText = shouldTruncate
+                                ? `${noteContentPlain.slice(0, 200)}...`
+                                : noteContentPlain;
 
                               return (
                                 <div
@@ -519,9 +519,16 @@ export const PatientHistory = () => {
                                       <Trash2 className="w-3.5 h-3.5" />
                                     </button>
                                   </div>
-                                  <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap">
-                                    {displayedText}
-                                  </p>
+                                  {isExpanded || !shouldTruncate ? (
+                                    <div
+                                      className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-1 [&_a]:text-blue-600 [&_a]:underline"
+                                      dangerouslySetInnerHTML={{ __html: noteContentHtml }}
+                                    />
+                                  ) : (
+                                    <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap">
+                                      {displayedText}
+                                    </p>
+                                  )}
                                   {shouldTruncate && (
                                     <button
                                       onClick={() => toggleExpand(note.id)}
@@ -540,12 +547,12 @@ export const PatientHistory = () => {
 
                         {isEditing && (
                           <div className="mt-4">
-                            <textarea
-                              ref={textareaRef}
+                            <RichTextNoteEditor
                               value={noteText}
-                              onChange={(event) => setNoteText(event.target.value)}
-                              className="w-full p-3 rounded-md border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#141736] text-sm text-slate-700 leading-relaxed resize-y min-h-[100px]"
+                              onChange={setNoteText}
                               placeholder="Digite a nota aqui..."
+                              minHeightClassName="min-h-[120px]"
+                              autoFocus
                             />
                           </div>
                         )}

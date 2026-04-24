@@ -25,6 +25,7 @@ import {
   TriangleAlert,
 } from "lucide-react";
 import { PatientHeader } from "@/components/PatientHeader";
+import { RichTextNoteEditor } from "@/components/RichTextNoteEditor";
 import { useCreateAnnotation } from "@/hooks/api/useCreateAnnotation";
 import { useGetAppointment } from "@/hooks/api/useGetAppointment";
 import { useGetClient } from "@/hooks/api/useGetClient";
@@ -37,6 +38,7 @@ import {
   useInitiateAppointmentAttachments,
 } from "@/hooks/api/useAppointmentAttachments";
 import useToast from "@/hooks/useToast";
+import { isRichTextContentEmpty, normalizeRichTextContent } from "@/util/richText";
 
 const MAX_ATTACHMENT_SIZE_BYTES = 10 * 1024 * 1024;
 const IMAGE_MAX_DIMENSION = 1600;
@@ -536,7 +538,7 @@ export const PatientDetails: React.FC = () => {
 
   useEffect(() => {
     const firstAnnotation = fetchedAppointment?.annotations?.[0];
-    setAnnotationText(firstAnnotation?.content || "");
+    setAnnotationText(normalizeRichTextContent(firstAnnotation?.content || ""));
   }, [fetchedAppointment]);
 
   const storedAttachments = fetchedAppointment?.attachments || [];
@@ -738,7 +740,9 @@ export const PatientDetails: React.FC = () => {
   );
 
   const handleSaveAnnotation = useCallback(async () => {
-    if (!annotationText.trim()) return;
+    const normalizedAnnotation = normalizeRichTextContent(annotationText);
+
+    if (isRichTextContentEmpty(normalizedAnnotation)) return;
 
     const appointmentId = fetchedAppointment?.id || id || "";
     const selectedClientId =
@@ -750,7 +754,7 @@ export const PatientDetails: React.FC = () => {
       await createAnnotation({
         appointmentId,
         clientId: selectedClientId,
-        content: annotationText.trim(),
+        content: normalizedAnnotation,
       });
     } catch (error) {
       console.error("Failed to create annotation", error);
@@ -1247,18 +1251,12 @@ export const PatientDetails: React.FC = () => {
                     Registre ou atualize as observações deste atendimento.
                   </p>
 
-                  <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 flex-1">
-                    <div className="flex items-center gap-2 text-slate-700 mb-2">
-                      <FileText className="w-4 h-4 text-slate-400" strokeWidth={1.5} />
-                      <span className="text-sm">Anotação</span>
-                    </div>
-                    <textarea
-                      value={annotationText}
-                      onChange={(e) => setAnnotationText(e.target.value)}
-                      className="w-full min-h-[220px] rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 hover:border-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition resize-y"
-                      placeholder="Adicione uma observação relevante sobre o atendimento..."
-                    />
-                  </div>
+                  <RichTextNoteEditor
+                    value={annotationText}
+                    onChange={setAnnotationText}
+                    placeholder="Adicione uma observação relevante sobre o atendimento..."
+                    minHeightClassName="min-h-[220px]"
+                  />
                 </div>
 
                 <div className="px-5 py-4 border-t border-slate-100 flex justify-end gap-2">

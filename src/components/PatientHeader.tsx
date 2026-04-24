@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { User } from "lucide-react";
+import { formatPhone } from "@/util/helper";
 
 interface PatientHeaderProps {
   name?: string | null;
@@ -31,22 +32,6 @@ function formatCpf(cpf?: string | null) {
   return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
 }
 
-function formatPhone(phone?: string | null) {
-  if (!phone) return "";
-
-  const digits = phone.replace(/\D/g, "");
-
-  if (digits.length === 11) {
-    return digits.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
-  }
-
-  if (digits.length === 10) {
-    return digits.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
-  }
-
-  return phone;
-}
-
 function formatGender(gender?: string | null) {
   if (!gender) return "";
 
@@ -72,12 +57,13 @@ export function PatientHeader({
     age !== undefined && age !== null && String(age).trim() !== ""
       ? String(age).trim()
       : calculateAge(birthDate)?.toString() || "";
+  const formattedPhone = phone ? formatPhone(phone) : "";
 
   const metaItems = [
     resolvedAge ? `Idade: ${resolvedAge} anos` : "",
-    formatGender(gender),
+    formatGender(gender) ? `Gênero: ${formatGender(gender)}` : "",
     formatCpf(cpf) ? `CPF: ${formatCpf(cpf)}` : "",
-    formatPhone(phone) ? `Tel: ${formatPhone(phone)}` : "",
+    formattedPhone ? `Tel: ${formattedPhone}` : "",
   ].filter(Boolean);
 
   return (
