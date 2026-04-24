@@ -37,9 +37,9 @@ const itemsPerPageOptions = [5, 10, 20];
 
 const statusValueMap: Record<string, string> = {
   "Todos os status": "todos",
-  Agendado: "agendado",
-  Concluído: "concluido",
-  Cancelado: "cancelado",
+  Agendado: "scheduled",
+  Concluído: "finished",
+  Cancelado: "cancelled",
 };
 
 const statusConfig: Record<string, { color: string; dot: string }> = {
