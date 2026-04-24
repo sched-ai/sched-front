@@ -12,16 +12,20 @@ interface ChatWindowProps {
   isLoadingOlderMessages?: boolean;
   onSendMessage?: (text: string) => void;
   isSending?: boolean;
+  onToggleBot?: (isBotActive: boolean) => void;
+  isTogglingBot?: boolean;
 }
 
 export interface Contact {
   id: string;
+  clientId?: string | null;
   name: string;
   avatar: string;
   lastMessage: string;
   timestamp: string;
   unread?: number;
   subtitle?: string;
+  isBotActive?: boolean;
 }
 
 export interface Message {
@@ -75,6 +79,8 @@ export function ChatWindow({
   isLoadingOlderMessages,
   onSendMessage,
   isSending,
+  onToggleBot,
+  isTogglingBot,
 }: ChatWindowProps) {
   const [inputText, setInputText] = useState("");
   const [isReady, setIsReady] = useState(false);
@@ -235,6 +241,17 @@ export function ChatWindow({
           <h2 className="text-slate-900 font-semibold truncate">{contact.name}</h2>
           <p className="text-xs text-slate-600 truncate mt-1">{contact.subtitle || `Cliente: ${contact.id}`}</p>
         </div>
+        
+        {contact.isBotActive === false && onToggleBot && (
+          <button
+            onClick={() => onToggleBot(true)}
+            disabled={isTogglingBot}
+            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-full transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50"
+          >
+            {isTogglingBot ? <Loader2 className="size-3 animate-spin" /> : <MessageSquareText className="size-3.5" />}
+            Reativar Agente
+          </button>
+        )}
       </div>
 
       <div
@@ -243,6 +260,18 @@ export function ChatWindow({
         className="flex-1 overflow-y-auto p-4 bg-slate-50 custom-scrollbar"
       >
         <div className={`space-y-3 transition-opacity duration-300 ${(isReady || isLoadingMessages) ? "opacity-100" : "opacity-0"}`}>
+          {contact.isBotActive === false && !isLoadingMessages && (
+            <div className="flex justify-center mb-6">
+              <div className="px-4 py-2 bg-orange-100/80 backdrop-blur-sm border border-orange-200 rounded-full text-orange-800 text-[11px] font-medium flex items-center gap-2 shadow-sm">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
+                </span>
+                Agente IA pausado: Atendimento em modo humano
+              </div>
+            </div>
+          )}
+
           {isLoadingOlderMessages && messages.length > 0 && (
             <div className="text-xs text-slate-500 text-center py-2">Carregando mensagens anteriores...</div>
           )}

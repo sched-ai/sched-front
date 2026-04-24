@@ -5,6 +5,7 @@ import {
   useGetMonitoringUserSessions,
   useGetMonitoringUsers,
   useSendMonitoringMessage,
+  useToggleClientBotStatus,
   type MonitoringMessagesResponse,
 } from "@/hooks/api/useSchedAiMonitoring"
 import { formatBusinessHour } from "@/lib/dateTime"
@@ -52,6 +53,7 @@ export function TabMonitoramento({ headerAction }: { headerAction?: ReactNode } 
   const { get } = useAPI<MonitoringMessagesResponse>()
 
   const { mutateAsync: sendMessage, isPending: isSending } = useSendMonitoringMessage()
+  const { mutateAsync: toggleBot, isPending: isTogglingBot } = useToggleClientBotStatus()
 
   const queryClient = useQueryClient()
 
@@ -92,11 +94,13 @@ export function TabMonitoramento({ headerAction }: { headerAction?: ReactNode } 
 
     return users.map((user): Contact => ({
       id: user.clientPhone,
+      clientId: user.clientId,
       name: user.clientName,
       avatar: toAvatarLabel(user.clientName),
       lastMessage: user.latestMessage || "Sem mensagens",
       timestamp: formatListTimestamp(user.latestTimestamp),
       subtitle: formatPhone(user.clientPhone),
+      isBotActive: user.isBotActive,
     }))
   }, [usersQuery.data])
 
@@ -285,10 +289,21 @@ export function TabMonitoramento({ headerAction }: { headerAction?: ReactNode } 
           }
           return mergeOlderMessages(current, [newMessage])
         })
+        queryClient.invalidateQueries({ queryKey: ["sched-ai-monitoring-users"] })
         queryClient.invalidateQueries({ queryKey: ["sched-ai-monitoring-messages"] })
       }
     } catch (e) {
       console.error("Erro ao enviar mensagem", e)
+    }
+  }
+
+  const handleToggleBot = async (isBotActive: boolean) => {
+    if (!selectedContact?.clientId) return
+    try {
+      await toggleBot({ clientId: selectedContact.clientId, isBotActive })
+      queryClient.invalidateQueries({ queryKey: ["sched-ai-monitoring-users"] })
+    } catch (e) {
+      console.error("Erro ao alternar bot", e)
     }
   }
 
@@ -331,6 +346,8 @@ export function TabMonitoramento({ headerAction }: { headerAction?: ReactNode } 
               isLoadingOlderMessages={isLoadingOlderMessages}
               onSendMessage={handleSendMessage}
               isSending={isSending}
+              onToggleBot={handleToggleBot}
+              isTogglingBot={isTogglingBot}
             />
           </div>
           )}

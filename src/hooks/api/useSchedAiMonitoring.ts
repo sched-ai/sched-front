@@ -21,9 +21,12 @@ export interface MonitoringUsersResponse {
     totalSessions: number;
     lastSessionDate: string;
     lastSessionDateLabel: string;
+    isBotActive: boolean;
   }>;
   meta: MonitoringPaginationMeta;
 }
+
+// ... (sessions and messages interfaces stay same)
 
 export interface MonitoringSessionsResponse {
   data: Array<{
@@ -129,6 +132,21 @@ export const useGetMonitoringSessionMessages = ({
       return get({
         endpoint: `sched-ai/monitoring/sessions/${sessionId}/messages?${params.toString()}`,
         label: "Mensagens da sessão",
+        showSuccessFeedback: false,
+      });
+    },
+  });
+};
+
+export const useToggleClientBotStatus = () => {
+  const { patch } = useAPI<{ success: boolean; isBotActive: boolean }>();
+
+  return useMutation({
+    mutationFn: async ({ clientId, isBotActive }: { clientId: string; isBotActive: boolean }) => {
+      return patch({
+        endpoint: `sched-ai/monitoring/clients/${clientId}/bot-status`,
+        body: { isBotActive },
+        label: "Alterar status do bot",
         showSuccessFeedback: false,
       });
     },
