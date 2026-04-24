@@ -75,7 +75,7 @@ export function RichTextNoteEditor({
     const normalizedEditorValue = editor.isEmpty ? "" : normalizeRichTextContent(editor.getHTML());
 
     if (normalizedExternalValue !== normalizedEditorValue) {
-      editor.commands.setContent(normalizedExternalValue || "<p></p>", false);
+      editor.commands.setContent(normalizedExternalValue || "<p></p>", { emitUpdate: false });
     }
   }, [editor, value]);
 
