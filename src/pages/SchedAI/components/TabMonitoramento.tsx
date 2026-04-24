@@ -137,11 +137,18 @@ export function TabMonitoramento({ headerAction }: { headerAction?: ReactNode } 
       return
     }
 
-    const selectedStillExists = selectedContact
-      ? contacts.some((contact) => contact.id === selectedContact.id)
-      : false
+    // Tenta encontrar o contato selecionado na lista atualizada para pegar dados novos (como isBotActive)
+    const updatedContact = selectedContact
+      ? contacts.find((contact) => contact.id === selectedContact.id)
+      : null
 
-    if (!selectedContact || !selectedStillExists) {
+    if (updatedContact) {
+      // Só atualizamos o estado se houver mudança real em propriedades críticas para evitar re-renders desnecessários
+      if (updatedContact.isBotActive !== selectedContact?.isBotActive) {
+        setSelectedContact(updatedContact)
+      }
+    } else {
+      // Se o selecionado não existe mais ou não há seleção, pega o primeiro
       setSelectedContact(contacts[0])
     }
   }, [contacts, selectedContact])
@@ -276,6 +283,11 @@ export function TabMonitoramento({ headerAction }: { headerAction?: ReactNode } 
   const handleSendMessage = async (text: string) => {
     if (!activeSessionId) return
     try {
+      // Atualização otimista do status do bot: se o humano mandou mensagem, o bot pausa
+      if (selectedContact && selectedContact.isBotActive !== false) {
+        setSelectedContact({ ...selectedContact, isBotActive: false })
+      }
+
       const response = await sendMessage({ sessionId: activeSessionId, text })
       
       if (response && response.success && response.messageId) {
