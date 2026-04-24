@@ -16,7 +16,7 @@ export const SignUp = () => {
 
   const signIn = useSignIn({
     onSuccessFn: () => {
-      navigate("/");
+      navigate("/onboarding");
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onErrorFn: (err: any) => {

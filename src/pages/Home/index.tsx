@@ -16,6 +16,7 @@ import useGetCalendar from "@/hooks/api/useGetCalendar";
 import { Spinner } from "@/components/ui/spinner";
 import { ScheduleViewModal } from "@/components/ScheduleViewModal";
 import { capitalizeFirst } from "@/util/helper";
+import { useUser } from "@/context/user";
 
 export const Home = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -72,8 +73,10 @@ export const Home = () => {
   
 
 
+  const { userData } = useUser();
   const { data = { events: [] }, isLoading } = useGetCalendar({
     referenceDate: currentDate,
+    enabled: !!userData && userData.onboardingStep >= 5
   });
 
   const handleDateClick = (

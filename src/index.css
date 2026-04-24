@@ -273,6 +273,7 @@ select:-webkit-autofill {
   -webkit-box-shadow: 0 0 0px 1000px var(--color-input) inset !important;
   box-shadow: 0 0 0px 1000px var(--color-input) inset !important;
   -webkit-text-fill-color: var(--color-foreground) !important;
+  caret-color: var(--color-foreground) !important;
   transition: background-color 5000s ease-in-out 0s !important;
 }
 
@@ -282,6 +283,7 @@ select:-webkit-autofill:focus {
   -webkit-box-shadow: 0 0 0px 1000px var(--color-input) inset !important;
   box-shadow: 0 0 0px 1000px var(--color-input) inset !important;
   -webkit-text-fill-color: var(--color-foreground) !important;
+  caret-color: var(--color-foreground) !important;
 }
 
 @keyframes bannerDriftRight {

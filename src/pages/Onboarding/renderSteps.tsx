@@ -531,17 +531,29 @@ export const RenderStep = ({
           };
         };
 
-        if (singleLocationMode === true) {
-          if (singleLocation) {
-            const specials = locations.filter(
-              (l) => specialIds.has(l.id) && l.id !== singleLocation.id
-            );
-            return [mapLocation(singleLocation), ...specials.map(mapLocation)];
+        const rawLocations = (() => {
+          if (singleLocationMode === true) {
+            if (singleLocation) {
+              const specials = locations.filter(
+                (l) => specialIds.has(l.id) && l.id !== singleLocation.id
+              );
+              return [singleLocation, ...specials];
+            }
+            return locations;
           }
-          return locations.length > 0 ? locations.map(mapLocation) : undefined;
-        }
+          return locations;
+        })();
 
-        return locations.length > 0 ? locations.map(mapLocation) : undefined;
+        const filteredLocations = rawLocations.filter(l => {
+          const isSpecial = specialIds.has(l.id);
+          if (isSpecial) {
+            if (l.id === 'online') return attendOnline;
+            if (l.id === 'home') return attendHome;
+          }
+          return attendWorkspace;
+        });
+
+        return filteredLocations.length > 0 ? filteredLocations.map(mapLocation) : undefined;
       })(),
     };
 
@@ -557,7 +569,7 @@ export const RenderStep = ({
 
     if (step === 2) {
       if (canProceedLocations()) {
-        if (singleLocationMode === true && !singleLocation) {
+        if (attendWorkspace && singleLocationMode === true && !singleLocation) {
              addOrUpdateLocation();
         }
         nextStep();
