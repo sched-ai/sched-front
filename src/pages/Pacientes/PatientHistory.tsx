@@ -46,6 +46,22 @@ function formatBytes(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function formatDurationClock(totalSeconds?: number | null) {
+  if (!totalSeconds || totalSeconds <= 0) return "";
+
+  const h = Math.floor(totalSeconds / 3600)
+    .toString()
+    .padStart(2, "0");
+  const m = Math.floor((totalSeconds % 3600) / 60)
+    .toString()
+    .padStart(2, "0");
+  const s = Math.floor(totalSeconds % 60)
+    .toString()
+    .padStart(2, "0");
+
+  return `${h}:${m}:${s}`;
+}
+
 function getFileCategory(mime: string): "image" | "pdf" | "doc" | "other" {
   if (mime.startsWith("image/")) return "image";
   if (mime === "application/pdf") return "pdf";
@@ -340,6 +356,7 @@ export const PatientHistory = () => {
 
                 const serviceName = appointment.service?.name || "Atendimento";
                 const professionalName = appointment.employee?.name || "Profissional não informado";
+                const durationLabel = formatDurationClock(appointment.consultationDurationSeconds);
                 const annotations = appointment.annotations || [];
                 const latestAnnotation =
                   annotations.length > 0
@@ -369,9 +386,16 @@ export const PatientHistory = () => {
                         <h3 className="text-lg font-semibold text-[#141736] italic">
                           {serviceName} - <span className="font-normal">{professionalName}</span>
                         </h3>
-                        <div className="flex items-center gap-1 text-slate-500 text-sm">
-                          <Clock className="w-4 h-4" />
-                          <span>{time}</span>
+                        <div className="flex items-center gap-2 text-slate-500 text-sm">
+                          <span className="inline-flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            <span>{time}</span>
+                          </span>
+                          {durationLabel && (
+                            <span className="inline-flex items-center rounded-full bg-slate-200 text-slate-700 px-2.5 py-1 text-xs font-medium">
+                              Duração {durationLabel}
+                            </span>
+                          )}
                         </div>
                       </div>
 

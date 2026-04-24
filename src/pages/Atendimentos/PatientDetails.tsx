@@ -30,6 +30,7 @@ import { useCreateAnnotation } from "@/hooks/api/useCreateAnnotation";
 import { useGetAppointment } from "@/hooks/api/useGetAppointment";
 import { useGetClient } from "@/hooks/api/useGetClient";
 import { useGetService } from "@/hooks/api/useGetService";
+import { useFinalizeAppointment } from "@/hooks/api/useFinalizeAppointment";
 import {
   type AppointmentAttachmentAPI,
   useAppointmentAttachmentAccessLinks,
@@ -170,6 +171,11 @@ function getStatusVisual(status?: string) {
   return { color: "text-slate-600", dot: "bg-slate-400" };
 }
 
+function isFinishedStatus(status?: string) {
+  const normalized = status?.toLowerCase() || "";
+  return ["concluido", "finished", "done"].includes(normalized);
+}
+
 function isAllowedAttachmentMime(mime: string) {
   return mime.startsWith("image/") || ALLOWED_ATTACHMENT_MIME_TYPES.has(mime);
 }
@@ -273,10 +279,18 @@ function ConsultationTimer({
   serviceId,
   startDate,
   endDate,
+  storedDurationSeconds,
+  isFinished,
+  isFinalizing,
+  onFinalizeConsultation,
 }: {
   serviceId?: string | null;
   startDate?: string;
   endDate?: string;
+  storedDurationSeconds?: number | null;
+  isFinished?: boolean;
+  isFinalizing?: boolean;
+  onFinalizeConsultation?: (durationSeconds?: number) => Promise<void> | void;
 }) {
   const { data: service, isLoading } = useGetService(serviceId ?? "", !!serviceId);
 
@@ -289,6 +303,16 @@ function ConsultationTimer({
   runningRef.current = running;
 
   useEffect(() => {
+    if (typeof storedDurationSeconds === "number" && storedDurationSeconds > 0) {
+      setInitialSeconds(storedDurationSeconds);
+
+      if (!runningRef.current) {
+        setTimerSeconds(storedDurationSeconds);
+      }
+
+      return;
+    }
+
     let minutes = 0;
 
     if (service?.duration) {
@@ -310,7 +334,7 @@ function ConsultationTimer({
         setTimerSeconds(seconds);
       }
     }
-  }, [service?.duration, startDate, endDate]);
+  }, [endDate, service?.duration, startDate, storedDurationSeconds]);
 
   useEffect(() => {
     return () => {
@@ -348,7 +372,7 @@ function ConsultationTimer({
   }, [stopInterval]);
 
   const handleToggleTimer = useCallback(() => {
-    if (initialSeconds === 0) return;
+    if (initialSeconds === 0 || isFinished || isFinalizing) return;
 
     if (running) {
       stopInterval();
@@ -359,13 +383,26 @@ function ConsultationTimer({
     setTimerSeconds((prev) => (prev === 0 ? initialSeconds : prev));
     setRunning(true);
     startTimer();
-  }, [initialSeconds, running, startTimer, stopInterval]);
+  }, [initialSeconds, isFinished, isFinalizing, running, startTimer, stopInterval]);
 
   const handleReset = useCallback(() => {
+    if (isFinished || isFinalizing) return;
     stopInterval();
     setRunning(false);
     setTimerSeconds(initialSeconds);
-  }, [initialSeconds, stopInterval]);
+  }, [initialSeconds, isFinished, isFinalizing, stopInterval]);
+
+  const handleFinalize = useCallback(async () => {
+    if (!onFinalizeConsultation || isFinished || isFinalizing) return;
+
+    stopInterval();
+    setRunning(false);
+
+    const elapsedSeconds = Math.max(0, initialSeconds - timerSeconds);
+    const durationToPersist = elapsedSeconds > 0 ? elapsedSeconds : initialSeconds;
+
+    await onFinalizeConsultation(durationToPersist > 0 ? durationToPersist : undefined);
+  }, [initialSeconds, isFinished, isFinalizing, onFinalizeConsultation, stopInterval, timerSeconds]);
 
   return (
     <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-5 space-y-4">
@@ -380,9 +417,9 @@ function ConsultationTimer({
         <div className="flex items-center gap-2">
           <button
             onClick={handleToggleTimer}
-            disabled={initialSeconds === 0}
+            disabled={initialSeconds === 0 || !!isFinished || !!isFinalizing}
             className={`w-10 h-10 flex items-center justify-center rounded-full transition ${
-              initialSeconds === 0
+              initialSeconds === 0 || isFinished || isFinalizing
                 ? "bg-slate-100 text-slate-400 cursor-not-allowed"
                 : "bg-blue-600 text-white hover:bg-blue-700"
             }`}
@@ -393,9 +430,9 @@ function ConsultationTimer({
 
           <button
             onClick={handleReset}
-            disabled={!running && timerSeconds === initialSeconds}
+            disabled={(!running && timerSeconds === initialSeconds) || !!isFinished || !!isFinalizing}
             className={`w-10 h-10 flex items-center justify-center rounded-full transition ${
-              !running && timerSeconds === initialSeconds
+              (!running && timerSeconds === initialSeconds) || isFinished || isFinalizing
                 ? "bg-slate-100 text-slate-400 cursor-not-allowed"
                 : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             }`}
@@ -409,6 +446,19 @@ function ConsultationTimer({
       {!isLoading && initialSeconds === 0 && (
         <p className="text-sm text-slate-500">Sem duração configurada para este atendimento.</p>
       )}
+
+      <Button
+        type="button"
+        onClick={() => void handleFinalize()}
+        disabled={!!isFinished || !!isFinalizing}
+        className={`w-full h-10 rounded-lg text-white ${
+          isFinished
+            ? "bg-emerald-600 hover:bg-emerald-600 cursor-default"
+            : "bg-emerald-600 hover:bg-emerald-700"
+        }`}
+      >
+        {isFinished ? "Consulta finalizada" : isFinalizing ? "Finalizando consulta..." : "Finalizar consulta"}
+      </Button>
     </div>
   );
 }
@@ -471,6 +521,7 @@ export const PatientDetails: React.FC = () => {
       refetchAppointment();
     },
   });
+  const { mutateAsync: finalizeAppointment, isPending: isFinalizingAppointment } = useFinalizeAppointment();
 
   const initiateAttachments = useInitiateAppointmentAttachments(id || "");
   const completeAttachments = useCompleteAppointmentAttachments(id || "");
@@ -552,6 +603,7 @@ export const PatientDetails: React.FC = () => {
   const appointmentTime = fetchedAppointment?.startDate?.split("T")[1]?.substring(0, 5) || patient.hora || "";
   const statusVisual = getStatusVisual(fetchedAppointment?.status || patient.status);
   const statusLabel = getStatusLabel(fetchedAppointment?.status || patient.status);
+  const isFinished = isFinishedStatus(fetchedAppointment?.status || patient.status);
   const storedImageKey = storedImages.map((attachment) => attachment.id).join("|");
   const storedImageIds = useMemo(
     () => storedImageKey.split("|").filter(Boolean),
@@ -760,6 +812,27 @@ export const PatientDetails: React.FC = () => {
       console.error("Failed to create annotation", error);
     }
   }, [annotationText, clientId, createAnnotation, fetchedAppointment, id, patient.clientId]);
+
+  const handleFinalizeConsultation = useCallback(
+    async (durationSeconds?: number) => {
+      const appointmentId = fetchedAppointment?.id || id || "";
+      if (!appointmentId) return;
+
+      try {
+        await finalizeAppointment({
+          id: appointmentId,
+          consultationDurationSeconds: durationSeconds,
+        });
+
+        await queryClient.invalidateQueries({ queryKey: ["appointment", appointmentId] });
+        await queryClient.invalidateQueries({ queryKey: ["appointments"] });
+        await refetchAppointment();
+      } catch (error) {
+        console.error("Error finalizing appointment:", error);
+      }
+    },
+    [fetchedAppointment?.id, finalizeAppointment, id, queryClient, refetchAppointment]
+  );
 
   const handleSaveFiles = useCallback(async () => {
     if (!id || !queuedFiles.length || isSavingFiles) return;
@@ -1161,6 +1234,14 @@ export const PatientDetails: React.FC = () => {
               }
               startDate={fetchedAppointment?.startDate || (location.state as any)?.atendimento?.startDate}
               endDate={fetchedAppointment?.endDate || (location.state as any)?.atendimento?.endDate}
+              storedDurationSeconds={
+                fetchedAppointment?.consultationDurationSeconds ||
+                (location.state as any)?.atendimento?.consultationDurationSeconds ||
+                null
+              }
+              isFinished={isFinished}
+              isFinalizing={isFinalizingAppointment}
+              onFinalizeConsultation={handleFinalizeConsultation}
             />
 
             <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-5 space-y-4">

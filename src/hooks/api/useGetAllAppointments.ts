@@ -7,6 +7,7 @@ export interface AppointmentAPI {
   startDate: string;
   endDate: string;
   status: string;
+  consultationDurationSeconds?: number | null;
   employeeId: string | null;
   clientId: string | null;
   clientName: string | null;
