@@ -157,7 +157,7 @@ export default function Step2({
             </div>
             <div className={`absolute top-4 right-4 h-5 w-5 rounded-full border ${attendWorkspace ? 'bg-[#141736] border-[#141736]' : 'bg-white border-gray-500'}`} />
           </label>
-          <label className={`relative flex items-start gap-2 border p-4 rounded-lg w-full md:flex-1 md:min-w-[220px] mx-auto cursor-pointer hover:shadow-[3px_4px_35px_#0015fc2b] transition duration-200 ${attendWorkspace ? 'border-[#141736]' : 'border-gray-400'}`}>
+          <label className={`relative flex items-start gap-2 border p-4 rounded-lg w-full md:flex-1 md:min-w-[220px] mx-auto cursor-pointer hover:shadow-[3px_4px_35px_#0015fc2b] transition duration-200 ${attendOnline ? 'border-[#141736]' : 'border-gray-400'}`}>
             <Checkbox
               className="sr-only"
               checked={attendOnline}

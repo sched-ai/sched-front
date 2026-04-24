@@ -5,6 +5,7 @@ import {
   useGetMonitoringUserSessions,
   useGetMonitoringUsers,
   useSendMonitoringMessage,
+  useToggleClientBotStatus,
   type MonitoringMessagesResponse,
 } from "@/hooks/api/useSchedAiMonitoring"
 import { formatBusinessHour } from "@/lib/dateTime"
@@ -52,6 +53,7 @@ export function TabMonitoramento({ headerAction }: { headerAction?: ReactNode } 
   const { get } = useAPI<MonitoringMessagesResponse>()
 
   const { mutateAsync: sendMessage, isPending: isSending } = useSendMonitoringMessage()
+  const { mutateAsync: toggleBot, isPending: isTogglingBot } = useToggleClientBotStatus()
 
   const queryClient = useQueryClient()
 
@@ -92,11 +94,13 @@ export function TabMonitoramento({ headerAction }: { headerAction?: ReactNode } 
 
     return users.map((user): Contact => ({
       id: user.clientPhone,
+      clientId: user.clientId,
       name: user.clientName,
       avatar: toAvatarLabel(user.clientName),
       lastMessage: user.latestMessage || "Sem mensagens",
       timestamp: formatListTimestamp(user.latestTimestamp),
       subtitle: formatPhone(user.clientPhone),
+      isBotActive: user.isBotActive,
     }))
   }, [usersQuery.data])
 
@@ -133,11 +137,18 @@ export function TabMonitoramento({ headerAction }: { headerAction?: ReactNode } 
       return
     }
 
-    const selectedStillExists = selectedContact
-      ? contacts.some((contact) => contact.id === selectedContact.id)
-      : false
+    // Tenta encontrar o contato selecionado na lista atualizada para pegar dados novos (como isBotActive)
+    const updatedContact = selectedContact
+      ? contacts.find((contact) => contact.id === selectedContact.id)
+      : null
 
-    if (!selectedContact || !selectedStillExists) {
+    if (updatedContact) {
+      // Só atualizamos o estado se houver mudança real em propriedades críticas para evitar re-renders desnecessários
+      if (updatedContact.isBotActive !== selectedContact?.isBotActive) {
+        setSelectedContact(updatedContact)
+      }
+    } else {
+      // Se o selecionado não existe mais ou não há seleção, pega o primeiro
       setSelectedContact(contacts[0])
     }
   }, [contacts, selectedContact])
@@ -272,6 +283,11 @@ export function TabMonitoramento({ headerAction }: { headerAction?: ReactNode } 
   const handleSendMessage = async (text: string) => {
     if (!activeSessionId) return
     try {
+      // Atualização otimista do status do bot: se o humano mandou mensagem, o bot pausa
+      if (selectedContact && selectedContact.isBotActive !== false) {
+        setSelectedContact({ ...selectedContact, isBotActive: false })
+      }
+
       const response = await sendMessage({ sessionId: activeSessionId, text })
       
       if (response && response.success && response.messageId) {
@@ -285,10 +301,21 @@ export function TabMonitoramento({ headerAction }: { headerAction?: ReactNode } 
           }
           return mergeOlderMessages(current, [newMessage])
         })
+        queryClient.invalidateQueries({ queryKey: ["sched-ai-monitoring-users"] })
         queryClient.invalidateQueries({ queryKey: ["sched-ai-monitoring-messages"] })
       }
     } catch (e) {
       console.error("Erro ao enviar mensagem", e)
+    }
+  }
+
+  const handleToggleBot = async (isBotActive: boolean) => {
+    if (!selectedContact?.clientId) return
+    try {
+      await toggleBot({ clientId: selectedContact.clientId, isBotActive })
+      queryClient.invalidateQueries({ queryKey: ["sched-ai-monitoring-users"] })
+    } catch (e) {
+      console.error("Erro ao alternar bot", e)
     }
   }
 
@@ -331,6 +358,8 @@ export function TabMonitoramento({ headerAction }: { headerAction?: ReactNode } 
               isLoadingOlderMessages={isLoadingOlderMessages}
               onSendMessage={handleSendMessage}
               isSending={isSending}
+              onToggleBot={handleToggleBot}
+              isTogglingBot={isTogglingBot}
             />
           </div>
           )}

@@ -9,35 +9,65 @@ interface ChatListProps {
 
 export function ChatList({ contacts, selectedContact, onSelectContact }: ChatListProps) {
   const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<"all" | "bot" | "human">("all");
 
   const filteredContacts = useMemo(() => {
-    const normalized = search.trim().toLowerCase();
-    if (!normalized) return contacts;
+    let result = contacts;
 
-    return contacts.filter((contact) => {
+    if (filter === "bot") {
+      result = result.filter((c) => c.isBotActive !== false);
+    } else if (filter === "human") {
+      result = result.filter((c) => c.isBotActive === false);
+    }
+
+    const normalized = search.trim().toLowerCase();
+    if (!normalized) return result;
+
+    return result.filter((contact) => {
       return (
         contact.name.toLowerCase().includes(normalized) ||
         contact.id.toLowerCase().includes(normalized) ||
         contact.lastMessage.toLowerCase().includes(normalized)
       );
     });
-  }, [contacts, search]);
+  }, [contacts, search, filter]);
 
   return (
     <div className="w-full md:w-[360px] lg:w-[400px] bg-white border-r border-border flex flex-col">
-      <div className="bg-slate-50 p-4 border-b border-border flex items-center justify-between">
-        <div>
-          <h2 className="text-slate-900 font-semibold">Conversas</h2>
-          <p className="text-xs text-slate-600 mt-1">Histórico agrupado por usuário</p>
+      <div className="bg-slate-50 p-4 border-b border-border flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-slate-900 font-semibold">Conversas</h2>
+            <p className="text-xs text-slate-600 mt-1">Histórico agrupado por usuário</p>
+          </div>
         </div>
-        {/* <div className="flex gap-2 text-slate-600">
-          <button className="inline-flex items-center justify-center h-8 w-8 rounded-md border border-slate-200 text-slate-600 hover:bg-slate-100 transition-colors">
-            <Search className="size-4" />
+
+        <div className="flex gap-1 bg-slate-200/50 p-1 rounded-lg">
+          <button
+            onClick={() => setFilter("all")}
+            className={`flex-1 px-2 py-1.5 text-[11px] font-medium rounded-md transition-all ${
+              filter === "all" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            Todos
           </button>
-          <button className="inline-flex items-center justify-center h-8 w-8 rounded-md border border-slate-200 text-slate-600 hover:bg-slate-100 transition-colors">
-            <MoreVertical className="size-4" />
+          <button
+            onClick={() => setFilter("bot")}
+            className={`flex-1 px-2 py-1.5 text-[11px] font-medium rounded-md transition-all ${
+              filter === "bot" ? "bg-white text-blue-600 shadow-sm" : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            IA
           </button>
-        </div> */}
+          <button
+            onClick={() => setFilter("human")}
+            className={`flex-1 px-2 py-1.5 text-[11px] font-medium rounded-md transition-all ${
+              filter === "human" ? "bg-white text-orange-600 shadow-sm" : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            Manual
+          </button>
+        </div>
       </div>
 
       <div className="p-3 border-b border-border bg-white">
@@ -51,35 +81,51 @@ export function ChatList({ contacts, selectedContact, onSelectContact }: ChatLis
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar">
-        {filteredContacts.map((contact) => (
-          <button
-            key={contact.id}
-            onClick={() => onSelectContact(contact)}
-            className={`w-full p-4 flex items-center gap-3 transition-colors border-l-2 ${
-              selectedContact?.id === contact.id
-                ? 'bg-blue-50 border-blue-600'
-                : 'bg-white border-transparent hover:bg-slate-50'
-            }`}
-          >
-            <div className="size-11 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center flex-shrink-0 font-semibold">
-              <span className="text-sm">{contact.avatar}</span>
-            </div>
-            <div className="flex-1 min-w-0 text-left">
-              <div className="flex justify-between items-start">
-                <h3 className="text-slate-900 truncate font-medium">{contact.name}</h3>
-                <span className="text-xs text-slate-500">{contact.timestamp}</span>
+        {filteredContacts.map((contact) => {
+          const isManual = contact.isBotActive === false;
+          const isActive = selectedContact?.id === contact.id;
+          
+          return (
+            <button
+              key={contact.id}
+              onClick={() => onSelectContact(contact)}
+              className={`w-full p-4 flex items-center gap-3 transition-colors border-l-2 ${
+                isActive
+                  ? isManual 
+                    ? 'bg-orange-50 border-orange-600'
+                    : 'bg-blue-50 border-blue-600'
+                  : 'bg-white border-transparent hover:bg-slate-50'
+              }`}
+            >
+              <div className={`size-11 rounded-full flex items-center justify-center flex-shrink-0 font-semibold ${
+                isManual ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'
+              }`}>
+                <span className="text-sm">{contact.avatar}</span>
               </div>
-              <div className="flex justify-between items-center">
-                <p className="text-sm text-slate-600 truncate">{contact.lastMessage}</p>
-                {contact.unread && (
-                  <span className="bg-blue-600 text-white text-xs rounded-full size-5 flex items-center justify-center flex-shrink-0 ml-2">
-                    {contact.unread}
-                  </span>
-                )}
+              <div className="flex-1 min-w-0 text-left">
+                <div className="flex justify-between items-start">
+                  <h3 className="text-slate-900 truncate font-medium">{contact.name}</h3>
+                  <span className="text-xs text-slate-500">{contact.timestamp}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <p className="text-sm text-slate-600 truncate">{contact.lastMessage}</p>
+                  <div className="flex items-center gap-2">
+                    {isManual && (
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-orange-100 text-orange-700 uppercase">
+                        Manual
+                      </span>
+                    )}
+                    {contact.unread && (
+                      <span className={`${isManual ? 'bg-orange-600' : 'bg-blue-600'} text-white text-[10px] rounded-full size-4 flex items-center justify-center flex-shrink-0`}>
+                        {contact.unread}
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          </button>
-        ))}
+            </button>
+          );
+        })}
 
         {!filteredContacts.length && (
           <div className="p-6 text-center text-sm text-slate-600">
