@@ -61,7 +61,7 @@ export function PatientHeader({
 
   const metaItems = [
     resolvedAge ? `Idade: ${resolvedAge} anos` : "",
-    formatGender(gender),
+    formatGender(gender) ? `Gênero: ${formatGender(gender)}` : "",
     formatCpf(cpf) ? `CPF: ${formatCpf(cpf)}` : "",
     formattedPhone ? `Tel: ${formattedPhone}` : "",
   ].filter(Boolean);
