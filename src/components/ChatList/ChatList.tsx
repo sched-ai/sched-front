@@ -1,4 +1,12 @@
 import { useMemo, useState } from "react";
+import { Filter } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { Contact } from "../ChatWindow/ChatWindow";
 
 interface ChatListProps {
@@ -10,6 +18,21 @@ interface ChatListProps {
 export function ChatList({ contacts, selectedContact, onSelectContact }: ChatListProps) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "bot" | "human">("all");
+
+  const filterStyles = {
+    all: {
+      button: "border-slate-300 text-slate-700 hover:border-slate-400",
+      icon: "text-slate-600",
+    },
+    bot: {
+      button: "border-blue-500 bg-blue-50/60 text-blue-700 hover:border-blue-600",
+      icon: "text-blue-600",
+    },
+    human: {
+      button: "border-orange-500 bg-orange-50/60 text-orange-700 hover:border-orange-600",
+      icon: "text-orange-600",
+    },
+  } as const;
 
   const filteredContacts = useMemo(() => {
     let result = contacts;
@@ -41,43 +64,40 @@ export function ChatList({ contacts, selectedContact, onSelectContact }: ChatLis
             <p className="text-xs text-slate-600 mt-1">Histórico agrupado por usuário</p>
           </div>
         </div>
-
-        <div className="flex gap-1 bg-slate-200/50 p-1 rounded-lg">
-          <button
-            onClick={() => setFilter("all")}
-            className={`flex-1 px-2 py-1.5 text-[11px] font-medium rounded-md transition-all ${
-              filter === "all" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            Todos
-          </button>
-          <button
-            onClick={() => setFilter("bot")}
-            className={`flex-1 px-2 py-1.5 text-[11px] font-medium rounded-md transition-all ${
-              filter === "bot" ? "bg-white text-blue-600 shadow-sm" : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            IA
-          </button>
-          <button
-            onClick={() => setFilter("human")}
-            className={`flex-1 px-2 py-1.5 text-[11px] font-medium rounded-md transition-all ${
-              filter === "human" ? "bg-white text-orange-600 shadow-sm" : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            Manual
-          </button>
-        </div>
       </div>
 
       <div className="p-3 border-b border-border bg-white">
-        <input
-          type="text"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Buscar por cliente, telefone ou mensagem"
-          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 hover:border-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
-        />
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Buscar por cliente, telefone ou mensagem"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 hover:border-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+          />
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                aria-label="Filtrar conversas"
+                className={`flex h-10 w-10 items-center justify-center rounded-lg border bg-white transition-colors ${filterStyles[filter].button}`}
+              >
+                <Filter className={`size-4 ${filterStyles[filter].icon}`} />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-36">
+              <DropdownMenuRadioGroup
+                value={filter}
+                onValueChange={(value) => setFilter(value as "all" | "bot" | "human")}
+              >
+                <DropdownMenuRadioItem value="all">Todos</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="bot">IA</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="human">Manual</DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar">
