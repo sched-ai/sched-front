@@ -135,7 +135,7 @@ export const Servicos = () => {
             className="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-4"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Adicionar serviço
+            Adicionar
           </Button>
         )}
       </div>
@@ -159,7 +159,7 @@ export const Servicos = () => {
             className="bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center gap-2 self-start h-11 px-5 rounded-lg whitespace-nowrap"
           >
             <Plus className="w-4 h-4" strokeWidth={1.5} />
-            Adicionar serviço
+            Adicionar
           </Button>
         </section>
 

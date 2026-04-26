@@ -10,7 +10,6 @@ import {
 } from "@/hooks/api/useSchedAiMonitoring"
 import { formatBusinessHour } from "@/lib/dateTime"
 import { formatPhone } from "@/util/helper"
-import { BotMessageSquare } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { StorageService } from "@/services"
@@ -73,6 +72,7 @@ export function TabMonitoramento({ headerAction }: { headerAction?: ReactNode } 
           queryClient.invalidateQueries({ queryKey: ["sched-ai-monitoring-sessions"] })
           queryClient.invalidateQueries({ queryKey: ["sched-ai-monitoring-messages"] })
         }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (e) {
         // ignora possíveis erros de parse do ping
       }
@@ -322,14 +322,11 @@ export function TabMonitoramento({ headerAction }: { headerAction?: ReactNode } 
   return (
     <div className="space-y-6">
       <div className="bg-white dark:bg-slate-900">
-        <div className="flex items-center justify-between mb-4 pb-3 border-b border-border">
+        <div className="flex items-start justify-between mb-4 pb-2">
           <div className="flex items-center gap-3">
-            <div className="size-10 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
-              <BotMessageSquare className="size-5" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Monitoramento de Conversas</h3>
-              <p className="text-sm text-muted-foreground">
+            <div className="mb-2">
+              <h1 className="text-2xl font-semibold text-foreground">Monitoramento de Conversas</h1>
+              <p className="text-muted-foreground mt-2">
                 Acompanhe as conversas da IA com seus pacientes de forma organizada e em tempo real.
               </p>
             </div>

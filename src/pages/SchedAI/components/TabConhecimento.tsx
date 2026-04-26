@@ -122,7 +122,7 @@ export function TabConhecimento() {
             disabled={faqs && faqs.length >= 5}
           >
             <Plus className="w-4 h-4 mr-2" />
-            Adicionar Conhecimento {faqs ? `(${faqs.length}/5)` : ''}
+            Adicionar {faqs ? `(${faqs.length}/5)` : ''}
           </Button>
         </div>
         

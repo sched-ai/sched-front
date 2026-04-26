@@ -147,7 +147,7 @@ export const Pacientes = () => {
             className="bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center gap-2 self-start h-11 px-5 rounded-lg whitespace-nowrap"
           >
             <Plus className="w-4 h-4" strokeWidth={1.5} />
-            Adicionar paciente
+            Adicionar
           </Button>
         </div>
 
