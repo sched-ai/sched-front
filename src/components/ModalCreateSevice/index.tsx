@@ -99,10 +99,15 @@ export const ModalCreateService = (props: IProps) => {
             ? minutesToHHMM(Number(service.duration))
             : "00:00"
         );
-        setSelectedWorkplaces(service.workplaces?.map(w => w.id) || []);
+        
+        const serviceWorkplaces = service.workplaces?.map(w => w.id) || [];
+        if (serviceWorkplaces.length === 0 && workplaces && workplaces.length === 1) {
+          setSelectedWorkplaces([workplaces[0].id]);
+        } else {
+          setSelectedWorkplaces(serviceWorkplaces);
+        }
       } else {
         resetForm();
-        // Se só tiver 1 local, já deixa selecionado
         if (workplaces && workplaces.length === 1) {
           setSelectedWorkplaces([workplaces[0].id]);
         }
