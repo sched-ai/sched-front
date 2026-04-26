@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import useAPI from '../useAPI';
+import { QueryKeys } from '../index';
 
 export interface IWorkSchedule {
   dayOfWeek: number;
@@ -58,7 +59,7 @@ export const useGetUser = ({ onSuccessFn, enabled = true }: UseGetUserProps = {}
   const { get } = useAPI<UserEnvelope>();
 
   const query = useQuery<IUser, Error, IUser>({
-    queryKey: ['user'],
+    queryKey: [QueryKeys.current_user],
     queryFn: () =>
       get({
         label: 'User',
