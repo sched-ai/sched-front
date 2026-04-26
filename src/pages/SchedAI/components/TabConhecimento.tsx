@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { Modal, Input } from "antd"
-import { Trash2, Plus, Play } from "lucide-react"
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
+import { Trash2, Plus, Play, TriangleAlert } from "lucide-react"
 import { useState } from "react"
 import { BotPlaygroundDrawer } from "./BotPlaygroundDrawer"
 import { useGetFaqs } from "@/hooks/api/useGetFaqs"
@@ -21,6 +21,7 @@ export function TabConhecimento() {
   const [faqModalOpen, setFaqModalOpen] = useState(false)
   const [newTrigger, setNewTrigger] = useState("")
   const [newAnswer, setNewAnswer] = useState("")
+  const [faqToDelete, setFaqToDelete] = useState<{ id: string; trigger: string } | null>(null)
 
   const [confirmToggleOpen, setConfirmToggleOpen] = useState(false)
   const [pendingToggleStatus, setPendingToggleStatus] = useState<boolean | null>(null)
@@ -37,6 +38,16 @@ export function TabConhecimento() {
         },
       }
     )
+  }
+
+  const handleConfirmDeleteFaq = () => {
+    if (!faqToDelete) return
+
+    deleteFaqMutation.mutate(faqToDelete.id, {
+      onSuccess: () => {
+        setFaqToDelete(null)
+      },
+    })
   }
 
   const handleToggleClick = (checked: boolean) => {
@@ -146,7 +157,7 @@ export function TabConhecimento() {
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        onClick={() => deleteFaqMutation.mutate(item.id)}
+                        onClick={() => setFaqToDelete({ id: item.id, trigger: item.trigger })}
                         disabled={deleteFaqMutation.isPending}
                         className="text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20"
                       >
@@ -187,65 +198,167 @@ export function TabConhecimento() {
       </div> */}
       <BotPlaygroundDrawer open={drawerOpen} onOpenChange={setDrawerOpen} />
 
-      <Modal
-        title="Adicionar Novo Conhecimento (FAQ)"
+      <Dialog
         open={faqModalOpen}
-        onOk={handleCreateFaq}
-        onCancel={() => {
-          setFaqModalOpen(false)
-          setNewTrigger("")
-          setNewAnswer("")
+        onOpenChange={(open) => {
+          if (!open) {
+            setFaqModalOpen(false)
+            setNewTrigger("")
+            setNewAnswer("")
+          }
         }}
-        confirmLoading={createFaqMutation.isPending}
-        okText="Salvar"
-        cancelText="Cancelar"
       >
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="trigger">Pergunta Gatilho</Label>
-            <Input 
-              id="trigger" 
-              placeholder="Ex: Qual o horário de funcionamento?" 
-              value={newTrigger}
-              onChange={(e) => setNewTrigger(e.target.value)}
-            />
+        <DialogContent className="max-w-2xl bg-white border border-slate-200 rounded-2xl p-0 overflow-hidden">
+          <div className="px-6 py-5 border-b border-slate-200">
+            <DialogTitle className="text-xl text-slate-900">Adicionar Novo Conhecimento (FAQ)</DialogTitle>
+            <DialogDescription className="text-sm text-slate-500 mt-1">
+              Cadastre uma pergunta gatilho e a resposta base que a IA deve usar.
+            </DialogDescription>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="answer">Resposta Base</Label>
-            <Input.TextArea 
-              id="answer" 
-              placeholder="Ex: De segunda a sexta das 08:00 às 18:00." 
-              rows={4}
-              value={newAnswer}
-              onChange={(e) => setNewAnswer(e.target.value)}
-            />
-          </div>
-        </div>
-      </Modal>
 
-      <Modal
-        title="Confirmar alteração"
+          <div className="px-6 py-5 space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="trigger">Pergunta Gatilho</Label>
+              <input
+                id="trigger"
+                placeholder="Ex: Qual o horário de funcionamento?"
+                value={newTrigger}
+                onChange={(e) => setNewTrigger(e.target.value)}
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-colors hover:border-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="answer">Resposta Base</Label>
+              <textarea
+                id="answer"
+                placeholder="Ex: De segunda a sexta das 08:00 às 18:00."
+                rows={4}
+                value={newAnswer}
+                onChange={(e) => setNewAnswer(e.target.value)}
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-colors hover:border-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 resize-none"
+              />
+            </div>
+          </div>
+
+          <div className="px-6 py-4 border-t border-slate-200 flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="px-2"
+              onClick={() => {
+                setFaqModalOpen(false)
+                setNewTrigger("")
+                setNewAnswer("")
+              }}
+              disabled={createFaqMutation.isPending}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-2"
+              onClick={handleCreateFaq}
+              disabled={createFaqMutation.isPending || !newTrigger.trim() || !newAnswer.trim()}
+            >
+              {createFaqMutation.isPending ? "Salvando..." : "Salvar"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
         open={confirmToggleOpen}
-        onOk={handleConfirmToggle}
-        onCancel={() => {
-          setConfirmToggleOpen(false)
-          setPendingToggleStatus(null)
+        onOpenChange={(open) => {
+          if (!open) {
+            setConfirmToggleOpen(false)
+            setPendingToggleStatus(null)
+          }
         }}
-        confirmLoading={updateBotStatusMutation.isPending}
-        okText="Confirmar"
-        cancelText="Cancelar"
       >
-        <p>
-          Você está prestes a <strong className={pendingToggleStatus ? "text-green-600" : "text-red-600"}>
-            {pendingToggleStatus ? "LIGAR" : "DESLIGAR"}
-          </strong> o atendimento automático da IA.
-        </p>
-        <p className="mt-2 text-muted-foreground">
-          {pendingToggleStatus 
-            ? "A partir de agora, a IA começará a responder e gerenciar os agendamentos." 
-            : "A IA deixará de responder os pacientes até que seja ligada novamente."}
-        </p>
-      </Modal>
+        <DialogContent className="max-w-md bg-white border border-slate-200 rounded-xl">
+          <div className="flex items-center gap-2 mb-1">
+            <TriangleAlert className="w-5 h-5 text-amber-500" />
+            <DialogTitle className="text-lg text-slate-900">Confirmar alteração</DialogTitle>
+          </div>
+
+          <DialogDescription className="text-sm text-slate-600 mt-1">
+            Você está prestes a
+            <span className={`font-semibold ${pendingToggleStatus ? " text-green-600" : " text-red-600"}`}>
+              {pendingToggleStatus ? " LIGAR " : " DESLIGAR "}
+            </span>
+            o atendimento automático da IA.
+          </DialogDescription>
+
+          <p className="mt-1 text-sm text-slate-600">
+            {pendingToggleStatus
+              ? "A partir de agora, a IA começará a responder e gerenciar os agendamentos."
+              : "A IA deixará de responder os pacientes até que seja ligada novamente."}
+          </p>
+
+          <div className="mt-5 flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="px-2"
+              onClick={() => {
+                setConfirmToggleOpen(false)
+                setPendingToggleStatus(null)
+              }}
+              disabled={updateBotStatusMutation.isPending}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-2"
+              onClick={handleConfirmToggle}
+              disabled={updateBotStatusMutation.isPending}
+            >
+              {updateBotStatusMutation.isPending ? "Confirmando..." : "Confirmar"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={!!faqToDelete}
+        onOpenChange={(open) => {
+          if (!open) setFaqToDelete(null)
+        }}
+      >
+        <DialogContent className="max-w-md bg-white border border-slate-200 rounded-xl">
+          <div className="flex items-center gap-2 mb-1">
+            <TriangleAlert className="w-5 h-5 text-red-500" />
+            <DialogTitle className="text-lg text-slate-900">Confirmar exclusão</DialogTitle>
+          </div>
+
+          <DialogDescription className="text-sm text-slate-600 mt-1">
+            Tem certeza que deseja excluir o FAQ
+            <span className="font-semibold text-slate-900"> "{faqToDelete?.trigger}"</span>? Essa ação não pode ser desfeita.
+          </DialogDescription>
+
+          <div className="mt-5 flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="px-2"
+              onClick={() => setFaqToDelete(null)}
+              disabled={deleteFaqMutation.isPending}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              className="bg-red-600 hover:bg-red-700 text-white px-2"
+              onClick={handleConfirmDeleteFaq}
+              disabled={deleteFaqMutation.isPending}
+            >
+              {deleteFaqMutation.isPending ? "Excluindo..." : "Excluir"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
