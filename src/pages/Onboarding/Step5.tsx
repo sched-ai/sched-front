@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Input from "@/components/ui/input";
 // import {
@@ -8,12 +8,13 @@ import Input from "@/components/ui/input";
 //   SelectTrigger,
 //   SelectValue,
 // } from "@/components/ui/select";
-import { Trash2, Plus, BriefcaseBusiness } from "lucide-react";
+import { Trash2, Plus, BriefcaseBusiness, MapPin } from "lucide-react";
 import { useNextStep } from "@/hooks/api/useNextStep";
 import { useCreateService } from "@/hooks/api/useCreateService";
 import { toast } from "sonner";
-// import { useUser } from "@/context/user";
-// import { useListCompanyMemberships } from "@/hooks/api/useListCompanyMemberships";
+import { TimePickerField } from "@/components/ScheduleFormModal/TimePickerField";
+import { useGetAllWorkplaces } from "@/hooks/api/useGetAllWorkplaces";
+import { WorkplaceMultiSelect } from "@/components/WorkplaceMultiSelect";
 
 function formatBRL(value: string) {
   const onlyNums = value.replace(/[^0-9]/g, "");
@@ -33,6 +34,7 @@ type Service = {
   professional: string;
   price?: string;
   duration?: string;
+  workplaceIds?: string[];
 };
 
 export const Step5 = () => {
@@ -45,8 +47,22 @@ export const Step5 = () => {
       name: "",
       professional: "",
       description: "",
+      duration: "00:00",
+      workplaceIds: [],
     },
   ]);
+
+  const { data: workplaces } = useGetAllWorkplaces();
+
+  useEffect(() => {
+    // Se só tiver 1 local, garante que está selecionado em todos os serviços novos
+    if (workplaces && workplaces.length === 1) {
+      setServices(prev => prev.map(s => ({
+        ...s,
+        workplaceIds: s.workplaceIds?.length === 0 ? [workplaces[0].id] : s.workplaceIds
+      })));
+    }
+  }, [workplaces]);
 
   const addService = () => {
     const id = String(Date.now() + Math.random());
@@ -59,6 +75,7 @@ export const Step5 = () => {
         description: "",
         price: "",
         duration: "00:00",
+        workplaceIds: workplaces && workplaces.length === 1 ? [workplaces[0].id] : [],
       },
     ]);
 
@@ -204,18 +221,35 @@ export const Step5 = () => {
                     isRequired
                   />
 
-                  <Input
-                    id={`service-duration-${c.id}`}
-                    type="time"
-                    label="Duração"
-                    value={c.duration || "00:00"}
-                    onChange={(e) =>
-                      updateService(c.id, {
-                        duration: (e.target as HTMLInputElement).value,
-                      })
-                    }
-                    isRequired
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-medium text-[#384455]">Duração</label>
+                    <div className="h-[52px] flex items-center">
+                      <TimePickerField 
+                        value={c.duration || "00:00"} 
+                        onChange={(val) => updateService(c.id, { duration: val })} 
+                        ariaLabel="Duração do serviço"
+                        className="schedule-time-picker--light"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="w-full space-y-2 mt-2">
+                  <label className="text-sm font-medium text-[#384455] flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    Locais de atendimento
+                  </label>
+                  <WorkplaceMultiSelect 
+                    options={workplaces || []}
+                    selected={c.workplaceIds || []}
+                    onChange={(ids) => updateService(c.id, { workplaceIds: ids })}
+                    disabled={workplaces?.length === 1}
                   />
+                  {workplaces?.length === 1 && (
+                    <p className="text-[10px] text-neutral-400 italic px-1">
+                      Selecionado automaticamente por ser o único local disponível.
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -224,7 +258,7 @@ export const Step5 = () => {
       </div>
 
       <div className="flex gap-3 mt-4 items-center border-t py-4">
-        <div className="flex items-center gap-2">
+        <div className="w-full flex items-center gap-2 justify-between">
           <Button
             type="button"
             variant="outline"
@@ -251,9 +285,11 @@ function ActionButtons({ services }: { services: Service[] }) {
     services.length > 0 &&
     services.every((s) => {
       const hasName = !!s.name?.toString().trim();
-      const hasPrice = !!s.price?.toString().trim();
-      const hasDuration = !!s.duration?.toString().trim();
-      return hasName && hasPrice && hasDuration;
+      const hasPrice = !!s.price?.toString().trim() && (parseBRL(s.price) || 0) > 0;
+      const hasDuration = !!s.duration?.toString().trim() && s.duration !== "00:00" && (durationToMinutes(s.duration) || 0) > 0;
+      const hasWorkplaces = (s.workplaceIds || []).length > 0;
+      const hasDescription = !!s.description?.toString().trim();
+      return hasName && hasPrice && hasDuration && hasWorkplaces && hasDescription;
     });
 
   function parseBRL(formatted?: string | null) {
@@ -285,6 +321,7 @@ function ActionButtons({ services }: { services: Service[] }) {
           price: parseBRL(s.price ?? null),
           type: "SERVICE" as const,
           employeeId: s.professional ?? null,
+          workplaceIds: s.workplaceIds || [],
         };
 
         return createService.mutateAsync(payload);
@@ -310,7 +347,7 @@ function ActionButtons({ services }: { services: Service[] }) {
         type="button"
         onClick={handleSaveAndContinue}
         disabled={!canProceed || isSaving}
-        className="px-4 font-medium"
+        className="px-4 font-medium self-end"
       >
         {isSaving ? "Salvando..." : "Salvar e concluir"}
       </Button>

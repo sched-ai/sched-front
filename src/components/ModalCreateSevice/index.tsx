@@ -5,14 +5,11 @@ import type { IService } from "@/hooks/api/useGetAllServices";
 import { useUpdateService } from "@/hooks/api/useEditService";
 import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-// import { useListCompanyMemberships } from "@/hooks/api/useListCompanyMemberships";
-// import {
-//   Select,
-//   SelectContent,
-//   SelectItem,
-//   SelectTrigger,
-//   SelectValue,
-// } from "@/components/ui/select";
+import { TimePickerField } from "@/components/ScheduleFormModal/TimePickerField";
+import { useGetAllWorkplaces } from "@/hooks/api/useGetAllWorkplaces";
+import { WorkplaceMultiSelect } from "@/components/WorkplaceMultiSelect";
+import { MapPin } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 // --- Helpers ---
 
@@ -78,7 +75,10 @@ export const ModalCreateService = (props: IProps) => {
   const [price, setPrice] = useState("");
   const [duration, setDuration] = useState("00:00");
   const [responsavel, setResponsavel] = useState("");
+  const [selectedWorkplaces, setSelectedWorkplaces] = useState<string[]>([]);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  const { data: workplaces } = useGetAllWorkplaces();
 
   useEffect(() => {
     if (isModalOpen) {
@@ -99,12 +99,17 @@ export const ModalCreateService = (props: IProps) => {
             ? minutesToHHMM(Number(service.duration))
             : "00:00"
         );
+        setSelectedWorkplaces(service.workplaces?.map(w => w.id) || []);
       } else {
         resetForm();
+        // Se só tiver 1 local, já deixa selecionado
+        if (workplaces && workplaces.length === 1) {
+          setSelectedWorkplaces([workplaces[0].id]);
+        }
       }
       setErrors({});
     }
-  }, [service, isModalOpen]);
+  }, [service, isModalOpen, workplaces]);
 
   const resetForm = () => {
     setNome("");
@@ -112,6 +117,7 @@ export const ModalCreateService = (props: IProps) => {
     setPrice("");
     setDuration("00:00");
     setResponsavel("");
+    setSelectedWorkplaces([]);
     setErrors({});
   };
 
@@ -136,6 +142,19 @@ export const ModalCreateService = (props: IProps) => {
     else if (nome.trim().length < 3)
       newErrors.nome = "O nome deve ter pelo menos 3 letras";
 
+    if (!descricao.trim()) newErrors.descricao = "A descrição é obrigatória";
+
+    if (!price || (parseBRL(price) || 0) === 0) newErrors.price = "O valor é obrigatório";
+
+    const durationInMinutes = hhmmToMinutes(duration);
+    if (!duration || duration === "00:00" || durationInMinutes === 0) {
+      newErrors.duration = "A duração é obrigatória";
+    }
+
+    if (selectedWorkplaces.length === 0) {
+      newErrors.workplaces = "Selecione pelo menos um local";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -154,6 +173,7 @@ export const ModalCreateService = (props: IProps) => {
       department: null,
       price: parseBRL(price),
       duration: durationInMinutes,
+      workplaceIds: selectedWorkplaces,
     };
 
     if (isEditMode && service && service.id) {
@@ -191,12 +211,12 @@ export const ModalCreateService = (props: IProps) => {
               <input
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
-                className={`${baseInputClass} ${errors.nome ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : ""}`}
+                className={cn(baseInputClass, errors.nome && "border-red-500 focus:border-red-500 focus:ring-red-500/20")}
                 placeholder="Ex: Limpeza de pele"
                 type="text"
                 autoFocus
               />
-              {errors.nome && <p className="text-xs text-red-500">{errors.nome}</p>}
+              {errors.nome && <p className="text-[10px] text-red-500 font-medium px-1">{errors.nome}</p>}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -205,21 +225,48 @@ export const ModalCreateService = (props: IProps) => {
                 <input
                   value={price}
                   onChange={(e) => setPrice(formatBRL(e.target.value))}
-                  className={baseInputClass}
+                  className={cn(baseInputClass, errors.price && "border-red-500")}
                   placeholder="R$ 0,00"
                   type="text"
                 />
+                {errors.price && <p className="text-[10px] text-red-500 font-medium px-1">{errors.price}</p>}
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Duração</label>
-                <input
-                  value={duration}
-                  onChange={(e) => setDuration(e.target.value)}
-                  className={baseInputClass}
-                  type="time"
-                />
+                <label className="text-sm font-medium text-slate-700">Duração (h)</label>
+                <div className="h-[42px] flex items-center">
+                  <TimePickerField 
+                    value={duration} 
+                    onChange={setDuration} 
+                    ariaLabel="Duração do serviço"
+                    className={cn("schedule-time-picker--light", errors.duration && "border-red-500")}
+                  />
+                </div>
+                {errors.duration && <p className="text-[10px] text-red-500 font-medium px-1">{errors.duration}</p>}
               </div>
+            </div>
+
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-slate-500" />
+                Locais de realização
+              </label>
+              
+              <WorkplaceMultiSelect 
+                options={workplaces || []}
+                selected={selectedWorkplaces}
+                onChange={(ids) => {
+                  setSelectedWorkplaces(ids);
+                  if (ids.length > 0) setErrors(prev => ({ ...prev, workplaces: "" }));
+                }}
+                disabled={workplaces?.length === 1}
+              />
+              {errors.workplaces && <p className="text-[10px] text-red-500 font-medium px-1">{errors.workplaces}</p>}
+              {workplaces?.length === 1 && (
+                <p className="text-[10px] text-slate-400 italic px-1">
+                  Selecionado automaticamente por ser o único local disponível.
+                </p>
+              )}
             </div>
 
           {/* <div className="space-y-1">
@@ -251,9 +298,10 @@ export const ModalCreateService = (props: IProps) => {
             <textarea
               value={descricao}
               onChange={(e) => setDescricao(e.target.value)}
-              className={`${baseInputClass} min-h-[96px] resize-none`}
+              className={cn(baseInputClass, "min-h-[96px] resize-none", errors.descricao && "border-red-500 focus:border-red-500 focus:ring-red-500/20")}
               placeholder="Descreva o serviço..."
             />
+            {errors.descricao && <p className="text-[10px] text-red-500 font-medium px-1">{errors.descricao}</p>}
           </div>
           </div>
 

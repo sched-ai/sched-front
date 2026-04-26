@@ -7,6 +7,11 @@ export interface IEmployee {
   name: string;
 }
 
+export interface IWorkplace {
+  id: string;
+  nickname: string;
+}
+
 export interface IService {
   id: string;
   name: string;
@@ -16,6 +21,7 @@ export interface IService {
   type: 'SERVICE' | 'PACKAGE';
   department: string | null;
   employee: IEmployee | null;
+  workplaces: IWorkplace[] | null;
 }
 
 interface UseGetAllServicesProps {
