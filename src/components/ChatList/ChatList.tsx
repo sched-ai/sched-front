@@ -57,7 +57,7 @@ export function ChatList({ contacts, selectedContact, onSelectContact }: ChatLis
 
   return (
     <div className="w-full md:w-[360px] lg:w-[400px] bg-white border-r border-border flex flex-col">
-      <div className="bg-slate-50 p-4 border-b border-border flex flex-col gap-3">
+      <div className="p-4 border-b border-border flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-slate-900 font-semibold">Conversas</h2>

@@ -8,10 +8,11 @@ export const useDeleteService = ({ onSuccessFn }: IUseMutationParams) => {
   const { destroy } = useAPI<void>();
 
   return useMutation({
-    mutationFn: (serviceId: string) => 
+    mutationFn: ({ id, label, successMessage }: { id: string; label?: string; successMessage?: string }) => 
       destroy({
-        endpoint: `services/${serviceId}`,
-        label: "Serviço",
+        endpoint: `services/${id}`,
+        label: label || "Serviço",
+        successMessage,
       }),
     
     onSuccess: () => {

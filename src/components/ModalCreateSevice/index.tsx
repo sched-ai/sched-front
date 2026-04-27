@@ -4,7 +4,7 @@ import { useCreateService } from "@/hooks/api/useCreateService";
 import type { IService } from "@/hooks/api/useGetAllServices";
 import { useUpdateService } from "@/hooks/api/useEditService";
 import { useQueryClient } from "@tanstack/react-query";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { TimePickerField } from "@/components/ScheduleFormModal/TimePickerField";
 import { useGetAllWorkplaces } from "@/hooks/api/useGetAllWorkplaces";
 import { WorkplaceMultiSelect } from "@/components/WorkplaceMultiSelect";
@@ -203,27 +203,6 @@ export const ModalCreateService = (props: IProps) => {
             <DialogTitle className="text-xl text-slate-900">
               {isEditMode ? "Editar serviço" : "Novo serviço"}
             </DialogTitle>
-            <DialogDescription className="text-sm text-slate-500 mt-1">
-              {isEditMode
-                ? "Atualize os dados do serviço abaixo."
-                : "Preencha as informações para cadastrar um novo serviço."}
-            </DialogDescription>
-          </div>
-
-          <div className="px-6 py-5 space-y-4 max-h-[70vh] overflow-y-auto">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Nome do serviço</label>
-              <input
-                value={nome}
-                onChange={(e) => setNome(e.target.value)}
-                className={cn(baseInputClass, errors.nome && "border-red-500 focus:border-red-500 focus:ring-red-500/20")}
-                placeholder="Ex: Limpeza de pele"
-                type="text"
-                autoFocus
-              />
-              {errors.nome && <p className="text-[10px] text-red-500 font-medium px-1">{errors.nome}</p>}
-            </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700">Valor (R$)</label>
@@ -250,6 +229,7 @@ export const ModalCreateService = (props: IProps) => {
                 {errors.duration && <p className="text-[10px] text-red-500 font-medium px-1">{errors.duration}</p>}
               </div>
             </div>
+
 
             <div className="space-y-3">
               <label className="text-sm font-medium text-slate-700 flex items-center gap-2">

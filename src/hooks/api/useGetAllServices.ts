@@ -22,6 +22,12 @@ export interface IService {
   department: string | null;
   employee: IEmployee | null;
   workplaces: IWorkplace[] | null;
+  discount?: string | null;
+  packageItems?: Array<{
+    serviceId: string;
+    quantity: number;
+    service?: IService;
+  }>;
 }
 
 interface UseGetAllServicesProps {
