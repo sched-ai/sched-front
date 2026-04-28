@@ -67,9 +67,9 @@ export function PackageBindModal({ isOpen, onClose }: PackageBindModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="max-w-md bg-white border border-slate-200 rounded-2xl p-0 overflow-hidden">
+      <DialogContent className="max-w-md bg-white border border-slate-200 rounded-2xl p-0 overflow-visible">
         <form onSubmit={handleBind}>
-          <div className="px-6 py-5 border-b border-slate-200 flex items-center gap-3">
+          <div className="px-6 py-5 border-b border-slate-200 flex items-center gap-3 rounded-t-2xl">
             <div className="bg-blue-100 p-2 rounded-lg">
               <PackagePlus className="text-blue-600" size={20} />
             </div>
@@ -95,7 +95,7 @@ export function PackageBindModal({ isOpen, onClose }: PackageBindModalProps) {
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
               />
               {showSuggestions && clientSearch && (
-                 <div className="absolute top-full left-0 right-0 z-50 bg-white border border-slate-200 rounded-b-md shadow-lg max-h-48 overflow-y-auto mt-1">
+                 <div className="absolute top-full left-0 right-0 z-50 bg-white border border-slate-200 rounded-b-md shadow-lg max-h-48 overflow-y-auto custom-scrollbar">
                    {isLoadingClients && <div className="p-3 text-sm text-slate-500">Carregando...</div>}
                    {!isLoadingClients && clients && clients.length > 0 && (
                      <ul>
@@ -139,7 +139,7 @@ export function PackageBindModal({ isOpen, onClose }: PackageBindModalProps) {
             </div>
           </div>
 
-          <div className="px-6 py-4 border-t border-slate-200 flex justify-end gap-2">
+          <div className="px-6 py-4 border-t border-slate-200 flex justify-end gap-2 rounded-b-2xl bg-white">
             <Button
               type="button"
               variant="outline"

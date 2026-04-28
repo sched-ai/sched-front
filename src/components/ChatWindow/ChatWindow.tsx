@@ -307,7 +307,7 @@ export function ChatWindow({
 
           {!isLoadingMessages && groupedMessages.map((group) => (
             <div key={group.dateKey} className="flex flex-col space-y-3">
-              <div className="flex items-center justify-center py-2 sticky top-2 z-10">
+              <div className="flex items-center justify-center py-2 sticky -top-2 z-10">
                 <span className="inline-flex items-center rounded-full border border-slate-200 bg-white/95 backdrop-blur-sm px-3 py-1 text-[11px] font-medium text-slate-600 shadow-sm">
                   {formatDateBadge(group.dateKey)}
                 </span>

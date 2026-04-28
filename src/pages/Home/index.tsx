@@ -289,13 +289,13 @@ export const Home = () => {
           </div>
           <div className="flex items-center gap-3">
             <Button
-              className="h-[48px] !text-[15px] font-medium bg-gradient-to-r bg-emerald-600 hover:bg-emerald-700 text-white transition-all duration-300 hover:shadow-emerald-500/30 rounded-xl px-6"
+              className="h-[48px] !text-[15px] font-medium bg-[#141736] text-white transition-all duration-300 hover:shadow-emerald-500/30 rounded-xl px-6"
               onClick={() => setIsPackageModalOpen(true)}
             >
               <PackagePlus className="w-5 h-5 mr-1" /> Vincular Pacote
             </Button>
             <Button
-              className="h-[48px] !text-[15px] font-medium bg-gradient-to-r bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20 transition-all duration-300 hover:shadow-blue-500/30 rounded-xl px-6"
+              className="h-[48px] !text-[15px] font-medium bg-gradient-to-r bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300 hover:shadow-blue-500/30 rounded-xl px-6"
               onClick={() => {
                 setIsScheduleViewOpen(false);
                 setScheduleViewDetails(null);

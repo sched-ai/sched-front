@@ -276,7 +276,7 @@ export const AppoimentContent = ({
                 value={endHour}
                 minTime={endMinTime}
                 maxTime={endMaxTime}
-                ariaLabel="Fim da consulta"
+                ariaLabel="Fim"
                 disabledTime={endDisabledTime}
                 onChange={(next) => setEndHour(next)}
               />
