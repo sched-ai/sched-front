@@ -455,11 +455,11 @@ export const CreatePackage = () => {
                   <div className="bg-blue-600 rounded-2xl p-6 text-white shadow-lg shadow-blue-100">
                     <p className="text-xs font-bold uppercase tracking-wider opacity-70 mb-2">Preço Final</p>
                     <div className="flex items-baseline gap-1">
-                       <span className="text-3xl font-bold">{price || "R$ 0,00"}</span>
+                       <span className="text-xl font-bold truncate">{price || "R$ 0,00"}</span>
                     </div>
                   </div>
 
-                  {parseBRL(price) && calculateSuggestedPrice() > 0 && (() => {
+                  {(parseBRL(price) || 0) > 0 && calculateSuggestedPrice() > 0 && (() => {
                     const economy = calculateSuggestedPrice() - (parseBRL(price) || 0);
                     const isPositive = economy >= 0;
                     return (
@@ -469,16 +469,18 @@ export const CreatePackage = () => {
                           ? "bg-green-50 text-green-700 border-green-100" 
                           : "bg-red-50 text-red-700 border-red-100"
                       )}>
-                        <div className="flex justify-between">
+                        <div className="flex flex-col justify-between">
                            <span>Economia total:</span>
-                           <span className="font-bold">
+                           <span className="font-bold truncate">
                              {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(economy)}
-                           </span>
+                           </span> 
                         </div>
-                        <div className="flex justify-between text-[10px] opacity-80 uppercase tracking-tight">
-                           <span>Percentual:</span>
-                           <span>{Math.round((1 - (parseBRL(price) || 0) / calculateSuggestedPrice()) * 100)}% de desconto</span>
-                        </div>
+                        {isPositive && (
+                          <div className="flex justify-between text-[10px] opacity-80 uppercase tracking-tight">
+                             <span>Percentual:</span>
+                             <span>{Math.round((1 - (parseBRL(price) || 0) / calculateSuggestedPrice()) * 100)}% de desconto</span>
+                          </div>
+                        )}
                       </div>
                     );
                   })()}

@@ -6,11 +6,13 @@ import { useSignUp } from "@/hooks/api/auth/useSignUp";
 import { useSignIn } from "@/hooks/api/auth/useSignIn";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
 
 export const SignUp = () => {
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [name, setName] = React.useState('');
+  const [showPassword, setShowPassword] = React.useState(false);
 
   const navigate = useNavigate();
 
@@ -113,13 +115,25 @@ export const SignUp = () => {
               </label>
               <div className="relative">
                 <Input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   id="password"
                   required
                   placeholder="Insira sua senha"
                   minLength={8}
                   onChange={(e) => setPassword(e.target.value)}
                 />
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
               </div>
             </div>
             <Button type="submit" className="w-full">
@@ -212,14 +226,26 @@ export const SignUp = () => {
                 </label>
                 <div className="relative">
                   <Input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     id="password_mobile"
                     required
                     placeholder="Insira sua senha"
                     minLength={8}
-                    className="text-white border-white"
+                    className="text-white border-white pr-10"
                     onChange={(e) => setPassword(e.target.value)}
                   />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
                 </div>
               </div>
               <Button type="submit" variant="secondary" className="w-full">
