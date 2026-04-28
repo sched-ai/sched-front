@@ -136,8 +136,8 @@ export function ChatList({ contacts, selectedContact, onSelectContact }: ChatLis
                       </span>
                     )}
                     {contact.unread && (
-                      <span className={`${isManual ? 'bg-orange-600' : 'bg-blue-600'} text-white text-[10px] rounded-full size-4 flex items-center justify-center flex-shrink-0`}>
-                        {contact.unread}
+                      <span className={`${isManual ? 'bg-orange-600' : 'bg-blue-600'} text-white ${typeof contact.unread === 'number' ? 'text-[10px] rounded-full size-4 flex items-center justify-center' : 'rounded-full size-2.5'} flex-shrink-0`}>
+                        {typeof contact.unread === 'number' ? contact.unread : ''}
                       </span>
                     )}
                   </div>

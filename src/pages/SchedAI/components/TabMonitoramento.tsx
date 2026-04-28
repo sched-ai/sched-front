@@ -6,11 +6,12 @@ import {
   useGetMonitoringUsers,
   useSendMonitoringMessage,
   useToggleClientBotStatus,
+  useMarkMonitoringUserAsRead,
   type MonitoringMessagesResponse,
 } from "@/hooks/api/useSchedAiMonitoring"
 import { formatBusinessHour } from "@/lib/dateTime"
 import { formatPhone } from "@/util/helper"
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { StorageService } from "@/services"
 import useAPI from "@/hooks/api/useAPI"
@@ -40,6 +41,9 @@ const mergeOlderMessages = (older: Message[], newer: Message[]) => {
   return merged.sort((a, b) => a.id - b.id)
 }
 
+// Som de notificação embutido em Base64 (um "pop" suave e curto)
+const NOTIFICATION_SOUND_URI = "data:audio/mp3;base64,//tQxAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAAHAAACjwAHEhISEhISEhIcJycnJycnJycnOUxMTExMTExMTFhjY2NjY2NjY2NyiIiIiIiIiIiIknp6enp6enp6eq+8vLy8vLy8vLzP5+fn5+fn5+fn4QAAAAAAAAAAAAAAAAAAAAAAADhJbmZvAAAADwAAABgAAAEhAHy23wAAAAAAAAAAAAAAAAAAAAAAAEwhBQAOAAABX9fG7q8AAAAAAAAAAAAAAAAAAAAAAABMYXZjNTguMTM0LjEwMAAAAAAAAAAAAAAA//tQxAAAAAMHn7kAAAH8gA70gAAAC8X/2AAAn2AAABQAACfXgAAAAAAAA/v/6//4//x2r6////n9f/n/9/+oAABwAAAHAAAAM2k73c09e3e7ve7ve7ve7ve7vf///wAASAAAAwAAAE+v2/9f9////3+v/5///2AADgAAAcAAAAoE4B2m73d72/d7297e9ve3vb3t7297e9v///wAAAAAAAAA//tQxBwAAAHE2bwAAAIMAAACgAAAAXhZvcAACOQAAAKAAAAAAAAC/1///X+v///wB2D/r/v////8AcAAABwAAAFy/7u97e9ve3vb3t7297e9ve3vb3t72////wAAXAAAAcAAABfr+v/X/////r/6///9fwAwAAADgAAALhLnu7ve3vb3t7297e9ve3vb3t7297e9////AAAsAAAOwAA//tQxEYAAAHOZ/gAAAPoAAACgAAAAXg5/cAAANsAAAKAAAAL8N9f///X/////f3/7///0AAAcAAABwAAAKhJvu7ve3vb3t7297e9ve3vb3t7297e9v///wAAAAAAAABQ////f/////f///4AAOAAAA4AAAAh1ne7ve3vb3t7297e9ve3vb3t7297e9ve3v////AAAAAAAAAAO//tQxGkAAAHm2bYAAANAAAACgAAAAXR5u8AAAJqAAAKAAAAA//4v9/////4//+v///wAA8AAADwAAAHxIru7ve3vb3t7297e9ve3vb3t7297e9ve3////wAASAAAAwAAAC+j/b////9////w////AAAA4AAAA4AAAAf1Lu73t7297e9ve3vb3t7297e9ve3vb3t73////wAASAAAAwAA//tQxJUAAAHSGbkAAAGoAAACgAAAAWj5tsAAAJoAAAKAAAAA+s1/r////7////v/9//8AAAAcAAAAcAAAAeUzvd7297e9ve3vb3t7297e9ve3vb3t7297////AAAAAAAAAE+N/r///X/////7//X/wAAOAAAA4AAABjUy7ve3vb3t7297e9ve3vb3t7297e9ve3vb3////AAAAAAAAAA"
+
 export function TabMonitoramento({ headerAction }: { headerAction?: ReactNode } = {}) {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
   const [sessionCursor, setSessionCursor] = useState(0)
@@ -49,10 +53,14 @@ export function TabMonitoramento({ headerAction }: { headerAction?: ReactNode } 
   const [hasNextPageInSession, setHasNextPageInSession] = useState(false)
   const [isFetchingOlder, setIsFetchingOlder] = useState(false)
 
+  // Ref para controle do som de notificação
+  const prevUnreadCountsRef = useRef<Record<string, boolean>>({})
+
   const { get } = useAPI<MonitoringMessagesResponse>()
 
   const { mutateAsync: sendMessage, isPending: isSending } = useSendMonitoringMessage()
   const { mutateAsync: toggleBot, isPending: isTogglingBot } = useToggleClientBotStatus()
+  const { mutateAsync: markAsRead } = useMarkMonitoringUserAsRead()
 
   const queryClient = useQueryClient()
 
@@ -92,7 +100,7 @@ export function TabMonitoramento({ headerAction }: { headerAction?: ReactNode } 
   const contacts = useMemo(() => {
     const users = usersQuery.data?.data || []
 
-    return users.map((user): Contact => ({
+    return users.map((user): Contact & { latestMessageId?: number } => ({
       id: user.clientPhone,
       clientId: user.clientId,
       name: user.clientName,
@@ -101,8 +109,36 @@ export function TabMonitoramento({ headerAction }: { headerAction?: ReactNode } 
       timestamp: formatListTimestamp(user.latestTimestamp),
       subtitle: formatPhone(user.clientPhone),
       isBotActive: user.isBotActive,
+      unread: selectedContact?.id === user.clientPhone ? false : user.unread,
+      latestMessageId: user.latestMessageId,
     }))
-  }, [usersQuery.data])
+  }, [usersQuery.data, selectedContact?.id])
+
+  // Efeito para tocar o som de notificação
+  useEffect(() => {
+    let shouldPlaySound = false
+    const currentUnreadCounts: Record<string, boolean> = {}
+
+    for (const contact of contacts) {
+      if (contact.unread) {
+        currentUnreadCounts[contact.id] = true
+        // Toca o som se a mensagem não lida for de uma conversa que:
+        // 1. Antes não estava como 'unread'
+        // 2. E não é a conversa atualmente selecionada (a que a gente está lendo agora)
+        if (!prevUnreadCountsRef.current[contact.id] && selectedContact?.id !== contact.id) {
+          shouldPlaySound = true
+        }
+      }
+    }
+
+    if (shouldPlaySound) {
+      const audio = new Audio(NOTIFICATION_SOUND_URI)
+      audio.volume = 0.5
+      audio.play().catch(console.error)
+    }
+
+    prevUnreadCountsRef.current = currentUnreadCounts
+  }, [contacts, selectedContact?.id])
 
   const sessionsQuery = useGetMonitoringUserSessions({
     clientPhone: selectedContact?.id,
@@ -131,27 +167,53 @@ export function TabMonitoramento({ headerAction }: { headerAction?: ReactNode } 
     enabled: Boolean(selectedContact?.id && latestSessionId),
   })
 
+  // Efeito para atualizar propriedades críticas do contato ativo e auto-deselecionar se apagado
   useEffect(() => {
-    if (!contacts.length) {
-      setSelectedContact(null)
-      return
-    }
+    if (!contacts.length) return
 
-    // Tenta encontrar o contato selecionado na lista atualizada para pegar dados novos (como isBotActive)
+    // Tenta encontrar o contato selecionado na lista atualizada para pegar dados novos (como isBotActive e unread)
     const updatedContact = selectedContact
       ? contacts.find((contact) => contact.id === selectedContact.id)
       : null
 
     if (updatedContact) {
-      // Só atualizamos o estado se houver mudança real em propriedades críticas para evitar re-renders desnecessários
       if (updatedContact.isBotActive !== selectedContact?.isBotActive) {
         setSelectedContact(updatedContact)
       }
-    } else {
-      // Se o selecionado não existe mais ou não há seleção, pega o primeiro
-      setSelectedContact(contacts[0])
     }
+    // Nota: Nós intencionalmente removemos o 'setSelectedContact(contacts[0])'
+    // para que a tela inicie sem nenhuma conversa selecionada.
   }, [contacts, selectedContact])
+
+  // Efeito para marcar como lida quando uma conversa está selecionada e recebe mensagens
+  useEffect(() => {
+    if (!selectedContact || !usersQuery.data?.data) return
+
+    const originalUser = usersQuery.data.data.find((c) => c.clientPhone === selectedContact.id)
+    if (originalUser && originalUser.unread && originalUser.latestMessageId) {
+      
+      // Atualização otimista na cache para a bolinha sumir imediatamente sem piscar
+      queryClient.setQueryData(
+        ["sched-ai-monitoring-users", 1, 200, undefined],
+        (oldData: any) => {
+          if (!oldData) return oldData
+          return {
+            ...oldData,
+            data: oldData.data.map((u: any) =>
+              u.clientPhone === originalUser.clientPhone ? { ...u, unread: false } : u
+            ),
+          }
+        }
+      )
+
+      // Se a conversa aberta tem mensagens novas/não lidas, marca como lida na API
+      markAsRead({
+        clientPhone: originalUser.clientPhone,
+        lastReadMessageId: originalUser.latestMessageId,
+      }).catch(console.error)
+    }
+  }, [usersQuery.data?.data, selectedContact?.id, markAsRead, queryClient])
+
 
   useEffect(() => {
     setSessionCursor(0)
@@ -310,9 +372,9 @@ export function TabMonitoramento({ headerAction }: { headerAction?: ReactNode } 
   }
 
   const handleToggleBot = async (isBotActive: boolean) => {
-    if (!selectedContact?.clientId) return
+    if (!selectedContact?.id) return
     try {
-      await toggleBot({ clientId: selectedContact.clientId, isBotActive })
+      await toggleBot({ clientPhone: selectedContact.id, isBotActive })
       queryClient.invalidateQueries({ queryKey: ["sched-ai-monitoring-users"] })
     } catch (e) {
       console.error("Erro ao alternar bot", e)

@@ -23,7 +23,7 @@ export interface Contact {
   avatar: string;
   lastMessage: string;
   timestamp: string;
-  unread?: number;
+  unread?: number | boolean;
   subtitle?: string;
   isBotActive?: boolean;
 }
