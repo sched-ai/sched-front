@@ -210,7 +210,7 @@ export function TabConhecimento() {
       >
         <DialogContent className="max-w-2xl bg-white border border-slate-200 rounded-2xl p-0 overflow-hidden">
           <div className="px-6 py-5 border-b border-slate-200">
-            <DialogTitle className="text-xl text-slate-900">Adicionar Novo Conhecimento (FAQ)</DialogTitle>
+            <DialogTitle className="text-xl text-slate-900">Adicionar Conhecimento (FAQ)</DialogTitle>
             <DialogDescription className="text-sm text-slate-500 mt-1">
               Cadastre uma pergunta gatilho e a resposta base que a IA deve usar.
             </DialogDescription>

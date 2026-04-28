@@ -170,7 +170,7 @@ export const Servicos = () => {
             <DropdownMenuTrigger asChild>
               <Button
                 type="button"
-                className="bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center gap-2 self-start h-11 px-5 rounded-lg whitespace-nowrap shadow-md shadow-blue-200"
+                className="bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center gap-2 self-start h-11 px-5 rounded-lg whitespace-nowrap"
               >
                 <Plus className="w-4 h-4" strokeWidth={2} />
                 Novo item

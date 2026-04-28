@@ -20,9 +20,12 @@ import {
 import { useGetAllServices, type IService } from "@/hooks/api/useGetAllServices";
 import { useCreateAppointment } from "@/hooks/api/useCreateAppointment";
 import { useUpdateAppointment } from "@/hooks/api/useUpdateAppointment";
+import { useGetClientCredits } from "@/hooks/api/useGetClientCredits";
 import type { Matcher } from "react-day-picker";
 import type { TimePickerProps } from "antd";
 import { TimePickerField } from "./TimePickerField";
+import { Gift } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 const pad2 = (value: number) => String(value).padStart(2, "0");
 
@@ -90,6 +93,11 @@ export const AppoimentContent = ({
 }: IProps) => {
   const { userData, userLoading } = useUser();
   const { data: services } = useGetAllServices();
+  const availableServices = services?.filter((s) => s.type !== "PACKAGE") || [];
+  
+  const { data: credits } = useGetClientCredits({ clientId });
+  const matchingCredit = credits?.find(c => c.serviceId === service);
+
   // const { data: professionals } = useListCompanyMemberships();
   const { mutate: createAppointment, isPending: isCreating } = useCreateAppointment({
       onSuccessFn: () => {
@@ -198,6 +206,7 @@ export const AppoimentContent = ({
       employeeId: professional || undefined,
       startDate: buildLocalIso({ day, month, year }, startHour),
       duration,
+      packageCreditId: matchingCredit?.id,
     };
 
     if (appointmentId) {
@@ -210,7 +219,7 @@ export const AppoimentContent = ({
   return (
     <form onSubmit={handleCreateConsultation} className="flex flex-col gap-5">
       {/* Date & Time Section */}
-      <div className="flex items-start gap-4">
+      <div className="flex items-start gap-3">
         <div className="mt-2.5">
           <Clock className="text-gray-400" size={20} />
         </div>
@@ -323,9 +332,9 @@ export const AppoimentContent = ({
                 }
               }
             }}
-            disabled={services?.length === 0 || !services}
+            disabled={availableServices.length === 0}
           >
-            {(!services || services.length === 0) ? (
+            {availableServices.length === 0 ? (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <SelectTrigger className="w-full border-0 border-b border-gray-600 rounded-none px-0 bg-transparent text-white data-[placeholder]:text-gray-400 focus:ring-0 focus:border-blue-500 h-10">
@@ -340,13 +349,29 @@ export const AppoimentContent = ({
               </SelectTrigger>
             )}
             <SelectContent className="max-h-[200px]">
-              {services?.map((service) => (
-                <SelectItem key={service.id} value={String(service.id)}>
-                  {service.name}
-                </SelectItem>
-              ))}
+              {availableServices.map((service) => {
+                const serviceCredit = credits?.find(c => c.serviceId === service.id);
+                return (
+                  <SelectItem key={service.id} value={String(service.id)}>
+                    <div className="flex items-center gap-2">
+                      <span>{service.name}</span>
+                      {serviceCredit && (
+                        <Badge className="h-5 px-1.5 text-[10px] bg-blue-100 text-blue-700 hover:bg-blue-200 border-0">
+                          {serviceCredit.remainingQuantity} crédito{serviceCredit.remainingQuantity > 1 ? 's' : ''}
+                        </Badge>
+                      )}
+                    </div>
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
+          {matchingCredit && (
+            <p className="text-xs text-blue-400 mt-2 flex items-center gap-1">
+              <Gift size={12} />
+              Um Crédito será utilizado.
+            </p>
+          )}
         </div>
       </div>
 

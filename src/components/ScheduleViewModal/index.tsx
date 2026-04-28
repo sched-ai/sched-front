@@ -148,7 +148,7 @@ export const ScheduleViewModal = ({
 
           <div className="flex items-center px-6 gap-2 w-full justify-between">
             <p className="text-slate-400 text-sm">
-              {isBlock ? "Detalhes do bloqueio" : "Detalhes da consulta"}
+              {isBlock ? "Detalhes do bloqueio" : "Detalhes"}
             </p>
             {selectedEvent?.createdByAI && details.type === "consulta" && (
               <span className="inline-flex items-center gap-1 rounded-full border border-cyan-400/30 bg-cyan-500/10 px-2 py-0.5 text-[11px] font-medium text-cyan-300">

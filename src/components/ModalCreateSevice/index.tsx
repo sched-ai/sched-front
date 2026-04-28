@@ -203,6 +203,21 @@ export const ModalCreateService = (props: IProps) => {
             <DialogTitle className="text-xl text-slate-900">
               {isEditMode ? "Editar serviço" : "Novo serviço"}
             </DialogTitle>
+          </div>
+
+          <div className="px-6 py-5 space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">Nome do serviço</label>
+              <input
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+                className={cn(baseInputClass, errors.nome && "border-red-500")}
+                placeholder="Ex: Limpeza de Pele"
+                type="text"
+              />
+              {errors.nome && <p className="text-[10px] text-red-500 font-medium px-1">{errors.nome}</p>}
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700">Valor (R$)</label>
@@ -231,7 +246,7 @@ export const ModalCreateService = (props: IProps) => {
             </div>
 
 
-            <div className="space-y-3">
+            <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-slate-500" />
                 Locais de realização
