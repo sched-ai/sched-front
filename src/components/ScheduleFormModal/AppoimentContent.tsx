@@ -93,7 +93,6 @@ export const AppoimentContent = ({
 }: IProps) => {
   const { userData, userLoading } = useUser();
   const { data: services } = useGetAllServices();
-  const availableServices = services?.filter((s) => s.type !== "PACKAGE") || [];
   
   const { data: credits } = useGetClientCredits({ clientId });
   const matchingCredit = credits?.find(c => c.serviceId === service);
@@ -156,11 +155,28 @@ export const AppoimentContent = ({
     return true;
   });
 
-  useEffect(() => {
-    if (workplaces.length > 0 && (!location || !workplaces.find((w) => String(w.id) === location))) {
-      setLocation(String(workplaces[0].id));
+  const availableServices = services?.filter((s) => {
+    if (s.type === "PACKAGE") return false;
+    if (s.workplaces && s.workplaces.length > 0) {
+      return s.workplaces.some(swp => workplaces.some(w => String(w.id) === String(swp.id)));
     }
-  }, [workplaces, location, setLocation]);
+    return true;
+  }) || [];
+
+  const availableWorkplacesForService = workplaces.filter(w => {
+    if (!service) return true;
+    const selectedServiceObj = services?.find(s => String(s.id) === String(service));
+    if (!selectedServiceObj?.workplaces || selectedServiceObj.workplaces.length === 0) return true;
+    return selectedServiceObj.workplaces.some(swp => String(swp.id) === String(w.id));
+  });
+
+  useEffect(() => {
+    if (availableWorkplacesForService.length > 0 && (!location || !availableWorkplacesForService.find((w) => String(w.id) === location))) {
+      setLocation(String(availableWorkplacesForService[0].id));
+    } else if (availableWorkplacesForService.length === 0 && location) {
+      setLocation("");
+    }
+  }, [availableWorkplacesForService, location, setLocation]);
 
   const handleCreateConsultation = (e: React.FormEvent) => {
     e.preventDefault();
@@ -285,31 +301,6 @@ export const AppoimentContent = ({
         </div>
       </div>
 
-      {/* Location Section */}
-      <div className="flex items-start gap-4">
-        <div className="mt-3">
-          <MapPin className="text-gray-400" size={20} />
-        </div>
-        <div className="flex-1">
-          <Select
-            value={location}
-            onValueChange={(val: string) => setLocation(val)}
-            disabled={userLoading || workplaces.length === 0}
-          >
-            <SelectTrigger className="w-full border-0 border-b border-gray-600 rounded-none px-0 bg-transparent text-white data-[placeholder]:text-gray-400 focus:ring-0 focus:border-blue-500 h-10">
-              <SelectValue placeholder="Adicionar local" />
-            </SelectTrigger>
-            <SelectContent className="max-h-[200px]">
-              {workplaces.map((workplace) => (
-                <SelectItem key={workplace.id} value={String(workplace.id)}>
-                  {workplace.nickname}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
       {/* Service Section */}
       <div className="flex items-start gap-4">
         <div className="mt-3">
@@ -341,7 +332,7 @@ export const AppoimentContent = ({
                     <SelectValue placeholder="Adicionar serviço" />
                   </SelectTrigger>
                 </TooltipTrigger>
-                <TooltipContent sideOffset={6}>Nenhum serviço encontrado</TooltipContent>
+                <TooltipContent sideOffset={6}>Nenhum serviço disponível para este dia/horário</TooltipContent>
               </Tooltip>
             ) : (
               <SelectTrigger className="w-full border-0 border-b border-gray-600 rounded-none px-0 bg-transparent text-white data-[placeholder]:text-gray-400 focus:ring-0 focus:border-blue-500 h-10">
@@ -372,6 +363,31 @@ export const AppoimentContent = ({
               Um Crédito será utilizado.
             </p>
           )}
+        </div>
+      </div>
+
+      {/* Location Section */}
+      <div className="flex items-start gap-4">
+        <div className="mt-3">
+          <MapPin className="text-gray-400" size={20} />
+        </div>
+        <div className="flex-1">
+          <Select
+            value={location}
+            onValueChange={(val: string) => setLocation(val)}
+            disabled={userLoading || availableWorkplacesForService.length <= 1}
+          >
+            <SelectTrigger className="w-full border-0 border-b border-gray-600 rounded-none px-0 bg-transparent text-white data-[placeholder]:text-gray-400 focus:ring-0 focus:border-blue-500 h-10 disabled:opacity-50 disabled:cursor-not-allowed">
+              <SelectValue placeholder="Adicionar local" />
+            </SelectTrigger>
+            <SelectContent className="max-h-[200px]">
+              {availableWorkplacesForService.map((workplace) => (
+                <SelectItem key={workplace.id} value={String(workplace.id)}>
+                  {workplace.nickname}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
