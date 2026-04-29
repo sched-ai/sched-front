@@ -27,23 +27,20 @@ export function WorkplaceMultiSelect({
   options = [],
   selected = [],
   onChange,
-  placeholder = "Selecionar locais...",
+  placeholder = "Selecionar local...",
   disabled = false,
 }: WorkplaceMultiSelectProps) {
   const [open, setOpen] = React.useState(false);
 
-  const handleUnselect = (id: string) => {
+  const handleUnselect = () => {
     if (disabled) return;
-    onChange(selected.filter((s) => s !== id));
+    onChange([]);
   };
 
   const toggleOption = (id: string) => {
     if (disabled) return;
-    if (selected.includes(id)) {
-      onChange(selected.filter((s) => s !== id));
-    } else {
-      onChange([...selected, id]);
-    }
+    onChange([id]);
+    setOpen(false);
   };
 
   const selectedObjects = options.filter((o) => selected.includes(o.id));
@@ -70,7 +67,7 @@ export function WorkplaceMultiSelect({
                   className="bg-blue-50 text-blue-700 border-blue-100 px-2 py-0.5 rounded-md flex items-center gap-1 group"
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleUnselect(item.id);
+                    handleUnselect();
                   }}
                 >
                   {item.nickname}
