@@ -172,6 +172,7 @@ export const CreatePackage = () => {
 
   const isFormValid = 
     nome.trim() !== "" && 
+    descricao.trim() !== "" && 
     price.trim() !== "" && 
     (parseBRL(price) || 0) > 0 && 
     packageItems.length > 0;
@@ -179,6 +180,7 @@ export const CreatePackage = () => {
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
     if (!nome.trim()) newErrors.nome = "O nome é obrigatório";
+    if (!descricao.trim()) newErrors.descricao = "A descrição é obrigatória";
     if (!price || (parseBRL(price) || 0) === 0) newErrors.price = "O valor é obrigatório";
     if (packageItems.length === 0) newErrors.packageItems = "Arraste pelo menos um serviço para o pacote";
     if (packageItems.some(item => !item.serviceId || item.quantity <= 0)) newErrors.packageItems = "Preencha todos os serviços e quantidades";
@@ -356,9 +358,10 @@ export const CreatePackage = () => {
                     <textarea
                       value={descricao}
                       onChange={(e) => setDescricao(e.target.value)}
-                      className={cn(baseInputClass, "min-h-[80px] resize-none")}
+                      className={cn(baseInputClass, "min-h-[80px] resize-none", errors.descricao && "border-red-500")}
                       placeholder="Descreva o que este pacote oferece..."
                     />
+                    {errors.descricao && <p className="text-xs text-red-500 font-medium">{errors.descricao}</p>}
                   </div>
                 </div>
               </section>
