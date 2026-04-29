@@ -70,6 +70,37 @@ const formatDateBadge = (value: string) => {
   }).format(parsed);
 };
 
+const renderMessageText = (text: string) => {
+  if (!text) return null;
+  
+  let cleanText = text.trim();
+  if (cleanText.startsWith('"') && cleanText.endsWith('"')) {
+    try {
+      const parsed = JSON.parse(cleanText);
+      if (typeof parsed === 'string') {
+        cleanText = parsed;
+      }
+    } catch (e) {
+      cleanText = cleanText.slice(1, -1).replace(/\\n/g, '\n').replace(/\\"/g, '"');
+    }
+  } else if (cleanText.includes('\\n')) {
+    cleanText = cleanText.replace(/\\n/g, '\n');
+  }
+  
+  const parts = cleanText.split(/(\*[^\*]+\*)/g);
+  
+  return parts.map((part, index) => {
+    if (part.startsWith("*") && part.endsWith("*") && part.length > 2) {
+      return (
+        <strong key={index} className="font-bold">
+          {part.slice(1, -1)}
+        </strong>
+      );
+    }
+    return part;
+  });
+};
+
 export function ChatWindow({
   contact,
   messages,
@@ -322,7 +353,7 @@ export function ChatWindow({
                         : "bg-white border-slate-200 text-slate-900"
                     }`}
                   >
-                    <p className="text-sm whitespace-pre-wrap break-words">{message.text}</p>
+                    <p className="text-sm whitespace-pre-wrap break-words">{renderMessageText(message.text)}</p>
                     <span
                       className={`text-xs float-right ml-2 mt-1 ${
                         message.sent ? "text-blue-100" : "text-slate-500"
