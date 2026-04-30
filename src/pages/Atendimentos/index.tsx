@@ -32,12 +32,15 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
-const statusOptions = ["Todos os status", "Agendado", "Concluído", "Cancelado"];
+const PENDING_CLOSURE_LABEL = "Pendente de encerramento";
+
+const statusOptions = ["Todos os status", "Agendado", PENDING_CLOSURE_LABEL, "Concluído", "Cancelado"];
 const itemsPerPageOptions = [5, 10, 20];
 
 const statusValueMap: Record<string, string> = {
   "Todos os status": "todos",
   Agendado: "scheduled",
+  [PENDING_CLOSURE_LABEL]: "pending_closure",
   Concluído: "finished",
   Cancelado: "cancelled",
 };
@@ -64,9 +67,24 @@ function sortAppointmentsByProximity(appointments: AppointmentAPI[]): Appointmen
 
 const statusConfig: Record<string, { color: string; dot: string }> = {
   Agendado: { color: "text-dark-blue", dot: "bg-blue-500" },
+  [PENDING_CLOSURE_LABEL]: { color: "text-dark-blue", dot: "bg-amber-500" },
   Concluído: { color: "text-dark-blue", dot: "bg-green-500" },
   Cancelado: { color: "text-dark-blue", dot: "bg-red-500" },
 };
+
+const SCHEDULED_APPOINTMENT_STATUSES = new Set(["agendado", "pending", "scheduled", "confirmed"]);
+
+function isPendingClosure(appointment: AppointmentAPI) {
+  const normalized = appointment.status?.toLowerCase() || "";
+  if (!SCHEDULED_APPOINTMENT_STATUSES.has(normalized)) return false;
+
+  const referenceDate = appointment.endDate || appointment.startDate;
+  const referenceTime = new Date(referenceDate).getTime();
+
+  if (Number.isNaN(referenceTime)) return false;
+
+  return referenceTime <= Date.now();
+}
 
 function getStatusLabel(status: string) {
   const normalized = status?.toLowerCase() || "";
@@ -78,8 +96,12 @@ function getStatusLabel(status: string) {
   return status || "Desconhecido";
 }
 
-function getStatusVisual(status: string) {
-  const label = getStatusLabel(status);
+function getAppointmentStatusLabel(appointment: AppointmentAPI) {
+  if (isPendingClosure(appointment)) return PENDING_CLOSURE_LABEL;
+  return getStatusLabel(appointment.status);
+}
+
+function getStatusVisual(label: string) {
   return statusConfig[label] || { color: "text-slate-600", dot: "bg-slate-400" };
 }
 
@@ -125,16 +147,22 @@ export const Atendimentos = () => {
 
   let appointments: AppointmentAPI[] = [];
   let meta = { total: 0, totalPages: 1, page: 1, limit: itensPorPagina };
-  let estatisticas = { total: 0, concluidos: 0, agendados: 0, cancelados: 0 };
+  let estatisticas = { total: 0, concluidos: 0, agendados: 0, pendentes: 0, cancelados: 0 };
 
   if (Array.isArray(responseAny)) {
     const allData = responseAny as AppointmentAPI[];
     const sortedData = sortAppointmentsByProximity(allData);
 
+    const pendingCount = sortedData.filter((item) => isPendingClosure(item)).length;
+    const scheduledCount = sortedData.filter(
+      (item) => ["agendado", "pending", "scheduled", "confirmed"].includes(item.status?.toLowerCase())
+    ).length;
+
     estatisticas = {
       total: sortedData.length,
       concluidos: sortedData.filter((item) => ["concluido", "finished", "done"].includes(item.status?.toLowerCase())).length,
-      agendados: sortedData.filter((item) => ["agendado", "pending", "scheduled", "confirmed"].includes(item.status?.toLowerCase())).length,
+      agendados: Math.max(0, scheduledCount - pendingCount),
+      pendentes: pendingCount,
       cancelados: sortedData.filter((item) => ["cancelado", "cancelled"].includes(item.status?.toLowerCase())).length,
     };
 
@@ -147,18 +175,20 @@ export const Atendimentos = () => {
   } else if (responseAny) {
     appointments = responseAny.data ? sortAppointmentsByProximity(responseAny.data) : [];
     meta = responseAny.meta || meta;
-    estatisticas = responseAny.stats || estatisticas;
+    estatisticas = responseAny.stats
+      ? {
+          ...responseAny.stats,
+          pendentes: responseAny.stats.pendentes ?? 0,
+        }
+      : estatisticas;
   }
 
-  const statsCards = useMemo(
-    () => [
-      { label: "Total de Atendimentos", value: estatisticas.total, icon: Users, color: "text-blue-500" },
-      { label: "Concluídos", value: estatisticas.concluidos, icon: CheckCircle, color: "text-green-500" },
-      { label: "Agendados", value: estatisticas.agendados, icon: CalendarDays, color: "text-orange-500" },
-      { label: "Cancelados", value: estatisticas.cancelados, icon: XCircle, color: "text-red-500" },
-    ],
-    [estatisticas]
-  );
+  const statsCards = [
+    { label: "Total de Atendimentos", value: estatisticas.total, icon: Users, color: "text-blue-500" },
+    { label: "Concluídos", value: estatisticas.concluidos, icon: CheckCircle, color: "text-green-500" },
+    { label: "Agendados", value: estatisticas.agendados, icon: CalendarDays, color: "text-orange-500" },
+    { label: "Cancelados", value: estatisticas.cancelados, icon: XCircle, color: "text-red-500" },
+  ];
 
   const pageNumbers = useMemo(() => {
     return Array.from({ length: meta.totalPages }, (_, index) => index + 1).slice(
@@ -388,8 +418,8 @@ export const Atendimentos = () => {
 function paginatedRows(appointments: AppointmentAPI[], navigate: ReturnType<typeof useNavigate>) {
   return appointments.map((atendimento, index) => {
     const start = new Date(atendimento.startDate);
-    const status = getStatusLabel(atendimento.status);
-    const visual = getStatusVisual(atendimento.status);
+    const status = getAppointmentStatusLabel(atendimento);
+    const visual = getStatusVisual(status);
     const isLast = index === appointments.length - 1;
     const isCancelled = ["cancelado", "cancelled"].includes(atendimento.status?.toLowerCase() || "");
 
