@@ -23,7 +23,7 @@ export interface Contact {
   avatar: string;
   lastMessage: string;
   timestamp: string;
-  unread?: number;
+  unread?: number | boolean;
   subtitle?: string;
   isBotActive?: boolean;
 }
@@ -68,6 +68,37 @@ const formatDateBadge = (value: string) => {
     month: "long",
     year: "numeric",
   }).format(parsed);
+};
+
+const renderMessageText = (text: string) => {
+  if (!text) return null;
+  
+  let cleanText = text.trim();
+  if (cleanText.startsWith('"') && cleanText.endsWith('"')) {
+    try {
+      const parsed = JSON.parse(cleanText);
+      if (typeof parsed === 'string') {
+        cleanText = parsed;
+      }
+    } catch (e) {
+      cleanText = cleanText.slice(1, -1).replace(/\\n/g, '\n').replace(/\\"/g, '"');
+    }
+  } else if (cleanText.includes('\\n')) {
+    cleanText = cleanText.replace(/\\n/g, '\n');
+  }
+  
+  const parts = cleanText.split(/(\*[^\*]+\*)/g);
+  
+  return parts.map((part, index) => {
+    if (part.startsWith("*") && part.endsWith("*") && part.length > 2) {
+      return (
+        <strong key={index} className="font-bold">
+          {part.slice(1, -1)}
+        </strong>
+      );
+    }
+    return part;
+  });
 };
 
 export function ChatWindow({
@@ -307,7 +338,7 @@ export function ChatWindow({
 
           {!isLoadingMessages && groupedMessages.map((group) => (
             <div key={group.dateKey} className="flex flex-col space-y-3">
-              <div className="flex items-center justify-center py-2 sticky top-2 z-10">
+              <div className="flex items-center justify-center py-2 sticky -top-2 z-10">
                 <span className="inline-flex items-center rounded-full border border-slate-200 bg-white/95 backdrop-blur-sm px-3 py-1 text-[11px] font-medium text-slate-600 shadow-sm">
                   {formatDateBadge(group.dateKey)}
                 </span>
@@ -322,7 +353,7 @@ export function ChatWindow({
                         : "bg-white border-slate-200 text-slate-900"
                     }`}
                   >
-                    <p className="text-sm whitespace-pre-wrap break-words">{message.text}</p>
+                    <p className="text-sm whitespace-pre-wrap break-words">{renderMessageText(message.text)}</p>
                     <span
                       className={`text-xs float-right ml-2 mt-1 ${
                         message.sent ? "text-blue-100" : "text-slate-500"

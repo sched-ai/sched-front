@@ -336,7 +336,7 @@ export default function Step2({
                           }}
                         >
                           <Plus />
-                          Adicionar Novo Local
+                          Adicionar
                         </Button>
                         {visibleLocations.length > 0 && (
                           <div className="text-sm text-muted-foreground">

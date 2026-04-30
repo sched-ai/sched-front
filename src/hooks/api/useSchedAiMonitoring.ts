@@ -22,6 +22,8 @@ export interface MonitoringUsersResponse {
     lastSessionDate: string;
     lastSessionDateLabel: string;
     isBotActive: boolean;
+    unread?: boolean;
+    latestMessageId?: number;
   }>;
   meta: MonitoringPaginationMeta;
 }
@@ -142,9 +144,9 @@ export const useToggleClientBotStatus = () => {
   const { patch } = useAPI<{ success: boolean; isBotActive: boolean }>();
 
   return useMutation({
-    mutationFn: async ({ clientId, isBotActive }: { clientId: string; isBotActive: boolean }) => {
+    mutationFn: async ({ clientPhone, isBotActive }: { clientPhone: string; isBotActive: boolean }) => {
       return patch({
-        endpoint: `sched-ai/monitoring/clients/${clientId}/bot-status`,
+        endpoint: `sched-ai/monitoring/users/${clientPhone}/bot-status`,
         body: { isBotActive },
         label: "Alterar status do bot",
         showSuccessFeedback: false,
@@ -168,3 +170,17 @@ export const useSendMonitoringMessage = () => {
   });
 };
 
+export const useMarkMonitoringUserAsRead = () => {
+  const { post } = useAPI<{ success: boolean }>();
+
+  return useMutation({
+    mutationFn: async ({ clientPhone, lastReadMessageId }: { clientPhone: string; lastReadMessageId: number }) => {
+      return post({
+        endpoint: `sched-ai/monitoring/users/${clientPhone}/read`,
+        body: { lastReadMessageId },
+        label: "Marcar conversa como lida",
+        showSuccessFeedback: false,
+      });
+    },
+  });
+};

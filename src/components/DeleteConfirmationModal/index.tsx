@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { capitalizeFirst } from "@/util/helper";
-import { CalendarDays, Clock, TriangleAlert, Info } from "lucide-react";
+import { CalendarDays, Clock, TriangleAlert } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useDeleteAppointment } from "@/hooks/api/useDeleteAppointment";
 import { useDeleteTimeBlock } from "@/hooks/api/useDeleteTimeBlock";
@@ -89,109 +89,121 @@ export const DeleteConfirmationModal = ({
   const showRecurrenceOptions = isBlock && selectedEvent.isRecurring;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-md animate-in fade-in duration-300 px-4">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 animate-in fade-in duration-300 px-4">
       <div 
-          ref={ref}
-          className="w-full max-w-[440px] bg-[#121535] border border-slate-700/50 text-slate-100 rounded-2xl shadow-2xl overflow-hidden flex flex-col p-8 animate-in zoom-in-95 duration-200 ring-1 ring-white/5"
+        ref={ref}
+        className="w-full max-w-[460px] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200"
       >
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center border border-red-500/20">
-                <TriangleAlert className="w-6 h-6 text-red-500" />
+        <div className="p-6">
+          <div className="flex gap-4">
+            <div className="flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-full bg-red-100">
+              <TriangleAlert className="w-6 h-6 text-red-600" />
             </div>
-            <div>
-                <h2 className="text-xl font-bold text-white leading-tight">
-                    {isBlock ? "Excluir Bloqueio" : "Cancelar Consulta"}
-                </h2>
-                <p className="text-slate-400 text-sm">Esta ação não poderá ser desfeita.</p>
+            <div className="mt-1">
+              <h2 className="text-lg font-semibold text-slate-900 leading-none">
+                {isBlock ? "Excluir bloqueio" : "Cancelar agendamento"}
+              </h2>
+              <p className="text-sm text-slate-500 mt-2">
+                {isBlock 
+                  ? selectedEvent.isRecurring 
+                    ? "Este bloqueio faz parte de uma série recorrente. O que você deseja excluir?" 
+                    : "Tem certeza que deseja excluir este bloqueio?"
+                  : "Tem certeza que deseja cancelar este agendamento?"}
+              </p>
             </div>
           </div>
 
-          <div className="bg-slate-800/30 rounded-xl p-4 mb-6 border border-slate-700/30 backdrop-blur-sm">
-              <h3 className="text-base font-semibold text-white mb-2 leading-tight">
-                  {capitalizeFirst(selectedEvent.title)}
-              </h3>
-              <div className="flex flex-col gap-2 text-xs text-slate-400 font-medium">
-                  <span className="flex items-center gap-2">
-                       <div className="w-1 h-1 rounded-full bg-blue-500" />
-                       <CalendarDays className="w-3.5 h-3.5 text-blue-400" /> {formattedDate}
-                  </span>
-                  {selectedEvent.start && selectedEvent.end && (
-                      <span className="flex items-center gap-2">
-                          <div className="w-1 h-1 rounded-full bg-purple-500" />
-                          <Clock className="w-3.5 h-3.5 text-purple-400" /> {selectedEvent.start} - {selectedEvent.end}
-                      </span>
-                  )}
+          <div className="mt-6 p-4 rounded-xl border border-slate-200 bg-slate-50">
+            <h3 className="font-medium text-slate-900 mb-3 leading-none">
+              {capitalizeFirst(selectedEvent.title)}
+            </h3>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm text-slate-600">
+                <CalendarDays className="w-4 h-4 text-slate-400" />
+                <span>{formattedDate}</span>
               </div>
+              {selectedEvent.start && selectedEvent.end && (
+                <div className="flex items-center gap-2 text-sm text-slate-600">
+                  <Clock className="w-4 h-4 text-slate-400" />
+                  <span>{selectedEvent.start} - {selectedEvent.end}</span>
+                </div>
+              )}
+            </div>
           </div>
 
-          {!showRecurrenceOptions ? (
-             <p className="text-slate-300 text-sm mb-8 leading-relaxed">
-               Tem certeza que deseja {isBlock ? 'excluir este bloqueio' : 'cancelar esta consulta'}? 
-               {isBlock ? ' Todas as informações serão removidas permanentemente.' : ' O horário ficará livre para novos agendamentos.'}
-             </p>
-          ) : (
-            <div className="space-y-4 mb-8">
-                <div className="flex items-start gap-2 text-blue-400 bg-blue-500/5 p-3 rounded-lg border border-blue-500/10 mb-4">
-                    <Info size={16} className="mt-0.5 shrink-0" />
-                    <p className="text-xs leading-relaxed text-blue-200/80">
-                        Este é um bloqueio recorrente. Como você deseja proceder com a exclusão?
-                    </p>
+          {showRecurrenceOptions && (
+            <div className="mt-5 space-y-3">
+              <label
+                className={`relative flex cursor-pointer rounded-xl border p-4 transition-all focus:outline-none hover:bg-slate-50 ${
+                  deleteType === "single" 
+                  ? "border-[#141736] bg-[#141736]/5 shadow-sm" 
+                  : "border-slate-200 bg-white"
+                }`}
+                onClick={() => setDeleteType("single")}
+              >
+                <div className="flex flex-1">
+                  <div className="flex flex-col">
+                    <span className={`block text-sm font-medium ${deleteType === "single" ? "text-[#141736]" : "text-slate-900"}`}>
+                      Apenas este bloqueio
+                    </span>
+                    <span className="mt-1 flex items-center text-xs text-slate-500 pr-4">
+                      Exclui este dia específico e mantém o resto da série intacta.
+                    </span>
+                  </div>
                 </div>
+                {deleteType === "single" ? (
+                   <div className="flex-shrink-0 h-5 w-5 rounded-full border-[5px] border-[#141736]" />
+                ) : (
+                   <div className="flex-shrink-0 h-5 w-5 rounded-full border-2 border-slate-300" />
+                )}
+              </label>
 
-                <div className="grid gap-3">
-                    <button
-                        onClick={() => setDeleteType("single")}
-                        className={`flex flex-col items-start p-4 rounded-xl border transition-all text-left group ${
-                            deleteType === "single" 
-                            ? "bg-blue-600/10 border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.1)]" 
-                            : "bg-slate-800/10 border-slate-700/50 hover:bg-slate-800/30 hover:border-slate-600"
-                        }`}
-                    >
-                        <span className={`text-sm font-semibold mb-0.5 ${deleteType === "single" ? "text-blue-400" : "text-slate-200"}`}>
-                            Apenas este
-                        </span>
-                        <span className="text-[11px] text-slate-400 group-hover:text-slate-300">
-                            Exclui somente o bloqueio exibido nesta data específica.
-                        </span>
-                    </button>
-
-                    <button
-                        onClick={() => setDeleteType("following")}
-                        className={`flex flex-col items-start p-4 rounded-xl border transition-all text-left group ${
-                            deleteType === "following" 
-                            ? "bg-blue-600/10 border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.1)]" 
-                            : "bg-slate-800/10 border-slate-700/50 hover:bg-slate-800/30 hover:border-slate-600"
-                        }`}
-                    >
-                        <span className={`text-sm font-semibold mb-0.5 ${deleteType === "following" ? "text-blue-400" : "text-slate-200"}`}>
-                            Este e todos os seguintes
-                        </span>
-                        <span className="text-[11px] text-slate-400 group-hover:text-slate-300">
-                            Exclui esta e todas as ocorrências futuras deste bloqueio.
-                        </span>
-                    </button>
+              <label
+                className={`relative flex cursor-pointer rounded-xl border p-4 transition-all focus:outline-none hover:bg-slate-50 ${
+                  deleteType === "following" 
+                  ? "border-[#141736] bg-[#141736]/5 shadow-sm" 
+                  : "border-slate-200 bg-white"
+                }`}
+                onClick={() => setDeleteType("following")}
+              >
+                <div className="flex flex-1">
+                  <div className="flex flex-col">
+                    <span className={`block text-sm font-medium ${deleteType === "following" ? "text-[#141736]" : "text-slate-900"}`}>
+                      Este e os bloqueios futuros
+                    </span>
+                    <span className="mt-1 flex items-center text-xs text-slate-500 pr-4">
+                      Remove esta e todas as ocorrências seguintes da série.
+                    </span>
+                  </div>
                 </div>
+                {deleteType === "following" ? (
+                   <div className="flex-shrink-0 h-5 w-5 rounded-full border-[5px] border-[#141736]" />
+                ) : (
+                   <div className="flex-shrink-0 h-5 w-5 rounded-full border-2 border-slate-300" />
+                )}
+              </label>
             </div>
           )}
+        </div>
 
-          <div className="flex gap-4 mt-auto">
-            <Button 
-              variant="outline" 
-              onClick={onClose}
-              disabled={isPending}
-              className="flex-1 bg-transparent border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white rounded-xl h-11"
-            >
-              Cancelar
-            </Button>
-            <Button 
-              variant="destructive" 
-              onClick={confirmDelete}
-              disabled={isPending}
-              className="flex-1 bg-red-600 hover:bg-red-700 text-white rounded-xl h-11 font-bold shadow-lg shadow-red-900/30"
-            >
+        <div className="px-6 py-4 flex justify-end gap-3">
+          <Button 
+            variant="outline" 
+            onClick={onClose} 
+            disabled={isPending}
+            className="text-slate-700 bg-white hover:bg-slate-100 px-2"
+          >
+            Cancelar
+          </Button>
+          <Button 
+            variant="destructive" 
+            onClick={confirmDelete} 
+            disabled={isPending}
+              className="bg-red-600 hover:bg-red-700 text-white font-medium w-fit px-4"
+          >
               {isPending ? "Excluindo..." : "Excluir"}
-            </Button>
-          </div>
+          </Button>
+        </div>
       </div>
     </div>
   );

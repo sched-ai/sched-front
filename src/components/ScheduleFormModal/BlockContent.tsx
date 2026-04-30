@@ -187,7 +187,7 @@ export const BlockContent = ({
   return (
     <form className="flex flex-col gap-5">
       {/* Date & Time Section */}
-      <div className="flex items-start gap-4">
+      <div className="flex items-start gap-3">
         <div className="mt-2.5">
           <Clock className="text-gray-400" size={20} />
         </div>

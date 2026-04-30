@@ -3,6 +3,8 @@ import { Building2, ChevronDown, Globe, Pencil, Plus, Trash2 } from "lucide-reac
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { useUser } from "@/context/user";
 import { useDeleteWorkplace } from "@/hooks/api/useDeleteWorkplace";
 import { useUpdateProfile } from "@/hooks/api/useUpdateProfile";
@@ -328,18 +330,10 @@ export const Configuracoes = () => {
                     {hasCnpj && isAutonomo ? "CNPJ" : (!hasCnpj && isAutonomo ? "CPF" : "CNPJ/CPF")}
                   </label>
                   {isAutonomo && (
-                    <label className="flex items-center gap-1.5 ml-auto text-sm text-slate-600 cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        checked={hasCnpj} 
-                        onChange={(e) => {
-                          setHasCnpj(e.target.checked);
-                          // We could clear formatting but let's keep it simple
-                        }}
-                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500" 
-                      />
-                      <span>Possui CNPJ?</span>
-                    </label>
+                    <div className="flex items-center gap-1.5 ml-auto text-sm text-slate-600 cursor-pointer">
+                      <Checkbox id="hasCnpj" checked={hasCnpj} onCheckedChange={(checked) => setHasCnpj(checked === true)} />
+                      <Label htmlFor="hasCnpj" className="text-sm text-slate-600">Possui CNPJ?</Label>
+                    </div>
                   )}
                 </div>
                 <input

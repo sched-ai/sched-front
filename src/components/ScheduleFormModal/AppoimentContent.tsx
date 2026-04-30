@@ -20,9 +20,12 @@ import {
 import { useGetAllServices, type IService } from "@/hooks/api/useGetAllServices";
 import { useCreateAppointment } from "@/hooks/api/useCreateAppointment";
 import { useUpdateAppointment } from "@/hooks/api/useUpdateAppointment";
+import { useGetClientCredits } from "@/hooks/api/useGetClientCredits";
 import type { Matcher } from "react-day-picker";
 import type { TimePickerProps } from "antd";
 import { TimePickerField } from "./TimePickerField";
+import { Gift } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 const pad2 = (value: number) => String(value).padStart(2, "0");
 
@@ -90,6 +93,10 @@ export const AppoimentContent = ({
 }: IProps) => {
   const { userData, userLoading } = useUser();
   const { data: services } = useGetAllServices();
+  
+  const { data: credits } = useGetClientCredits({ clientId });
+  const matchingCredit = credits?.find(c => c.serviceId === service);
+
   // const { data: professionals } = useListCompanyMemberships();
   const { mutate: createAppointment, isPending: isCreating } = useCreateAppointment({
       onSuccessFn: () => {
@@ -148,11 +155,28 @@ export const AppoimentContent = ({
     return true;
   });
 
-  useEffect(() => {
-    if (workplaces.length > 0 && (!location || !workplaces.find((w) => String(w.id) === location))) {
-      setLocation(String(workplaces[0].id));
+  const availableServices = services?.filter((s) => {
+    if (s.type === "PACKAGE") return false;
+    if (s.workplaces && s.workplaces.length > 0) {
+      return s.workplaces.some(swp => workplaces.some(w => String(w.id) === String(swp.id)));
     }
-  }, [workplaces, location, setLocation]);
+    return true;
+  }) || [];
+
+  const availableWorkplacesForService = workplaces.filter(w => {
+    if (!service) return true;
+    const selectedServiceObj = services?.find(s => String(s.id) === String(service));
+    if (!selectedServiceObj?.workplaces || selectedServiceObj.workplaces.length === 0) return true;
+    return selectedServiceObj.workplaces.some(swp => String(swp.id) === String(w.id));
+  });
+
+  useEffect(() => {
+    if (availableWorkplacesForService.length > 0 && (!location || !availableWorkplacesForService.find((w) => String(w.id) === location))) {
+      setLocation(String(availableWorkplacesForService[0].id));
+    } else if (availableWorkplacesForService.length === 0 && location) {
+      setLocation("");
+    }
+  }, [availableWorkplacesForService, location, setLocation]);
 
   const handleCreateConsultation = (e: React.FormEvent) => {
     e.preventDefault();
@@ -198,6 +222,7 @@ export const AppoimentContent = ({
       employeeId: professional || undefined,
       startDate: buildLocalIso({ day, month, year }, startHour),
       duration,
+      packageCreditId: matchingCredit?.id,
     };
 
     if (appointmentId) {
@@ -210,7 +235,7 @@ export const AppoimentContent = ({
   return (
     <form onSubmit={handleCreateConsultation} className="flex flex-col gap-5">
       {/* Date & Time Section */}
-      <div className="flex items-start gap-4">
+      <div className="flex items-start gap-3">
         <div className="mt-2.5">
           <Clock className="text-gray-400" size={20} />
         </div>
@@ -267,37 +292,12 @@ export const AppoimentContent = ({
                 value={endHour}
                 minTime={endMinTime}
                 maxTime={endMaxTime}
-                ariaLabel="Fim da consulta"
+                ariaLabel="Fim"
                 disabledTime={endDisabledTime}
                 onChange={(next) => setEndHour(next)}
               />
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Location Section */}
-      <div className="flex items-start gap-4">
-        <div className="mt-3">
-          <MapPin className="text-gray-400" size={20} />
-        </div>
-        <div className="flex-1">
-          <Select
-            value={location}
-            onValueChange={(val: string) => setLocation(val)}
-            disabled={userLoading || workplaces.length === 0}
-          >
-            <SelectTrigger className="w-full border-0 border-b border-gray-600 rounded-none px-0 bg-transparent text-white data-[placeholder]:text-gray-400 focus:ring-0 focus:border-blue-500 h-10">
-              <SelectValue placeholder="Adicionar local" />
-            </SelectTrigger>
-            <SelectContent className="max-h-[200px]">
-              {workplaces.map((workplace) => (
-                <SelectItem key={workplace.id} value={String(workplace.id)}>
-                  {workplace.nickname}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
       </div>
 
@@ -323,16 +323,16 @@ export const AppoimentContent = ({
                 }
               }
             }}
-            disabled={services?.length === 0 || !services}
+            disabled={availableServices.length === 0}
           >
-            {(!services || services.length === 0) ? (
+            {availableServices.length === 0 ? (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <SelectTrigger className="w-full border-0 border-b border-gray-600 rounded-none px-0 bg-transparent text-white data-[placeholder]:text-gray-400 focus:ring-0 focus:border-blue-500 h-10">
                     <SelectValue placeholder="Adicionar serviço" />
                   </SelectTrigger>
                 </TooltipTrigger>
-                <TooltipContent sideOffset={6}>Nenhum serviço encontrado</TooltipContent>
+                <TooltipContent sideOffset={6}>Nenhum serviço disponível para este dia/horário</TooltipContent>
               </Tooltip>
             ) : (
               <SelectTrigger className="w-full border-0 border-b border-gray-600 rounded-none px-0 bg-transparent text-white data-[placeholder]:text-gray-400 focus:ring-0 focus:border-blue-500 h-10">
@@ -340,9 +340,50 @@ export const AppoimentContent = ({
               </SelectTrigger>
             )}
             <SelectContent className="max-h-[200px]">
-              {services?.map((service) => (
-                <SelectItem key={service.id} value={String(service.id)}>
-                  {service.name}
+              {availableServices.map((service) => {
+                const serviceCredit = credits?.find(c => c.serviceId === service.id);
+                return (
+                  <SelectItem key={service.id} value={String(service.id)}>
+                    <div className="flex items-center gap-2">
+                      <span>{service.name}</span>
+                      {serviceCredit && (
+                        <Badge className="h-5 px-1.5 text-[10px] bg-blue-100 text-blue-700 hover:bg-blue-200 border-0">
+                          {serviceCredit.remainingQuantity} crédito{serviceCredit.remainingQuantity > 1 ? 's' : ''}
+                        </Badge>
+                      )}
+                    </div>
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
+          {matchingCredit && (
+            <p className="text-xs text-blue-400 mt-2 flex items-center gap-1">
+              <Gift size={12} />
+              Um Crédito será utilizado.
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Location Section */}
+      <div className="flex items-start gap-4">
+        <div className="mt-3">
+          <MapPin className="text-gray-400" size={20} />
+        </div>
+        <div className="flex-1">
+          <Select
+            value={location}
+            onValueChange={(val: string) => setLocation(val)}
+            disabled={userLoading || availableWorkplacesForService.length <= 1}
+          >
+            <SelectTrigger className="w-full border-0 border-b border-gray-600 rounded-none px-0 bg-transparent text-white data-[placeholder]:text-gray-400 focus:ring-0 focus:border-blue-500 h-10 disabled:opacity-50 disabled:cursor-not-allowed">
+              <SelectValue placeholder="Adicionar local" />
+            </SelectTrigger>
+            <SelectContent className="max-h-[200px]">
+              {availableWorkplacesForService.map((workplace) => (
+                <SelectItem key={workplace.id} value={String(workplace.id)}>
+                  {workplace.nickname}
                 </SelectItem>
               ))}
             </SelectContent>

@@ -10,6 +10,7 @@ export interface ICreateServicePayload {
   startDate: string; // ISO 8601
   duration?: number;
   description?: string;
+  packageCreditId?: string;
 }
 
 export const getAppointmentErrorMessage = (error: unknown, defaultMessage: string) => {

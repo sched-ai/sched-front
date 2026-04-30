@@ -2,6 +2,7 @@ import { TimePicker } from "antd";
 import type { TimePickerProps } from "antd";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
+import { cn } from "@/lib/utils";
 
 type DisabledTimeFactory = NonNullable<TimePickerProps["disabledTime"]>;
 
@@ -13,6 +14,7 @@ interface TimePickerFieldProps {
   maxTime?: string;
   ariaLabel: string;
   disabledTime?: DisabledTimeFactory;
+  className?: string;
 }
 
 interface ParsedTime {
@@ -124,6 +126,7 @@ export const TimePickerField = ({
   maxTime,
   ariaLabel,
   disabledTime,
+  className,
 }: TimePickerFieldProps) => {
   const handleSyncValue = (selected: Dayjs | null) => {
     if (!selected) return;
@@ -141,13 +144,13 @@ export const TimePickerField = ({
       allowClear={false}
       inputReadOnly
       changeOnScroll
-      hideDisabledOptions
       disabledTime={mergeDisabledTime(disabledTime, minTime, maxTime)}
   onSelect={handleSyncValue}
       onChange={(_: Dayjs | null, timeString: string | null) => onChange(timeString ?? "")}
-      className="schedule-time-picker"
+      className={cn("schedule-time-picker", className)}
       popupClassName="schedule-time-picker-dropdown"
       aria-label={ariaLabel}
+      getPopupContainer={(trigger) => trigger.parentElement || document.body}
     />
   );
 };

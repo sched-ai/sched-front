@@ -372,11 +372,32 @@ select:-webkit-autofill:focus {
   border-bottom-color: #60a5fa;
 }
 
+/* Light Variant for Service Modals */
+.schedule-time-picker--light.ant-picker {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  min-height: 42px;
+  height: 42px;
+  padding: 0 12px;
+}
+
+.schedule-time-picker--light.ant-picker:hover {
+  border-color: #94a3b8;
+}
+
 .schedule-time-picker.ant-picker-focused,
 .schedule-time-picker.ant-picker:focus-within {
   border-bottom-color: #4b5563;
   box-shadow: none;
   outline: none;
+}
+
+.schedule-time-picker--light.ant-picker-focused,
+.schedule-time-picker--light.ant-picker:focus-within {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
 }
 
 .schedule-time-picker .ant-picker-input > input {
@@ -385,6 +406,12 @@ select:-webkit-autofill:focus {
   font-size: 0.95rem;
   line-height: 1.2;
   height: 100%;
+}
+
+.schedule-time-picker--light .ant-picker-input > input {
+  color: #0f172a;
+  text-align: left;
+  font-size: 0.875rem;
 }
 
 .schedule-time-picker .ant-picker-input > input::placeholder {
@@ -428,9 +455,11 @@ select:-webkit-autofill:focus {
 }
 
 .schedule-time-picker-dropdown .ant-picker-time-panel-column::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-  display: none;
+  width: 4px;
+}
+.schedule-time-picker-dropdown .ant-picker-time-panel-column::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
 }
 
 .schedule-time-picker-dropdown .ant-picker-time-panel-column > li {
@@ -439,7 +468,8 @@ select:-webkit-autofill:focus {
 }
 
 .schedule-time-picker-dropdown .ant-picker-time-panel-column > li.ant-picker-time-panel-cell-disabled {
-  display: none;
+  opacity: 0.3;
+  pointer-events: none;
 }
 
 .schedule-time-picker-dropdown .ant-picker-time-panel-column > li.ant-picker-time-panel-cell-selected .ant-picker-time-panel-cell-inner {

@@ -18,7 +18,12 @@ interface IUpdateMutationFnParams {
 }
 
 
-export const useUpdateService = ({ onSuccessFn }: IUseMutationParams) => {
+export interface IUpdateServiceParams extends IUseMutationParams {
+  label?: string;
+  successMessage?: string;
+}
+
+export const useUpdateService = ({ onSuccessFn, label = "Serviço", successMessage }: IUpdateServiceParams) => {
 
   const { update } = useAPI<IUpdateServicePayload>();
 
@@ -27,7 +32,8 @@ export const useUpdateService = ({ onSuccessFn }: IUseMutationParams) => {
       update({
         endpoint: `services/${id}`,
         body: payload,
-        label: "Serviço",
+        label,
+        successMessage,
       }),
 
     onSuccess: (data) => {

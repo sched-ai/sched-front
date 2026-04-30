@@ -18,7 +18,7 @@ export function SchedAI() {
             onClick={() => setActiveScreen("monitoramento")}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Voltar para monitoramento
+            Voltar
           </Button>
         </div>
       )}

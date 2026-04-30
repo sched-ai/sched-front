@@ -7,8 +7,10 @@ import {
   Package,
   Search,
   Clock3,
+  BriefcaseBusiness
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   useGetAllServices,
   type IService,
@@ -28,6 +30,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export const Servicos = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState<"all" | "service" | "package">("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -48,8 +51,12 @@ export const Servicos = () => {
   };
 
   const handleOpenEditModal = (service: IService) => {
-    setServiceToEdit(service);
-    setIsModalOpen(true);
+    if (service.type === "PACKAGE") {
+      navigate(`/services/packages/${service.id}/edit`);
+    } else {
+      setServiceToEdit(service);
+      setIsModalOpen(true);
+    }
   };
 
   const { mutate: deleteService } = useDeleteService({
@@ -62,7 +69,13 @@ export const Servicos = () => {
 
   const handleConfirmDelete = () => {
     if (serviceToDelete) {
-      deleteService(serviceToDelete);
+      const service = services?.find(s => s.id === serviceToDelete);
+      const isPackage = service?.type === "PACKAGE";
+      deleteService({ 
+        id: serviceToDelete, 
+        label: isPackage ? "Pacote" : "Serviço",
+        successMessage: isPackage ? "Pacote excluído com sucesso!" : "Serviço excluído com sucesso!"
+      });
     }
   };
 
@@ -135,7 +148,7 @@ export const Servicos = () => {
             className="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-4"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Adicionar serviço
+            Adicionar
           </Button>
         )}
       </div>
@@ -153,14 +166,27 @@ export const Servicos = () => {
             </p>
           </div>
 
-          <Button
-            type="button"
-            onClick={handleOpenCreateModal}
-            className="bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center gap-2 self-start h-11 px-5 rounded-lg whitespace-nowrap"
-          >
-            <Plus className="w-4 h-4" strokeWidth={1.5} />
-            Adicionar serviço
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                className="bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center gap-2 self-start h-11 px-5 rounded-lg whitespace-nowrap"
+              >
+                <Plus className="w-4 h-4" strokeWidth={2} />
+                Novo item
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={handleOpenCreateModal}>
+                <BriefcaseBusiness className="w-4 h-4 mr-2" />
+                Novo Serviço
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/services/packages/new")}>
+                <Package className="w-4 h-4 mr-2" />
+                Novo Pacote
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </section>
 
         <section className="border border-border rounded-lg p-4 bg-card shadow-sm">
@@ -245,7 +271,9 @@ export const Servicos = () => {
 
                 <div className="mt-4 flex items-end justify-between gap-4">
                   {service.type === "PACKAGE" ? (
-                    <div className="text-xs text-muted-foreground">Pacote</div>
+                    <div className="text-xs text-muted-foreground">
+                      {(service as any).packageItems?.length || 0} serviços incluídos
+                    </div>
                   ) : (
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Clock3 className="h-3.5 w-3.5" />

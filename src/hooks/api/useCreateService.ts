@@ -12,7 +12,12 @@ export interface ICreateServicePayload {
   employeeId?: string | null;
 }
 
-export const useCreateService = ({ onSuccessFn }: IUseMutationParams) => {
+export interface ICreateServiceParams extends IUseMutationParams {
+  label?: string;
+  successMessage?: string;
+}
+
+export const useCreateService = ({ onSuccessFn, label = "Serviço", successMessage }: ICreateServiceParams) => {
   const queryClient = useQueryClient();
   
   const { post } = useAPI<ICreateServicePayload>();
@@ -22,7 +27,8 @@ export const useCreateService = ({ onSuccessFn }: IUseMutationParams) => {
       post({
         endpoint: "services",
         body: serviceData,
-        label: "Serviço",
+        label,
+        successMessage,
       }),
     
     onSuccess: () => {
