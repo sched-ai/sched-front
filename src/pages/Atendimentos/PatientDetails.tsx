@@ -44,7 +44,6 @@ import { isRichTextContentEmpty, normalizeRichTextContent } from "@/util/richTex
 const MAX_ATTACHMENT_SIZE_BYTES = 10 * 1024 * 1024;
 const IMAGE_MAX_DIMENSION = 1600;
 const IMAGE_COMPRESSION_QUALITY = 0.82;
-const PENDING_CLOSURE_LABEL = "Pendente de encerramento";
 
 const ALLOWED_ATTACHMENT_MIME_TYPES = new Set([
   "application/msword",
@@ -54,8 +53,6 @@ const ALLOWED_ATTACHMENT_MIME_TYPES = new Set([
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   "text/plain",
 ]);
-
-const SCHEDULED_APPOINTMENT_STATUSES = new Set(["agendado", "pending", "scheduled", "confirmed"]);
 
 type QueuedUploadedFile = {
   id: string;
@@ -154,23 +151,8 @@ function formatDisplayDate(dateValue?: string) {
   return parsedDate.toLocaleDateString("pt-BR");
 }
 
-function isPendingClosureStatus(status?: string, endDate?: string, startDate?: string) {
+function getStatusLabel(status?: string) {
   const normalized = status?.toLowerCase() || "";
-  if (!SCHEDULED_APPOINTMENT_STATUSES.has(normalized)) return false;
-
-  const referenceDate = endDate || startDate;
-  if (!referenceDate) return false;
-
-  const referenceTime = new Date(referenceDate).getTime();
-  if (Number.isNaN(referenceTime)) return false;
-
-  return referenceTime <= Date.now();
-}
-
-function getStatusLabel(status?: string, endDate?: string, startDate?: string) {
-  const normalized = status?.toLowerCase() || "";
-
-  if (isPendingClosureStatus(status, endDate, startDate)) return PENDING_CLOSURE_LABEL;
 
   if (["concluido", "finished", "done"].includes(normalized)) return "Concluído";
   if (["agendado", "pending", "scheduled", "confirmed"].includes(normalized)) return "Agendado";
@@ -179,11 +161,12 @@ function getStatusLabel(status?: string, endDate?: string, startDate?: string) {
   return status || "Desconhecido";
 }
 
-function getStatusVisual(label?: string) {
+function getStatusVisual(status?: string) {
+  const label = getStatusLabel(status);
+
   if (label === "Concluído") return { color: "text-green-600", dot: "bg-green-500" };
   if (label === "Agendado") return { color: "text-blue-600", dot: "bg-blue-500" };
   if (label === "Cancelado") return { color: "text-red-600", dot: "bg-red-500" };
-  if (label === PENDING_CLOSURE_LABEL) return { color: "text-amber-600", dot: "bg-amber-500" };
 
   return { color: "text-slate-600", dot: "bg-slate-400" };
 }
@@ -618,14 +601,8 @@ export const PatientDetails: React.FC = () => {
   const totalAttachmentCount = storedAttachments.length + queuedFiles.length;
   const appointmentDate = formatDisplayDate(fetchedAppointment?.startDate || patient.data || "");
   const appointmentTime = fetchedAppointment?.startDate?.split("T")[1]?.substring(0, 5) || patient.hora || "";
-  const appointmentStartDate = fetchedAppointment?.startDate || (location.state as any)?.atendimento?.startDate;
-  const appointmentEndDate = fetchedAppointment?.endDate || (location.state as any)?.atendimento?.endDate;
-  const statusLabel = getStatusLabel(
-    fetchedAppointment?.status || patient.status,
-    appointmentEndDate,
-    appointmentStartDate
-  );
-  const statusVisual = getStatusVisual(statusLabel);
+  const statusVisual = getStatusVisual(fetchedAppointment?.status || patient.status);
+  const statusLabel = getStatusLabel(fetchedAppointment?.status || patient.status);
   const isFinished = isFinishedStatus(fetchedAppointment?.status || patient.status);
   const storedImageKey = storedImages.map((attachment) => attachment.id).join("|");
   const storedImageIds = useMemo(

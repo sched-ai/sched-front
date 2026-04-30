@@ -46,7 +46,6 @@ export interface AppointmentsResponse {
     total: number;
     concluidos: number;
     agendados: number;
-    pendentes?: number;
     cancelados: number;
   };
 }

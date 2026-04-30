@@ -155,16 +155,7 @@ export const PatientHistory = () => {
   const rawAppointments = appointmentsResponse?.data || [];
   const appointments = rawAppointments.filter((appointment) => {
     const normalizedStatus = appointment.status?.toLowerCase() || "";
-
-    if (["cancelado", "cancelled", "canceled"].includes(normalizedStatus)) return false;
-
-    const isFinalized = ["concluido", "finished", "done"].includes(normalizedStatus);
-    if (!isFinalized) return false;
-
-    const startTime = new Date(appointment.startDate).getTime();
-    if (Number.isNaN(startTime)) return false;
-
-    return startTime <= Date.now();
+    return !["cancelado", "cancelled", "canceled"].includes(normalizedStatus);
   });
 
   const hasAppointments = !isLoading && appointments.length > 0;
