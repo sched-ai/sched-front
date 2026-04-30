@@ -392,6 +392,13 @@ function paginatedRows(appointments: AppointmentAPI[], navigate: ReturnType<type
     const visual = getStatusVisual(atendimento.status);
     const isLast = index === appointments.length - 1;
     const isCancelled = ["cancelado", "cancelled"].includes(atendimento.status?.toLowerCase() || "");
+    const isScheduled = ["agendado", "pending", "scheduled", "confirmed"].includes(
+      atendimento.status?.toLowerCase() || ""
+    );
+    const startTime = start.getTime();
+    const canOpenScheduled =
+      !Number.isNaN(startTime) && Date.now() >= startTime - 10 * 60 * 1000;
+    const isViewDisabled = isCancelled || (isScheduled && !canOpenScheduled);
 
     return (
       <tr
@@ -434,7 +441,7 @@ function paginatedRows(appointments: AppointmentAPI[], navigate: ReturnType<type
                 },
               })
             }
-            disabled={isCancelled}
+            disabled={isViewDisabled}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-xs transition disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Ver
