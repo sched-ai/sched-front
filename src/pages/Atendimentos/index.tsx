@@ -42,6 +42,26 @@ const statusValueMap: Record<string, string> = {
   Cancelado: "cancelled",
 };
 
+function sortAppointmentsByProximity(appointments: AppointmentAPI[]): AppointmentAPI[] {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return [...appointments].sort((a, b) => {
+    const dateA = new Date(a.startDate);
+    const dateB = new Date(b.startDate);
+
+    dateA.setHours(0, 0, 0, 0);
+    dateB.setHours(0, 0, 0, 0);
+
+    // Calculate days difference (negative for past, positive for future)
+    const daysA = Math.floor((dateA.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    const daysB = Math.floor((dateB.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+    // Sort by absolute proximity (closest to today first)
+    return Math.abs(daysA) - Math.abs(daysB);
+  });
+}
+
 const statusConfig: Record<string, { color: string; dot: string }> = {
   Agendado: { color: "text-dark-blue", dot: "bg-blue-500" },
   Concluído: { color: "text-dark-blue", dot: "bg-green-500" },
@@ -109,22 +129,23 @@ export const Atendimentos = () => {
 
   if (Array.isArray(responseAny)) {
     const allData = responseAny as AppointmentAPI[];
+    const sortedData = sortAppointmentsByProximity(allData);
 
     estatisticas = {
-      total: allData.length,
-      concluidos: allData.filter((item) => ["concluido", "finished", "done"].includes(item.status?.toLowerCase())).length,
-      agendados: allData.filter((item) => ["agendado", "pending", "scheduled", "confirmed"].includes(item.status?.toLowerCase())).length,
-      cancelados: allData.filter((item) => ["cancelado", "cancelled"].includes(item.status?.toLowerCase())).length,
+      total: sortedData.length,
+      concluidos: sortedData.filter((item) => ["concluido", "finished", "done"].includes(item.status?.toLowerCase())).length,
+      agendados: sortedData.filter((item) => ["agendado", "pending", "scheduled", "confirmed"].includes(item.status?.toLowerCase())).length,
+      cancelados: sortedData.filter((item) => ["cancelado", "cancelled"].includes(item.status?.toLowerCase())).length,
     };
 
-    meta.total = allData.length;
-    meta.totalPages = Math.ceil(allData.length / itensPorPagina) || 1;
+    meta.total = sortedData.length;
+    meta.totalPages = Math.ceil(sortedData.length / itensPorPagina) || 1;
     meta.page = paginaAtual;
 
     const startIndex = (paginaAtual - 1) * itensPorPagina;
-    appointments = allData.slice(startIndex, startIndex + itensPorPagina);
+    appointments = sortedData.slice(startIndex, startIndex + itensPorPagina);
   } else if (responseAny) {
-    appointments = responseAny.data || [];
+    appointments = responseAny.data ? sortAppointmentsByProximity(responseAny.data) : [];
     meta = responseAny.meta || meta;
     estatisticas = responseAny.stats || estatisticas;
   }
