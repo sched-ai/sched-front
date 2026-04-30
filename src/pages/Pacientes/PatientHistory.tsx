@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   ChevronDown,
+  ChevronRight,
   Clock,
   Download,
   File as FileIconGlyph,
@@ -11,27 +12,20 @@ import {
   FileType2,
   Image as ImageIcon,
   Paperclip,
-  Plus,
   Trash2,
 } from "lucide-react";
 
 import { DeleteNoteModal } from "@/components/DeleteNoteModal";
 import { PatientHeader } from "@/components/PatientHeader";
-import { RichTextNoteEditor } from "@/components/RichTextNoteEditor";
 import { Button } from "@/components/ui/button";
 import {
   type AppointmentAttachmentAPI,
   useAppointmentAttachmentAccessLinksByAppointment,
 } from "@/hooks/api/useAppointmentAttachments";
-import { useCreateAnnotation } from "@/hooks/api/useCreateAnnotation";
 import { type AppointmentAPI, useGetAllAppointments } from "@/hooks/api/useGetAllAppointments";
 import { useGetClient } from "@/hooks/api/useGetClient";
 import useToast from "@/hooks/useToast";
-import {
-  isRichTextContentEmpty,
-  normalizeRichTextContent,
-  richTextToPlainText,
-} from "@/util/richText";
+import { normalizeRichTextContent, richTextToPlainText } from "@/util/richText";
 
 type SignedLinkCacheEntry = {
   url: string;
@@ -110,9 +104,28 @@ function openSignedLink(url: string) {
   document.body.removeChild(link);
 }
 
+function getStatusLabel(status?: string) {
+  const normalized = status?.toLowerCase() || "";
+
+  if (["concluido", "finished", "done"].includes(normalized)) return "Concluido";
+  if (["agendado", "pending", "scheduled", "confirmed"].includes(normalized)) return "Agendado";
+
+  return status || "Status";
+}
+
+function getStatusVisual(status?: string) {
+  const label = getStatusLabel(status);
+
+  if (label === "Concluido") return { textClass: "text-green-600", dotClass: "bg-green-600" };
+  if (label === "Agendado") return { textClass: "text-blue-600", dotClass: "bg-blue-600" };
+
+  return { textClass: "text-gray-500", dotClass: "bg-gray-400" };
+}
+
 export const PatientHistory = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
+  const navigate = useNavigate();
   const initialPatientData = location.state?.paciente || {};
   const { showToast } = useToast();
   const { data: fullClientData } = useGetClient(id || "", !!id);
@@ -136,27 +149,32 @@ export const PatientHistory = () => {
     enabled: !!id,
   });
 
-  const { mutateAsync: createAnnotation, isPending: isCreating } = useCreateAnnotation({
-    onSuccessFn: () => {
-      refetch();
-    },
-  });
-
   const { mutateAsync: requestAttachmentAccessLinksAsync } = useAppointmentAttachmentAccessLinksByAppointment();
   const requestAttachmentAccessLinksRef = useRef(requestAttachmentAccessLinksAsync);
 
   const rawAppointments = appointmentsResponse?.data || [];
   const appointments = rawAppointments.filter((appointment) => {
     const normalizedStatus = appointment.status?.toLowerCase() || "";
-    return !["cancelado", "cancelled", "canceled"].includes(normalizedStatus);
+
+    if (["cancelado", "cancelled", "canceled"].includes(normalizedStatus)) return false;
+
+    const isFinalized = ["concluido", "finished", "done"].includes(normalizedStatus);
+    if (!isFinalized) return false;
+
+    const startTime = new Date(appointment.startDate).getTime();
+    if (Number.isNaN(startTime)) return false;
+
+    return startTime <= Date.now();
   });
 
   const hasAppointments = !isLoading && appointments.length > 0;
-  const displayAppointments = hasAppointments ? appointments : [];
+  const displayAppointments = hasAppointments
+    ? [...appointments].sort(
+        (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+      )
+    : [];
 
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
-  const [editingAptId, setEditingAptId] = useState<string | null>(null);
-  const [noteText, setNoteText] = useState("");
   const [noteToDelete, setNoteToDelete] = useState<string | null>(null);
   const [expandedAttachmentsAppointmentId, setExpandedAttachmentsAppointmentId] = useState<string | null>(null);
   const [attachmentLinks, setAttachmentLinks] = useState<SignedLinkCache>({});
@@ -168,38 +186,6 @@ export const PatientHistory = () => {
 
   const toggleExpand = (annotationId: string) => {
     setExpandedCards((prev) => ({ ...prev, [annotationId]: !prev[annotationId] }));
-  };
-
-  const handleStartEdit = (appointment: AppointmentAPI) => {
-    setEditingAptId(appointment.id);
-    setNoteText("");
-  };
-
-  const handleCancelEdit = () => {
-    setEditingAptId(null);
-    setNoteText("");
-  };
-
-  const handleSaveNote = async (appointment: AppointmentAPI) => {
-    const normalizedNote = normalizeRichTextContent(noteText);
-
-    if (isRichTextContentEmpty(normalizedNote)) return;
-
-    const targetClientId = appointment.clientId || patient.id || "";
-    if (!targetClientId) return;
-
-    try {
-      await createAnnotation({
-        appointmentId: appointment.id,
-        clientId: targetClientId,
-        content: normalizedNote,
-      });
-
-      setEditingAptId(null);
-      setNoteText("");
-    } catch (error) {
-      console.error("Failed to save note", error);
-    }
   };
 
   const handleDeleteNote = (annotationId: string) => {
@@ -318,7 +304,7 @@ export const PatientHistory = () => {
   );
 
   return (
-    <div className="w-full h-full flex flex-col bg-[#FAFAFA]">
+    <div className="w-full h-full bg-gray-50">
       <DeleteNoteModal
         isOpen={!!noteToDelete}
         onClose={() => setNoteToDelete(null)}
@@ -326,92 +312,118 @@ export const PatientHistory = () => {
         noteId={noteToDelete}
       />
 
-      <div className="p-6 w-full">
-        <div className="flex flex-col gap-8">
-          <PatientHeader
-            name={patient.name}
-            age={patient.age}
-            birthDate={patient.birthDate}
-            gender={patient.gender}
-            cpf={patient.cpf}
-            phone={patient.phone}
-          />
+      <div className="max-w-7xl mx-auto p-8 space-y-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-semibold text-gray-900">Histórico de Atendimentos</h1>
+          <p className="text-sm text-gray-600 mt-2">
+            Visualize e acompanhe todos os atendimentos realizados.
+          </p>
+        </div>
 
-          <div className="relative pl-4">
-            <div className="absolute left-[38px] top-0 bottom-0 w-[2px] bg-slate-200"></div>
+        <PatientHeader
+          name={patient.name}
+          age={patient.age}
+          birthDate={patient.birthDate}
+          gender={patient.gender}
+          cpf={patient.cpf}
+          phone={patient.phone}
+        />
 
-            <div className="flex flex-col gap-8">
-              {isLoading && <div className="ml-32 text-slate-500">Carregando histórico...</div>}
+        <div className="relative pl-[124px]">
+          <div className="absolute left-[46px] top-0 bottom-0 w-[2px] bg-gray-200" />
 
-              {!isLoading && !hasAppointments && (
-                <div className="ml-32 text-slate-500">Nenhum atendimento encontrado para este paciente.</div>
-              )}
+          <div className="space-y-6">
+            {isLoading && <div className="ml-[120px] text-sm text-gray-600">Carregando histórico...</div>}
 
-              {displayAppointments.map((appointment) => {
-                const dateObj = new Date(appointment.startDate);
-                const day = format(dateObj, "dd");
-                const month = format(dateObj, "MMM", { locale: ptBR }).toUpperCase().replace(".", "");
-                const year = format(dateObj, "yyyy");
-                const time = format(dateObj, "HH:mm");
+            {!isLoading && !hasAppointments && (
+              <div className="ml-[120px] text-sm text-gray-600">
+                Nenhum atendimento encontrado para este paciente.
+              </div>
+            )}
 
-                const serviceName = appointment.service?.name || "Atendimento";
-                const professionalName = appointment.employee?.name || "Profissional não informado";
-                const durationLabel = formatDurationClock(appointment.consultationDurationSeconds);
-                const annotations = appointment.annotations || [];
-                const latestAnnotation =
-                  annotations.length > 0
-                    ? [...annotations].sort(
-                        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-                      )[0]
-                    : null;
-                const isEditing = editingAptId === appointment.id;
-                const attachments = appointment.attachments || [];
-                const hasAttachments = attachments.length > 0;
-                const isAttachmentsExpanded = expandedAttachmentsAppointmentId === appointment.id;
-                const imageAttachments = attachments.filter((attachment) => attachment.category === "image");
-                const documentAttachments = attachments.filter((attachment) => attachment.category !== "image");
+            {displayAppointments.map((appointment) => {
+              const dateObj = new Date(appointment.startDate);
+              const day = format(dateObj, "dd");
+              const month = format(dateObj, "MMM", { locale: ptBR }).toUpperCase().replace(".", "");
+              const year = format(dateObj, "yyyy");
+              const time = format(dateObj, "HH:mm");
 
-                return (
-                  <div key={appointment.id} className="flex gap-6 relative">
-                    <div className="flex-shrink-0 z-10">
-                      <div className="w-[76px] h-[76px] bg-[#141736] rounded-[14px] flex flex-col items-center justify-center text-white shadow-lg">
-                        <span className="text-2xl font-bold leading-none">{day}</span>
-                        <span className="text-xs font-medium uppercase tracking-wider">{month}</span>
-                        <span className="text-[10px] opacity-80 mt-1">{year}</span>
-                      </div>
+              const serviceName = appointment.service?.name || "Atendimento";
+              const professionalName = appointment.employee?.name || "Profissional não informado";
+              const durationLabel = formatDurationClock(appointment.consultationDurationSeconds);
+              const annotations = appointment.annotations || [];
+              const latestAnnotation =
+                annotations.length > 0
+                  ? [...annotations].sort(
+                      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                    )[0]
+                  : null;
+              const attachments = appointment.attachments || [];
+              const hasAttachments = attachments.length > 0;
+              const isAttachmentsExpanded = expandedAttachmentsAppointmentId === appointment.id;
+              const imageAttachments = attachments.filter((attachment) => attachment.category === "image");
+              const documentAttachments = attachments.filter((attachment) => attachment.category !== "image");
+              const statusLabel = getStatusLabel(appointment.status);
+              const statusVisual = getStatusVisual(appointment.status);
+
+              return (
+                <div key={appointment.id} className="flex gap-6">
+                  <div className="flex-shrink-0 z-10">
+                    <div className="w-[92px] h-[92px] bg-gray-900 text-white rounded-lg flex flex-col items-center justify-center">
+                      <span className="text-3xl leading-none">{day}</span>
+                      <span className="text-xs uppercase">{month}</span>
+                      <span className="text-xs opacity-70">{year}</span>
                     </div>
+                  </div>
 
-                    <div className="flex-1 bg-gray-100 rounded-[16px] p-6 shadow-sm border border-slate-100">
-                      <div className="flex justify-between items-start mb-4 border-b border-slate-200 pb-3">
-                        <h3 className="text-lg font-semibold text-[#141736] italic">
-                          {serviceName} - <span className="font-normal">{professionalName}</span>
-                        </h3>
-                        <div className="flex items-center gap-2 text-slate-500 text-sm">
-                          <span className="inline-flex items-center gap-1">
-                            <Clock className="w-4 h-4" />
-                            <span>{time}</span>
-                          </span>
-                          {durationLabel && (
-                            <span className="inline-flex items-center rounded-full bg-slate-200 text-slate-700 px-2.5 py-1 text-xs font-medium">
-                              Duração {durationLabel}
+                  <div className="flex-1 bg-white border border-gray-200 rounded-lg p-6">
+                    <div className="flex flex-col gap-4">
+                      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                        <div className="space-y-2">
+                          <p className="text-gray-900">
+                            <span className="italic">{serviceName}</span>
+                            <span className="text-gray-900"> · {professionalName}</span>
+                          </p>
+                          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                            <span className="inline-flex items-center gap-2">
+                              <Clock className="w-4 h-4" />
+                              <span>{time}</span>
                             </span>
-                          )}
+                            <span className={`inline-flex items-center gap-2 ${statusVisual.textClass}`}>
+                              <span className={`w-2 h-2 rounded-full ${statusVisual.dotClass}`} />
+                              {statusLabel}
+                            </span>
+                            {durationLabel && <span>Duração {durationLabel}</span>}
+                          </div>
                         </div>
+
+                        <Button
+                          type="button"
+                          onClick={() =>
+                            navigate(`/appointment/${appointment.id}`, {
+                              state: { atendimento: appointment, paciente: patient },
+                            })
+                          }
+                          className="bg-blue-600 hover:bg-blue-700 text-white h-10 px-4 rounded-md inline-flex items-center gap-2 whitespace-nowrap"
+                        >
+                          Acessar atendimento
+                          <ChevronRight className="w-4 h-4" />
+                        </Button>
                       </div>
 
-                      <div className="mb-4">
+                      <div className="border-t border-gray-200 pt-4 space-y-4">
                         {hasAttachments && (
-                          <div className="mb-4">
+                          <div>
                             <button
                               type="button"
                               onClick={() => void handleToggleAttachments(appointment)}
-                              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm hover:border-slate-300 transition-colors flex items-center justify-between gap-3"
+                              className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 hover:border-gray-300 transition-colors flex items-center justify-between gap-3"
                             >
-                              <span className="inline-flex items-center gap-2 text-sm text-slate-700">
-                                <Paperclip className="w-4 h-4 text-[#141736]" strokeWidth={1.5} />
+                              <span className="inline-flex items-center gap-2 text-sm text-gray-900">
+                                <Paperclip className="w-4 h-4 text-gray-900" strokeWidth={1.5} />
                                 Anexos ({attachments.length})
                               </span>
-                              <span className="inline-flex items-center gap-2 text-xs text-slate-500">
+                              <span className="inline-flex items-center gap-2 text-xs text-gray-600">
                                 {isAttachmentsExpanded ? "Ocultar" : "Ver anexos"}
                                 <ChevronDown
                                   className={`w-4 h-4 transition-transform ${
@@ -423,10 +435,10 @@ export const PatientHistory = () => {
                             </button>
 
                             {isAttachmentsExpanded && (
-                              <div className="mt-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm space-y-3">
+                              <div className="mt-3 rounded-lg border border-gray-200 bg-white p-3 space-y-3">
                                 {imageAttachments.length > 0 && (
                                   <div>
-                                    <p className="text-xs text-slate-500 uppercase tracking-wide mb-2">
+                                    <p className="text-xs text-gray-600 uppercase tracking-wide mb-2">
                                       Imagens · {imageAttachments.length}
                                     </p>
                                     <div className="grid grid-cols-3 sm:grid-cols-4 xl:grid-cols-5 gap-2">
@@ -443,10 +455,10 @@ export const PatientHistory = () => {
                                             type="button"
                                             onClick={() => previewUrl && openSignedLink(previewUrl)}
                                             disabled={!previewUrl}
-                                            className="rounded-lg overflow-hidden border border-slate-200 bg-slate-50 text-left hover:border-slate-300 transition-colors disabled:cursor-default"
+                                            className="rounded-lg overflow-hidden border border-gray-200 bg-gray-50 text-left hover:border-gray-300 transition-colors disabled:cursor-default"
                                             title={attachment.name}
                                           >
-                                            <div className="aspect-square w-full bg-slate-100 flex items-center justify-center overflow-hidden">
+                                            <div className="aspect-square w-full bg-gray-100 flex items-center justify-center overflow-hidden">
                                               {previewUrl ? (
                                                 <img
                                                   src={previewUrl}
@@ -454,7 +466,7 @@ export const PatientHistory = () => {
                                                   className="w-full h-full object-cover"
                                                 />
                                               ) : (
-                                                <div className="px-3 text-center text-xs text-slate-400">
+                                                <div className="px-3 text-center text-xs text-gray-500">
                                                   {loadingPreviewAppointmentId === appointment.id
                                                     ? "Carregando preview..."
                                                     : "Preview indisponível"}
@@ -462,8 +474,8 @@ export const PatientHistory = () => {
                                               )}
                                             </div>
                                             <div className="px-2 py-1.5">
-                                              <p className="text-[11px] text-slate-700 truncate">{attachment.name}</p>
-                                              <p className="text-[10px] text-slate-400 mt-0.5">
+                                              <p className="text-[11px] text-gray-700 truncate">{attachment.name}</p>
+                                              <p className="text-[10px] text-gray-500 mt-0.5">
                                                 {formatBytes(attachment.size)}
                                               </p>
                                             </div>
@@ -476,7 +488,7 @@ export const PatientHistory = () => {
 
                                 {documentAttachments.length > 0 && (
                                   <div>
-                                    <p className="text-xs text-slate-500 uppercase tracking-wide mb-2">
+                                    <p className="text-xs text-gray-600 uppercase tracking-wide mb-2">
                                       Documentos · {documentAttachments.length}
                                     </p>
                                     <div className="flex flex-col gap-2">
@@ -485,7 +497,7 @@ export const PatientHistory = () => {
                                           key={attachment.id}
                                           type="button"
                                           onClick={() => void handleDownloadAttachment(appointment.id, attachment)}
-                                          className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 flex items-center gap-3 text-left hover:bg-white hover:border-slate-300 transition-colors"
+                                          className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 flex items-center gap-3 text-left hover:bg-white hover:border-gray-300 transition-colors"
                                           title={attachment.name}
                                         >
                                           <div
@@ -496,12 +508,12 @@ export const PatientHistory = () => {
                                             <FileIcon mime={attachment.mime} className="w-4 h-4" />
                                           </div>
                                           <div className="min-w-0 flex-1">
-                                            <p className="text-sm text-slate-700 truncate">{attachment.name}</p>
-                                            <p className="text-xs text-slate-400 mt-0.5">
+                                            <p className="text-sm text-gray-700 truncate">{attachment.name}</p>
+                                            <p className="text-xs text-gray-500 mt-0.5">
                                               {formatBytes(attachment.size)}
                                             </p>
                                           </div>
-                                          <Download className="w-4 h-4 text-slate-400 shrink-0" strokeWidth={1.5} />
+                                          <Download className="w-4 h-4 text-gray-500 shrink-0" strokeWidth={1.5} />
                                         </button>
                                       ))}
                                     </div>
@@ -528,10 +540,10 @@ export const PatientHistory = () => {
                               return (
                                 <div
                                   key={note.id}
-                                  className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm relative group transition-all hover:border-slate-300"
+                                  className="bg-white p-4 rounded-lg border border-gray-200 relative group transition-colors hover:border-gray-300"
                                 >
                                   <div className="flex justify-between items-start mb-2">
-                                    <span className="text-xs text-slate-500 font-medium flex items-center gap-1">
+                                    <span className="text-xs text-gray-600 font-medium flex items-center gap-1">
                                       <Clock className="w-3 h-3" />
                                       {noteDateFormatted}
                                     </span>
@@ -545,18 +557,18 @@ export const PatientHistory = () => {
                                   </div>
                                   {isExpanded || !shouldTruncate ? (
                                     <div
-                                      className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-1 [&_a]:text-blue-600 [&_a]:underline"
+                                      className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-1 [&_a]:text-blue-600 [&_a]:underline"
                                       dangerouslySetInnerHTML={{ __html: noteContentHtml }}
                                     />
                                   ) : (
-                                    <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap">
+                                    <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
                                       {displayedText}
                                     </p>
                                   )}
                                   {shouldTruncate && (
                                     <button
                                       onClick={() => toggleExpand(note.id)}
-                                      className="text-[#141736] font-bold text-sm mt-2 hover:underline block"
+                                      className="text-gray-900 font-semibold text-sm mt-2 hover:underline block"
                                     >
                                       {isExpanded ? "Ler menos" : "Ler mais"}
                                     </button>
@@ -566,57 +578,14 @@ export const PatientHistory = () => {
                             })}
                           </div>
                         ) : (
-                          !isEditing && <p className="text-slate-400 text-sm italic">Sem observações.</p>
+                          <p className="text-gray-500 text-sm italic">Sem observações.</p>
                         )}
-
-                        {isEditing && (
-                          <div className="mt-4">
-                            <RichTextNoteEditor
-                              value={noteText}
-                              onChange={setNoteText}
-                              placeholder="Digite a nota aqui..."
-                              minHeightClassName="min-h-[120px]"
-                              autoFocus
-                            />
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-slate-200">
-                        {isEditing ? (
-                          <>
-                            <Button
-                              variant="ghost"
-                              onClick={handleCancelEdit}
-                              className="text-slate-500 hover:text-slate-700 hover:bg-slate-100"
-                              disabled={isCreating}
-                            >
-                              Cancelar
-                            </Button>
-                            <Button
-                              onClick={() => void handleSaveNote(appointment)}
-                              className="bg-blue-600 text-white hover:bg-blue-700 rounded-full px-6"
-                              disabled={isCreating}
-                            >
-                              {isCreating ? "Salvando..." : "Salvar"}
-                            </Button>
-                          </>
-                        ) : annotations.length === 0 ? (
-                          <Button
-                            variant="outline"
-                            onClick={() => handleStartEdit(appointment)}
-                            className="border-[#141736] text-[#141736] hover:bg-[#141736] hover:text-white transition-colors gap-2 rounded-full px-6"
-                          >
-                            <Plus className="w-4 h-4" />
-                            Adicionar Nota
-                          </Button>
-                        ) : null}
                       </div>
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

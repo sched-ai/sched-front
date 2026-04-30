@@ -63,22 +63,24 @@ export function PatientHeader({
     resolvedAge ? `Idade: ${resolvedAge} anos` : "",
     formatGender(gender) ? `Gênero: ${formatGender(gender)}` : "",
     formatCpf(cpf) ? `CPF: ${formatCpf(cpf)}` : "",
-    formattedPhone ? `Tel: ${formattedPhone}` : "",
+    formattedPhone ? `Telefone: ${formattedPhone}` : "",
   ].filter(Boolean);
 
   return (
-    <div className="bg-white rounded-[20px] shadow-custom p-6 flex items-center relative overflow-hidden">
-      <div className="flex items-center justify-between gap-6 w-full ml-4">
-        <div className="flex items-center gap-6 min-w-0">
-          <div className="w-20 h-20 rounded-full border-4 border-[#141736] flex items-center justify-center bg-white text-[#141736] shrink-0">
-            <User className="w-10 h-10" />
+    <div className="bg-white border border-gray-200 rounded-lg p-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-4 min-w-0">
+          <div className="w-16 h-16 rounded-full border-2 border-black flex items-center justify-center shrink-0">
+            <User className="w-7 h-7 text-gray-900" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold text-[#141736] truncate">{name || "Paciente"}</h1>
+            <p className="text-lg font-semibold text-gray-900 truncate">{name || "Paciente"}</p>
             {metaItems.length > 0 && (
-              <p className="text-slate-600 mt-1 text-sm md:text-base break-words">
-                {metaItems.join(" | ")}
-              </p>
+              <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600">
+                {metaItems.map((item) => (
+                  <span key={item}>{item}</span>
+                ))}
+              </div>
             )}
           </div>
         </div>
