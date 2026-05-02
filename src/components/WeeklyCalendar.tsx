@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from "react";
 import { format, startOfWeek, addDays, isSameDay } from "date-fns";
 import { BotMessageSquare, Plus } from "lucide-react";
 import type { AvailableHours } from "@/hooks/api/useGetCalendar";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const weekDays = [
   "Domingo",
@@ -52,6 +53,9 @@ interface WeeklyCalendarProps {
     endHour?: string;
     type?: 'consulta' | 'bloqueio';
   } | null;
+  viewMode?: "week" | "day";
+  onNavigatePrev?: () => void;
+  onNavigateNext?: () => void;
 }
 
 function getHourPosition(time: string) {
@@ -84,9 +88,15 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
   availableHours,
   isDraftVisible = true,
   draftEvent = null,
+  viewMode = "week",
+  onNavigatePrev,
+  onNavigateNext,
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const leftColumnRef = useRef<HTMLDivElement>(null);
+  const swipeRef = useRef<{ x: number; y: number; swiped: boolean } | null>(null);
+  const isMobile = useIsMobile();
+  const timeColumnWidth = isMobile ? 56 : 70;
   const [nowIndicator, setNowIndicator] = useState<{
     top: number;
     dayIdx: number;
@@ -100,11 +110,14 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
     type?: 'consulta' | 'bloqueio';
   } | null>(null);
   const [blink, setBlink] = useState(false);
-  const CELL_HEIGHT = 80;
+  const CELL_HEIGHT = isMobile ? 64 : 80;
   const weekDates = React.useMemo(() => {
     const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
     return Array.from({ length: 7 }, (_, index) => addDays(weekStart, index));
   }, [currentDate]);
+  const visibleDates = React.useMemo(() => {
+    return viewMode === "day" ? [currentDate] : weekDates;
+  }, [currentDate, viewMode, weekDates]);
 
   useEffect(() => {
     if (scrollContainerRef.current) {
@@ -113,8 +126,8 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
     }
   }, [currentDate]);
 
-  const isCellAllowed = React.useCallback((dayIdx: number, hourIdx: number) => {
-    const cellDate = new Date(weekDates[dayIdx]);
+  const isCellAllowed = React.useCallback((date: Date, hourIdx: number) => {
+    const cellDate = new Date(date);
     cellDate.setHours(hourIdx, 0, 0, 0);
     const now = new Date();
 
@@ -123,7 +136,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
     }
 
     if (availableHours) {
-      const dayData = availableHours[String(dayIdx)];
+      const dayData = availableHours[String(cellDate.getDay())];
       if (!dayData || dayData.startMinute === null || dayData.endMinute === null) {
         return false;
       }
@@ -136,12 +149,12 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
     }
 
     return true;
-  }, [availableHours, weekDates]);
+  }, [availableHours]);
 
   const controlledTempBox = React.useMemo(() => {
     if (!draftEvent) return null;
 
-    const dayIdx = weekDates.findIndex((d) =>
+    const dayIdx = visibleDates.findIndex((d) =>
       d.getDate() === draftEvent.day &&
       d.getMonth() + 1 === draftEvent.month &&
       d.getFullYear() === draftEvent.year,
@@ -154,7 +167,8 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
     if (Number.isNaN(startPos.totalPosition) || Number.isNaN(endPos.totalPosition)) return null;
 
     const previewHourIdx = Math.floor(startPos.totalPosition);
-    if (!isCellAllowed(dayIdx, previewHourIdx)) return null;
+    const targetDate = visibleDates[dayIdx];
+    if (!targetDate || !isCellAllowed(targetDate, previewHourIdx)) return null;
 
     const endHour = endPos.totalPosition > startPos.totalPosition
       ? (draftEvent.endHour ?? draftEvent.startHour)
@@ -164,18 +178,18 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
       dayIdx,
       startHour: draftEvent.startHour,
       endHour,
-      date: weekDates[dayIdx],
+      date: targetDate,
       type: draftEvent.type,
     };
-  }, [draftEvent, isCellAllowed, weekDates]);
+  }, [draftEvent, isCellAllowed, visibleDates]);
 
-  const tempBoxInCurrentWeek = React.useMemo(() => {
+  const tempBoxInCurrentRange = React.useMemo(() => {
     if (!tempBox) return null;
-    const isInWeek = weekDates.some((d) => isSameDay(d, tempBox.date));
-    return isInWeek ? tempBox : null;
-  }, [tempBox, weekDates]);
+    const isInRange = visibleDates.some((d) => isSameDay(d, tempBox.date));
+    return isInRange ? tempBox : null;
+  }, [tempBox, visibleDates]);
 
-  const renderedTempBox = isDraftVisible ? (controlledTempBox ?? tempBoxInCurrentWeek) : null;
+  const renderedTempBox = isDraftVisible ? (controlledTempBox ?? tempBoxInCurrentRange) : null;
 
   useEffect(() => {
     if (!isDraftVisible && tempBox) {
@@ -184,10 +198,10 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
   }, [isDraftVisible, tempBox]);
 
   useEffect(() => {
-    if (tempBox && !tempBoxInCurrentWeek) {
+    if (tempBox && !tempBoxInCurrentRange) {
       setTempBox(null);
     }
-  }, [tempBox, tempBoxInCurrentWeek]);
+  }, [tempBox, tempBoxInCurrentRange]);
 
   // Efeito para piscar a caixinha temporária
   useEffect(() => {
@@ -202,14 +216,14 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
     let mounted = true;
     const updateNow = () => {
       const now = new Date();
-      const dayIdxNow = weekDates.findIndex((d) => isSameDay(d, now));
+      const dayIdxNow = visibleDates.findIndex((d) => isSameDay(d, now));
       if (dayIdxNow === -1) {
         if (mounted) setNowIndicator(null);
         return;
       }
       const timeStr = format(now, "HH:mm");
       const pos = getHourPosition(timeStr);
-      const left = leftColumnRef.current?.offsetWidth ?? 80;
+      const left = leftColumnRef.current?.offsetWidth ?? timeColumnWidth;
       if (mounted)
         setNowIndicator({ top: pos.totalPosition * CELL_HEIGHT, dayIdx: dayIdxNow, left });
     };
@@ -221,28 +235,28 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
       clearInterval(id);
     };
 
-  }, [weekDates]);
+  }, [CELL_HEIGHT, timeColumnWidth, visibleDates]);
 
-	// Filtra eventos para a semana exibida (não apenas por mês/ano)
-	const filteredEventsByWeek = events.filter((event) => {
+  // Filtra eventos para o intervalo exibido (semana ou dia)
+  const filteredEventsByRange = events.filter((event) => {
 		const eventMonthNum = typeof event.month === 'string' ? Number(event.month) : event.month;
 		const eventYearNum = Number(event.year);
 
 		if (typeof event.dayNumber === 'number') {
-			return weekDates.some((d) =>
+      return visibleDates.some((d) =>
 				d.getDate() === event.dayNumber &&
 				d.getMonth() + 1 === eventMonthNum &&
 				d.getFullYear() === eventYearNum,
 			);
 		}
-		return weekDates.some((d) =>
+    return visibleDates.some((d) =>
 			d.getMonth() + 1 === eventMonthNum &&
 			d.getFullYear() === eventYearNum &&
 			weekDays[d.getDay()] === event.day,
 		);
 	});
 
-	let filteredEvents = filteredEventsByWeek;
+  let filteredEvents = filteredEventsByRange;
 	if (filterType !== 'all') {
 		filteredEvents = filteredEvents.filter((event) => event.type === filterType);
 	}
@@ -251,13 +265,13 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 		const eventMonthNum = typeof event.month === 'string' ? Number(event.month) : event.month;
 		const eventYearNum = Number(event.year);
 
-		const dayIdx = typeof event.dayNumber === 'number'
-			? weekDates.findIndex((d) =>
+    const dayIdx = typeof event.dayNumber === 'number'
+      ? visibleDates.findIndex((d) =>
 				d.getDate() === event.dayNumber &&
 				d.getMonth() + 1 === eventMonthNum &&
 				d.getFullYear() === eventYearNum,
 			)
-			: weekDates.findIndex((d) =>
+      : visibleDates.findIndex((d) =>
 				d.getMonth() + 1 === eventMonthNum &&
 				d.getFullYear() === eventYearNum &&
 				weekDays[d.getDay()] === event.day,
@@ -306,7 +320,8 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
   }, [eventMap]);
 
   const handleCellClick = (dayIdx: number, hour: string, e: React.MouseEvent<HTMLDivElement>) => {
-    const dateObj = weekDates[dayIdx];
+    const dateObj = visibleDates[dayIdx];
+    if (!dateObj) return;
     const defaultEndHour = addMinutesToTime(hour, 5);
     setTempBox({ dayIdx, startHour: hour, endHour: defaultEndHour, date: dateObj, type: 'consulta' });
     if (onDateClick) {
@@ -337,22 +352,54 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 				<div 
         ref={scrollContainerRef}
         className="overflow-auto w-full h-full custom-scrollbar relative"
+        onTouchStart={(event) => {
+          if (!isMobile) return;
+          const touch = event.touches[0];
+          swipeRef.current = { x: touch.clientX, y: touch.clientY, swiped: false };
+        }}
+        onTouchMove={(event) => {
+          if (!isMobile) return;
+          const data = swipeRef.current;
+          if (!data || data.swiped) return;
+          const touch = event.touches[0];
+          const dx = touch.clientX - data.x;
+          const dy = touch.clientY - data.y;
+          if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+            data.swiped = true;
+            if (dx > 0) {
+              onNavigatePrev?.();
+            } else {
+              onNavigateNext?.();
+            }
+          }
+        }}
+        onTouchEnd={() => {
+          if (!isMobile) return;
+          swipeRef.current = null;
+        }}
         >
-          <div className="min-w-[900px]">
+          <div className={viewMode === "week" ? "min-w-[900px]" : "min-w-0"}>
             {/* Header Sticky */}
             <div className="flex sticky top-0 z-[36] isolate bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
-              <div className="min-w-[70px] max-w-[70px] w-full border-r border-gray-200 bg-gray-50/30"></div>
-              <div className="grid grid-cols-7 w-full divide-x divide-gray-200">
-                {weekDays.map((day, idx) => {
-                  const currentDayDate = weekDates[idx];
+              <div
+                className="w-full border-r border-gray-200 bg-gray-50/30"
+                style={{ minWidth: `${timeColumnWidth}px`, maxWidth: `${timeColumnWidth}px`, width: `${timeColumnWidth}px` }}
+              ></div>
+              <div
+                className="grid w-full divide-x divide-gray-200"
+                style={{ gridTemplateColumns: `repeat(${visibleDates.length}, minmax(0, 1fr))` }}
+              >
+                {visibleDates.map((currentDayDate, idx) => {
                   const isToday = isSameDay(currentDayDate, new Date());
+                  const isWeekend = currentDayDate.getDay() >= 5;
+                  const dayLabel = weekDays[currentDayDate.getDay()];
                   return (
                     <div
-                      key={day}
-                      className={`py-3 text-center flex flex-col items-center gap-1.5 ${idx >= 5 ? 'bg-gray-50/40' : ''}`}
+                      key={`${currentDayDate.toISOString()}-${idx}`}
+                      className={`py-3 text-center flex flex-col items-center gap-1.5 ${isWeekend ? 'bg-gray-50/40' : ''}`}
                     >
                       <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${isToday ? 'text-blue-600' : 'text-gray-400'}`}>
-                        {day.substring(0, 3)}
+                        {viewMode === "day" ? dayLabel : dayLabel.substring(0, 3)}
                       </span>
                       <div className={`text-[14px] font-medium flex items-center justify-center w-7 h-7 rounded-full transition-all duration-300 ${
                         isToday 
@@ -367,14 +414,18 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
               </div>
             </div>
 
-            <div className="flex relative min-h-[1920px]">
+            <div className="flex relative" style={{ minHeight: `${CELL_HEIGHT * 24}px` }}>
               {/* Time Column */}
-              <div className="flex flex-col min-w-[70px] max-w-[70px] w-full bg-white border-r border-gray-200 sticky left-0 z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+              <div
+                className="flex flex-col w-full bg-white border-r border-gray-200 sticky left-0 z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]"
+                style={{ minWidth: `${timeColumnWidth}px`, maxWidth: `${timeColumnWidth}px`, width: `${timeColumnWidth}px` }}
+              >
                 <div ref={leftColumnRef} className="w-full">
                   {hours.map((hour, i) => (
                     <div
                       key={hour}
-                      className="h-[80px] text-[11px] font-medium text-gray-400 relative"
+                      className="text-[11px] font-medium text-gray-400 relative"
+                      style={{ height: `${CELL_HEIGHT}px` }}
                     >
                       <span className={`absolute right-3 bg-white px-1 text-gray-400 font-sans tracking-tight ${i === 0 ? 'top-2' : '-top-3'}`}>
                         {hour}
@@ -385,12 +436,15 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
               </div>
 
               {/* Calendar Grid */}
-              <div className="grid grid-cols-7 w-full divide-x divide-gray-200">
-                {weekDays.map((day, dayIdx) => (
+              <div
+                className="grid w-full divide-x divide-gray-200"
+                style={{ gridTemplateColumns: `repeat(${visibleDates.length}, minmax(0, 1fr))` }}
+              >
+                {visibleDates.map((date, dayIdx) => (
                   <div
-                    key={day}
+                    key={date.toISOString()}
                     className={`flex flex-col relative ${
-                      dayIdx >= 5 ? "bg-gray-50/20" : ""
+                      date.getDay() >= 5 ? "bg-gray-50/20" : ""
                     }`}
                   >
                     {/* Temporary blinking box (Google Calendar style) */}
@@ -433,16 +487,17 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                     )}
                     {/* Grid Lines */}
                     {hours.map((hour, hourIdx) => {
-                      const isAllowed = isCellAllowed(dayIdx, hourIdx);
+                      const isAllowed = isCellAllowed(date, hourIdx);
                       const isBlockedByEvent = blockedCells.has(`${dayIdx}-${hourIdx}`);
                       const isInteractive = isAllowed && !isBlockedByEvent;
                       
                       return (
                       <div
                         key={hour}
-                        className={`h-[80px] border-b border-gray-200 relative group transition-colors ${
+                        className={`border-b border-gray-200 relative group transition-colors ${
                           isInteractive ? 'hover:bg-blue-50/20 cursor-pointer' : 'cursor-not-allowed bg-[#f5f5f5]'
                         }`}
+                        style={{ height: `${CELL_HEIGHT}px` }}
                         onClick={(e) => {
                           if (isInteractive) handleCellClick(dayIdx, hour, e);
                         }}
@@ -521,7 +576,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                       }
 
                       return sorted.map((ev, idx) => {
-                        const cellHeight = 80;
+                        const cellHeight = CELL_HEIGHT;
                         const top = ev.startPos.totalPosition * cellHeight;
                         const height = (ev.endPos.totalPosition - ev.startPos.totalPosition) * cellHeight;
                         const isShort = height <= 50;

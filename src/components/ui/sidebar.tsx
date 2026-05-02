@@ -200,7 +200,14 @@ function Sidebar({
             <SheetTitle>Sidebar</SheetTitle>
             <SheetDescription>Displays the mobile sidebar.</SheetDescription>
           </SheetHeader>
-          <div className="flex h-full w-full flex-col">{children}</div>
+          <div
+            data-sidebar="sidebar"
+            data-slot="sidebar-inner"
+            style={{ backgroundImage: `url(${backgroundImage})` }}
+            className="bg-transparent bg-no-repeat bg-cover flex h-full w-full flex-col"
+          >
+            {children}
+          </div>
         </SheetContent>
       </Sheet>
     )

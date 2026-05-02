@@ -13,6 +13,7 @@ import { AppoimentContent } from "./AppoimentContent";
 import { useSearchClients } from "@/hooks/api/useSearchClients";
 import { useNavigate } from "react-router-dom";
 import type { AvailableHours } from "@/hooks/api/useGetCalendar";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const MODAL_WIDTH = 400;
 const MODAL_HEIGHT = 600;
@@ -121,6 +122,7 @@ export const ScheduleFormModal = ({
   calendarEvents = [],
   onNavigateWeekToDate,
 }: FormModalProps) => {
+  const isMobile = useIsMobile();
   function getEndHour(startHour: string | undefined) {
     if (!startHour) return "";
     const [h, m] = startHour.split(":").map(Number);
@@ -652,131 +654,140 @@ export const ScheduleFormModal = ({
 
   if (!isOpen) return null;
 
+  const modalInner = (
+    <div className={`flex flex-col w-full ${isMobile ? "max-w-none" : "max-w-[446px]"}`}>
+      {/* Header Actions (Close) - Grip is handled by wrapper */}
+      <div className={isMobile ? "flex items-center justify-between px-4 pt-3" : "flex justify-end pr-2 pt-2"}>
+        {isMobile && <div className="h-1.5 w-10 rounded-full bg-white/20" />}
+        <Button
+          variant="ghost"
+          className="bg-transparent hover:bg-white/10 h-8 w-8 rounded-full p-0 z-50"
+          onClick={onClose}
+        >
+          <X className="text-gray-400 hover:text-white" size={20} />
+        </Button>
+      </div>
+
+      <div className={isMobile ? "px-4 pb-6 pt-2 flex flex-col gap-4" : "px-6 pt-0 flex flex-col gap-4"}>
+        {/* Title Input moved down */}
+
+        {/* Tabs / Type Switcher */}
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="w-full"
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <TabsList className="bg-transparent p-0 h-auto gap-2 border-0 w-full justify-start">
+              <TabsTrigger
+                value="consulta"
+                className="rounded-md px-6 py-2 text-sm font-medium border border-[#2d3152] bg-[#1a1e45] text-gray-300 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:border-blue-600 hover:bg-blue-600/20 data-[state=active]:hover:bg-blue-700 transition-all cursor-pointer h-auto w-full"
+              >
+                Consulta
+              </TabsTrigger>
+              <TabsTrigger
+                value="bloqueio"
+                className="rounded-md px-6 py-2 text-sm font-medium border border-[#2d3152] bg-[#1a1e45] text-gray-300 data-[state=active]:bg-gray-700 data-[state=active]:text-gray-100 data-[state=active]:border-gray-500 hover:bg-gray-700/50 data-[state=active]:hover:bg-gray-600 transition-all cursor-pointer h-auto w-full"
+              >
+                Bloqueio
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <div className="w-full relative">
+            <input
+              type="text"
+              placeholder={activeTab === 'consulta' ? "Nome do paciente" : "Adicionar título"}
+              className="w-full bg-transparent border-0 border-b border-gray-600 text-2xl font-normal text-white placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-0 py-2 transition-colors"
+              value={title ?? ""}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                if (activeTab === 'consulta') {
+                  setShowSuggestions(true);
+                  setClientId(null);
+                }
+              }}
+              onFocus={() => {
+                if (activeTab === 'consulta') setShowSuggestions(true);
+              }}
+              onBlur={() => {
+                setTimeout(() => setShowSuggestions(false), 200);
+              }}
+              autoFocus
+            />
+            <p className="text-xs text-gray-400 mt-1">
+              {activeTab === 'consulta' ? 'Adicione o nome do paciente para a consulta' : 'Defina um título para o bloqueio e agenda'}
+            </p>
+
+            {/* Suggestions List */}
+            {showSuggestions && activeTab === 'consulta' && title && title.trim().length > 0 && (
+              <div className="absolute top-full left-0 right-0 z-50 bg-[#1e224e] border border-gray-700 rounded-b-md shadow-lg max-h-60 overflow-y-auto mt-1">
+                {/* Loading */}
+                {isLoadingClients && (
+                  <div className="p-3 text-sm text-gray-400">Carregando...</div>
+                )}
+
+                {/* Results */}
+                {!isLoadingClients && clients && clients.length > 0 && (
+                  <ul>
+                    {clients.map((client) => (
+                      <li
+                        key={client.id}
+                        className="px-4 py-2 hover:bg-white/10 cursor-pointer text-white text-sm flex flex-col"
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          setTitle(client.name);
+                          setClientId(client.id);
+                          setShowSuggestions(false);
+                        }}
+                      >
+                        <span>{client.name}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {/* No Results - Add Patient */}
+                {!isLoadingClients && clients && clients.length === 0 && (
+                  <div
+                    className="px-4 py-3 hover:bg-white/10 cursor-pointer text-blue-400 text-sm flex items-center gap-2"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      navigate(`/patients/new?name=${encodeURIComponent(title || '')}`);
+                    }}
+                  >
+                    <span>+ Adicionar paciente "{title}"</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <TabsContent value="bloqueio" className="mt-4">
+            <BlockContent {...blockProps} />
+          </TabsContent>
+          <TabsContent value="consulta" className="mt-4">
+            <AppoimentContent {...appointmentProps} />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+
+  if (isMobile) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+        <div className="w-[85%] max-w-[520px] max-h-[90vh] overflow-y-auto rounded-2xl bg-[#121535] shadow-2xl">
+          {modalInner}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <DndContext onDragEnd={handleDragEnd} modifiers={[restrictToWindowEdges]}>
       <DraggableModalContent position={position}>
-        <div className="flex flex-col w-full max-w-[446px]">
-          {/* Header Actions (Close) - Grip is handled by wrapper */}
-          <div className="flex justify-end pr-2 pt-2">
-            <Button
-              variant="ghost"
-              className="bg-transparent hover:bg-white/10 h-8 w-8 rounded-full p-0 z-50"
-              onClick={onClose}
-            >
-              <X className="text-gray-400 hover:text-white" size={20} />
-            </Button>
-          </div>
-
-          <div className="px-6 pt-0 flex flex-col gap-4">
-             {/* Title Input moved down */}
-
-            {/* Tabs / Type Switcher */}
-            <Tabs
-              value={activeTab}
-              onValueChange={setActiveTab}
-              className="w-full"
-            >
-              <div className="flex items-center gap-2 mb-4">
-                <TabsList className="bg-transparent p-0 h-auto gap-2 border-0 w-full justify-start">
-                  <TabsTrigger
-                    value="consulta"
-                    className="rounded-md px-6 py-2 text-sm font-medium border border-[#2d3152] bg-[#1a1e45] text-gray-300 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:border-blue-600 hover:bg-blue-600/20 data-[state=active]:hover:bg-blue-700 transition-all cursor-pointer h-auto w-full"
-                  >
-                    Consulta
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="bloqueio"
-                    className="rounded-md px-6 py-2 text-sm font-medium border border-[#2d3152] bg-[#1a1e45] text-gray-300 data-[state=active]:bg-gray-700 data-[state=active]:text-gray-100 data-[state=active]:border-gray-500 hover:bg-gray-700/50 data-[state=active]:hover:bg-gray-600 transition-all cursor-pointer h-auto w-full"
-                  >
-                    Bloqueio
-                  </TabsTrigger>
-                </TabsList>
-              </div>
-
-               <div className="w-full relative">
-               <input
-                type="text"
-                placeholder={activeTab === 'consulta' ? "Nome do paciente" : "Adicionar título"}
-                className="w-full bg-transparent border-0 border-b border-gray-600 text-2xl font-normal text-white placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-0 py-2 transition-colors"
-                value={title ?? ""}
-                onChange={(e) => {
-                    setTitle(e.target.value);
-                    if (activeTab === 'consulta') {
-                        setShowSuggestions(true);
-                        // If user types, we might want to clear selected clientId until they re-select?
-                        // Or we assume they are searching for a new one. 
-                        // Let's clear clientId if the input doesn't match the selected name strictly? 
-                        // For now, simpler: clear clientId on change to force selection, 
-                        // unless we want to allow loose text. But requirement says "select".
-                        setClientId(null);
-                    }
-                }}
-                onFocus={() => {
-                    if (activeTab === 'consulta') setShowSuggestions(true);
-                }}
-                onBlur={() => {
-                    // Delay hiding to allow click
-                    setTimeout(() => setShowSuggestions(false), 200);
-                }}
-                autoFocus
-              />
-               <p className="text-xs text-gray-400 mt-1">
-                 {activeTab === 'consulta' ? 'Adicione o nome do paciente para a consulta' : 'Defina um título para o bloqueio e agenda'}
-               </p>
-
-               {/* Suggestions List */}
-               {showSuggestions && activeTab === 'consulta' && title && title.trim().length > 0 && (
-                   <div className="absolute top-full left-0 right-0 z-50 bg-[#1e224e] border border-gray-700 rounded-b-md shadow-lg max-h-60 overflow-y-auto mt-1">
-                       {/* Loading */}
-                       {isLoadingClients && (
-                           <div className="p-3 text-sm text-gray-400">Carregando...</div>
-                       )}
-                       
-                       {/* Results */}
-                       {!isLoadingClients && clients && clients.length > 0 && (
-                           <ul>
-                               {clients.map((client) => (
-                                   <li 
-                                       key={client.id}
-                                       className="px-4 py-2 hover:bg-white/10 cursor-pointer text-white text-sm flex flex-col"
-                                       onMouseDown={(e) => {
-                                           e.preventDefault();
-                                           setTitle(client.name);
-                                           setClientId(client.id);
-                                           setShowSuggestions(false);
-                                       }}
-                                   >
-                                       <span>{client.name}</span>
-                                   </li>
-                               ))}
-                           </ul>
-                       )}
-
-                       {/* No Results - Add Patient */}
-                       {!isLoadingClients && clients && clients.length === 0 && (
-                           <div 
-                               className="px-4 py-3 hover:bg-white/10 cursor-pointer text-blue-400 text-sm flex items-center gap-2"
-                               onMouseDown={(e) => {
-                                   e.preventDefault();
-                                   navigate(`/patients/new?name=${encodeURIComponent(title || '')}`);
-                               }}
-                           >
-                               <span>+ Adicionar paciente "{title}"</span>
-                           </div>
-                       )}
-                   </div>
-               )}
-            </div>
-
-              <TabsContent value="bloqueio" className="mt-4">
-               <BlockContent {...blockProps} />
-              </TabsContent>
-              <TabsContent value="consulta" className="mt-4">
-                <AppoimentContent {...appointmentProps} />
-              </TabsContent>
-            </Tabs>
-          </div>
-        </div>
+        {modalInner}
       </DraggableModalContent>
     </DndContext>
   );

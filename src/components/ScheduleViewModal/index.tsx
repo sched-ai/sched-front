@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import type { EventType } from "../WeeklyCalendar";
 import { DeleteConfirmationModal } from "../DeleteConfirmationModal";
 import { useGetService } from "@/hooks/api/useGetService";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Details {
   title: string;
@@ -39,6 +40,7 @@ export const ScheduleViewModal = ({
   selectedEvent
 }: IProps) => {
   const ref = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const hasServiceFallback = Boolean(details?.services && details.services.length > 0);
 
@@ -77,7 +79,7 @@ export const ScheduleViewModal = ({
     };
   }, [isOpen, onClose, isDeleteModalOpen]);
 
-  if (!details || !isOpen || !position) return null;
+  if (!details || !isOpen || (!isMobile && !position)) return null;
 
   const formattedDate = details.localDateTime
     ? details.localDateTime.toLocaleDateString("pt-BR", {
@@ -91,10 +93,21 @@ export const ScheduleViewModal = ({
 
   return (
     <>
+      {isMobile && (
+        <div
+          className="fixed inset-0 z-40 bg-black/40"
+          onClick={() => {
+            if (!isDeleteModalOpen) onClose();
+          }}
+        />
+      )}
       <div 
           ref={ref}
-          className="fixed z-50 w-[400px] bg-white border border-slate-200 text-slate-900 rounded-lg shadow-xl animate-in fade-in zoom-in-95 duration-200 overflow-hidden flex flex-col"
-          style={{ top: position.top, left: position.left }}
+          className={isMobile
+            ? "fixed z-50 inset-x-0 bottom-0 w-full bg-white border border-slate-200 text-slate-900 rounded-t-2xl shadow-2xl animate-in fade-in slide-in-from-bottom-8 duration-200 overflow-hidden flex flex-col max-h-[85vh]"
+            : "fixed z-50 w-[400px] bg-white border border-slate-200 text-slate-900 rounded-lg shadow-xl animate-in fade-in zoom-in-95 duration-200 overflow-hidden flex flex-col"
+          }
+          style={isMobile ? undefined : { top: position!.top, left: position!.left }}
       >
         <div className="p-6 pb-2">
             <div className="flex items-start justify-between">

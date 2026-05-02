@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { WeeklyCalendar, type EventType } from "@/components/WeeklyCalendar";
-import { useState } from "react";
-import { format, addWeeks, subWeeks } from "date-fns";
+import { useEffect, useState } from "react";
+import { format, addWeeks, subWeeks, addDays, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ScheduleFormModal } from "@/components/ScheduleFormModal";
 import { Plus } from "lucide-react";
@@ -19,27 +19,37 @@ import { capitalizeFirst } from "@/util/helper";
 import { useUser } from "@/context/user";
 import { PackageBindModal } from "@/components/PackageBindModal";
 import { PackagePlus } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export const Home = () => {
+  const isMobile = useIsMobile();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isScheduleFormOpen, setIsScheduleFormOpen] = useState(false);
   const [isPackageModalOpen, setIsPackageModalOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"week" | "day">("week");
+  const [viewModeTouched, setViewModeTouched] = useState(false);
   // const [filterType, setFilterType] = useState<"all" | "consulta" | "bloqueio">(
   //   "all",
   // );
 
-  const handlePreviousWeek = () => {
-    setCurrentDate((prev) => subWeeks(prev, 1));
+  const handlePreviousRange = () => {
+    setCurrentDate((prev) => (viewMode === "day" ? subDays(prev, 1) : subWeeks(prev, 1)));
   };
 
-  const handleNextWeek = () => {
-    setCurrentDate((prev) => addWeeks(prev, 1));
+  const handleNextRange = () => {
+    setCurrentDate((prev) => (viewMode === "day" ? addDays(prev, 1) : addWeeks(prev, 1)));
   };
 
   const handleToday = () => {
     const now = new Date();
     setCurrentDate(new Date(now));
   };
+
+  useEffect(() => {
+    if (viewModeTouched) return;
+    setViewMode(isMobile ? "day" : "week");
+  }, [isMobile, viewModeTouched]);
   const [scheduleFormSelectedDateTime, setScheduleFormSelectedDateTime] = useState<{
     day: number;
     month: number;
@@ -129,7 +139,7 @@ export const Home = () => {
     setScheduleDraftEvent({ ...date, startHour: hour, endHour: defaultEnd, type: 'consulta' });
     setSelectedEvent(null);
     
-    if (rect) {
+    if (rect && !isMobile) {
       let x = rect.right + 12;
       let y = rect.top;
 
@@ -229,19 +239,23 @@ export const Home = () => {
 
     if (!rect) console.warn("handleEventClick: rect is missing, using fallback");
 
-    let left = targetRect.right + 12;
-    let top = targetRect.top;
+    if (!isMobile) {
+      let left = targetRect.right + 12;
+      let top = targetRect.top;
 
-    if (left + 425 > window.innerWidth) {
-       left = targetRect.left - 437; // 12px gap + 425px width
-    }
-    
-    if (top + 400 > window.innerHeight) {
-        top = window.innerHeight - 420;
-    }
-    if (top < 10) top = 10;
+      if (left + 425 > window.innerWidth) {
+         left = targetRect.left - 437; // 12px gap + 425px width
+      }
+      
+      if (top + 400 > window.innerHeight) {
+          top = window.innerHeight - 420;
+      }
+      if (top < 10) top = 10;
 
-    setViewModalPosition({ top, left });
+      setViewModalPosition({ top, left });
+    } else {
+      setViewModalPosition(null);
+    }
     setIsScheduleFormOpen(false);
     setIsScheduleViewOpen(true);
   };
@@ -257,37 +271,73 @@ export const Home = () => {
 
   return (
     <div className="w-full flex flex-col">
-      <header className="border-b border-b-[#DADCE0] max-h-[80px]">
-        <div className="p-4 text-[30px] flex items-center gap-4 justify-between">
-          <div className="font-medium text-[#141736] flex items-center gap-4">
-            <Button
-              variant="outline"
-              className="text-gray-700 font-medium border-gray-200 h-10 px-5 rounded-lg hover:bg-gray-50 hover:text-blue-600 hover:border-blue-100 transition-colors shadow-sm"
-              onClick={handleToday}
-            >
-              HOJE
-            </Button>
-            <h1 className="w-[260px] text-2xl font-semibold text-gray-800 tracking-tight">
-              {`${capitalizeFirst(format(currentDate, "MMMM", { locale: ptBR }))} de ${format(currentDate, "yyyy", { locale: ptBR })}`}
-            </h1>
-            <div className="flex gap-1">
+      <header className="border-b border-b-[#DADCE0]">
+        <div className="p-4 flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <SidebarTrigger className="md:hidden h-9 w-9 rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50" />
+            <div className="flex items-center gap-3 ml-auto">
               <Button
-                variant="ghost"
-                className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 w-10 h-10 rounded-full p-0"
-                onClick={handlePreviousWeek}
+                variant="outline"
+                className="text-gray-700 font-medium border-gray-200 h-10 px-5 rounded-lg hover:bg-gray-50 hover:text-blue-600 hover:border-blue-100 transition-colors shadow-sm"
+                onClick={handleToday}
               >
-                &lt;
+                HOJE
               </Button>
-              <Button
-                variant="ghost"
-                className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 w-10 h-10 rounded-full p-0"
-                onClick={handleNextWeek}
-              >
-                &gt;
-              </Button>
+              <div className="flex gap-1">
+                <Button
+                  variant="ghost"
+                  className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 w-10 h-10 rounded-full p-0"
+                  onClick={handlePreviousRange}
+                >
+                  &lt;
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 w-10 h-10 rounded-full p-0"
+                  onClick={handleNextRange}
+                >
+                  &gt;
+                </Button>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+
+          <h1 className="text-lg md:text-2xl font-semibold text-gray-800 tracking-tight">
+            {`${capitalizeFirst(format(currentDate, "MMMM", { locale: ptBR }))} de ${format(currentDate, "yyyy", { locale: ptBR })}`}
+          </h1>
+
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap sm:justify-end">
+            <div className="inline-flex items-center rounded-lg border border-slate-200 bg-white p-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setViewMode("day");
+                  setViewModeTouched(true);
+                }}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition ${
+                  viewMode === "day"
+                    ? "bg-[#141736] text-white"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                Dia
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setViewMode("week");
+                  setViewModeTouched(true);
+                }}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition ${
+                  viewMode === "week"
+                    ? "bg-[#141736] text-white"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                Semana
+              </button>
+            </div>
+
             <Button
               className="h-[48px] !text-[15px] font-medium bg-[#141736] text-white transition-all duration-300 hover:shadow-emerald-500/30 rounded-xl px-6"
               onClick={() => setIsPackageModalOpen(true)}
@@ -348,6 +398,9 @@ export const Home = () => {
               filterType={'all'}
               isDraftVisible={isScheduleFormOpen}
               draftEvent={scheduleDraftEvent}
+              viewMode={viewMode}
+              onNavigatePrev={handlePreviousRange}
+              onNavigateNext={handleNextRange}
             />
           )}
         </div>
@@ -357,7 +410,7 @@ export const Home = () => {
         selectedDateTime={scheduleFormSelectedDateTime}
         selectedEvent={selectedEvent}
         onClose={handleCloseFormModal}
-        clickPosition={scheduleFormPosition}
+        clickPosition={isMobile ? null : scheduleFormPosition}
         onDraftChange={setScheduleDraftEvent}
         availableHours={data.availableHours}
         calendarEvents={data.events}
@@ -365,7 +418,7 @@ export const Home = () => {
           setCurrentDate(new Date(date.year, date.month - 1, date.day));
         }}
       />
-      <ScheduleViewModal {...scheduleViewModalProps} />
+      <ScheduleViewModal {...scheduleViewModalProps} position={isMobile ? null : viewModalPosition} />
       <PackageBindModal isOpen={isPackageModalOpen} onClose={() => setIsPackageModalOpen(false)} />
     </div>
   );
