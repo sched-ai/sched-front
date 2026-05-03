@@ -202,7 +202,7 @@ export const Atendimentos = () => {
 
   return (
     <div className="min-h-screen">
-      <div className="p-6 md:p-8 mx-auto space-y-6">
+        <div className="p-6 md:p-8 mx-auto space-y-6">
           <div className="mb-8">
             <h1 className="text-2xl font-semibold text-foreground">Atendimentos</h1>
             <p className="text-muted-foreground mt-2">
@@ -270,7 +270,7 @@ export const Atendimentos = () => {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="hidden lg:block overflow-x-auto">
             <table className="w-full min-w-[760px]">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50">
@@ -305,6 +305,22 @@ export const Atendimentos = () => {
                 )}
               </tbody>
             </table>
+          </div>
+
+          <div className="lg:hidden space-y-3 p-4">
+            {isLoading && (
+              <div className="px-4 py-10 text-center text-slate-400 text-sm">
+                Carregando atendimentos...
+              </div>
+            )}
+
+            {!isLoading && appointments.length > 0 && paginatedCards(appointments, navigate)}
+
+            {!isLoading && appointments.length === 0 && (
+              <div className="px-4 py-10 text-center text-slate-400 text-sm">
+                Nenhum atendimento encontrado.
+              </div>
+            )}
           </div>
 
           {!isLoading && meta.total > 0 && (
@@ -449,6 +465,92 @@ function paginatedRows(appointments: AppointmentAPI[], navigate: ReturnType<type
           </button>
         </td>
       </tr>
+    );
+  });
+}
+
+function paginatedCards(appointments: AppointmentAPI[], navigate: ReturnType<typeof useNavigate>) {
+  return appointments.map((atendimento) => {
+    const start = new Date(atendimento.startDate);
+    const status = getStatusLabel(atendimento.status);
+    const visual = getStatusVisual(atendimento.status);
+    const isCancelled = ["cancelado", "cancelled"].includes(atendimento.status?.toLowerCase() || "");
+    const isScheduled = ["agendado", "pending", "scheduled", "confirmed"].includes(
+      atendimento.status?.toLowerCase() || ""
+    );
+    const startTime = start.getTime();
+    const canOpenScheduled =
+      !Number.isNaN(startTime) && Date.now() >= startTime - 10 * 60 * 1000;
+    const isViewDisabled = isCancelled || (isScheduled && !canOpenScheduled);
+
+    return (
+      <div
+        key={atendimento.id}
+        className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm space-y-3"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs text-slate-500">Paciente</p>
+            <p className="text-slate-900 font-medium">
+              {atendimento.clientName || atendimento.client?.name || "Sem nome"}
+            </p>
+          </div>
+          <span className={`inline-flex items-center gap-1.5 text-xs ${visual.color}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${visual.dot}`} />
+            {status}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 text-sm text-slate-700">
+          <div>
+            <p className="text-xs text-slate-500">Serviço</p>
+            <p>{atendimento.service?.name || "-"}</p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-500">Data</p>
+            <p>{format(start, "dd/MM/yyyy")}</p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-500">Horário</p>
+            <p>{format(start, "HH:mm")}</p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-500">Origem</p>
+            {atendimento.createdByAI ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
+                <BotMessageSquare className="w-3.5 h-3.5" />
+                Agente
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
+                <User className="w-3.5 h-3.5" />
+                Manual
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={() =>
+              navigate(`/appointment/${atendimento.id}`, {
+                state: {
+                  atendimento,
+                  paciente: atendimento.client
+                    ? { ...atendimento.client, id: atendimento.client.id || atendimento.clientId }
+                    : { id: atendimento.clientId, name: atendimento.clientName },
+                },
+              })
+            }
+            disabled={isViewDisabled}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-xs transition disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Ver
+            <ArrowRight className="w-3 h-3" strokeWidth={1.5} />
+          </button>
+        </div>
+      </div>
     );
   });
 }

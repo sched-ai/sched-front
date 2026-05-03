@@ -1179,7 +1179,7 @@ export const PatientDetails: React.FC = () => {
             type="button"
             variant="outline"
             onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-2 self-start border-slate-300 text-slate-700 hover:bg-slate-100 hover:text-slate-900 h-10 px-4 whitespace-nowrap"
+            className="inline-flex items-center gap-2 self-start border-slate-300 text-slate-700 hover:bg-slate-100 hover:text-slate-900 h-10 px-4 whitespace-nowrap mb-4 md:mb-0"
           >
             <ArrowLeft className="w-4 h-4" />
             Voltar

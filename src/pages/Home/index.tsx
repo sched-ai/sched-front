@@ -20,7 +20,6 @@ import { useUser } from "@/context/user";
 import { PackageBindModal } from "@/components/PackageBindModal";
 import { PackagePlus } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export const Home = () => {
   const isMobile = useIsMobile();
@@ -274,7 +273,6 @@ export const Home = () => {
       <header className="border-b border-b-[#DADCE0]">
         <div className="p-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-4">
-            <SidebarTrigger className="lg:hidden h-9 w-9 rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50" />
             <Button
               variant="outline"
               className="text-gray-700 font-medium border-gray-200 h-10 px-5 rounded-lg hover:bg-gray-50 hover:text-blue-600 hover:border-blue-100 transition-colors shadow-sm"
