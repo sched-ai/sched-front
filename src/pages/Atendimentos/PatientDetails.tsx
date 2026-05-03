@@ -456,8 +456,8 @@ function ConsultationTimer({
         disabled={!canFinalize}
         className={`w-full h-10 rounded-lg text-white ${
           isFinished
-            ? "bg-emerald-600 hover:bg-emerald-600 cursor-default"
-            : "bg-emerald-600 hover:bg-emerald-700"
+            ? "bg-red-600 hover:bg-red-600 cursor-default"
+            : "bg-red-600 hover:bg-red-700"
         }`}
       >
         {isFinished ? "Consulta finalizada" : isFinalizing ? "Finalizando consulta..." : "Finalizar consulta"}
