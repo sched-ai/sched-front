@@ -155,7 +155,7 @@ export const PatientHistory = () => {
   const rawAppointments = appointmentsResponse?.data || [];
   const appointments = rawAppointments.filter((appointment) => {
     const normalizedStatus = appointment.status?.toLowerCase() || "";
-    return !["cancelado", "cancelled", "canceled"].includes(normalizedStatus);
+    return ["concluido", "finished", "done"].includes(normalizedStatus);
   });
 
   const hasAppointments = !isLoading && appointments.length > 0;
@@ -303,9 +303,9 @@ export const PatientHistory = () => {
         noteId={noteToDelete}
       />
 
-      <div className="max-w-7xl mx-auto p-8 space-y-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-semibold text-gray-900">Histórico de Atendimentos</h1>
+      <div className="max-w-7xl mx-auto px-4 py-6 sm:p-8 space-y-6 sm:space-y-8">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900">Histórico de Atendimentos</h1>
           <p className="text-sm text-gray-600 mt-2">
             Visualize e acompanhe todos os atendimentos realizados.
           </p>
@@ -320,14 +320,16 @@ export const PatientHistory = () => {
           phone={patient.phone}
         />
 
-        <div className="relative pl-[124px]">
-          <div className="absolute left-[46px] top-0 bottom-0 w-[2px] bg-gray-200" />
+        <div className="relative sm:pl-[124px]">
+          <div className="hidden sm:block absolute left-[46px] top-0 bottom-0 w-[2px] bg-gray-200" />
 
           <div className="space-y-6">
-            {isLoading && <div className="ml-[120px] text-sm text-gray-600">Carregando histórico...</div>}
+            {isLoading && (
+              <div className="ml-0 sm:ml-[120px] text-sm text-gray-600">Carregando histórico...</div>
+            )}
 
             {!isLoading && !hasAppointments && (
-              <div className="ml-[120px] text-sm text-gray-600">
+              <div className="ml-0 sm:ml-[120px] text-sm text-gray-600">
                 Nenhum atendimento encontrado para este paciente.
               </div>
             )}
@@ -358,16 +360,16 @@ export const PatientHistory = () => {
               const statusVisual = getStatusVisual(appointment.status);
 
               return (
-                <div key={appointment.id} className="flex gap-6">
+                <div key={appointment.id} className="flex flex-col sm:flex-row gap-4 sm:gap-6">
                   <div className="flex-shrink-0 z-10">
-                    <div className="w-[92px] h-[92px] bg-gray-900 text-white rounded-lg flex flex-col items-center justify-center">
-                      <span className="text-3xl leading-none">{day}</span>
+                    <div className="w-full sm:w-[92px] sm:h-[92px] h-auto py-3 sm:py-0 bg-gray-900 text-white rounded-lg flex flex-col items-center justify-center">
+                      <span className="text-2xl sm:text-3xl leading-none">{day}</span>
                       <span className="text-xs uppercase">{month}</span>
                       <span className="text-xs opacity-70">{year}</span>
                     </div>
                   </div>
 
-                  <div className="flex-1 bg-white border border-gray-200 rounded-lg p-6">
+                  <div className="flex-1 bg-white border border-gray-200 rounded-lg p-4 sm:p-6">
                     <div className="flex flex-col gap-4">
                       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                         <div className="space-y-2">
@@ -395,7 +397,7 @@ export const PatientHistory = () => {
                               state: { atendimento: appointment, paciente: patient },
                             })
                           }
-                          className="bg-blue-600 hover:bg-blue-700 text-white h-10 px-4 rounded-md inline-flex items-center gap-2 whitespace-nowrap"
+                          className="bg-blue-600 hover:bg-blue-700 text-white h-10 px-4 rounded-md inline-flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto"
                         >
                           Acessar atendimento
                           <ChevronRight className="w-4 h-4" />
@@ -432,7 +434,7 @@ export const PatientHistory = () => {
                                     <p className="text-xs text-gray-600 uppercase tracking-wide mb-2">
                                       Imagens · {imageAttachments.length}
                                     </p>
-                                    <div className="grid grid-cols-3 sm:grid-cols-4 xl:grid-cols-5 gap-2">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
                                       {imageAttachments.map((attachment) => {
                                         const previewUrl = getCachedAttachmentLink(
                                           appointment.id,
@@ -531,7 +533,7 @@ export const PatientHistory = () => {
                               return (
                                 <div
                                   key={note.id}
-                                  className="bg-white p-4 rounded-lg border border-gray-200 relative group transition-colors hover:border-gray-300"
+                                  className="bg-white p-3 sm:p-4 rounded-lg border border-gray-200 relative group transition-colors hover:border-gray-300"
                                 >
                                   <div className="flex justify-between items-start mb-2">
                                     <span className="text-xs text-gray-600 font-medium flex items-center gap-1">
