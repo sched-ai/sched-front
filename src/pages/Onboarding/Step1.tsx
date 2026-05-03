@@ -102,16 +102,16 @@ export default function Step1({
 
   return (
     <>
-      <div className="mb-8 flex items-start justify-between">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h4 className="mb-0 font-semibold text-lg text-[30px]">Sobre seu negócio</h4>
-          <p className="text-muted-foreground text-[20px]">nos informe em qual perfil você se encaixa</p>
+          <h4 className="mb-0 font-semibold text-2xl sm:text-[30px]">Sobre seu negócio</h4>
+          <p className="text-muted-foreground text-base sm:text-[20px]">nos informe em qual perfil você se encaixa</p>
         </div>
         <Button
           type="button"
           variant="ghost"
           className={
-            "font-semibold text-[#141736] flex items-center gap-2 px-6 py-3 bg-transparent border-none shadow-none" +
+            "font-semibold text-[#141736] flex items-center gap-2 px-6 py-3 bg-transparent border-none shadow-none self-start sm:self-auto" +
             (step === 1 ? " hidden" : "")
           }
           onClick={goPrev}
@@ -155,7 +155,7 @@ export default function Step1({
                     Possui CNPJ?
                   </Label>
                 </div>  
-        <div className="grid grid-cols-1 w-full justify-between gap-4 min-[1447px]:grid-cols-2">
+        <div className="grid grid-cols-1 w-full justify-between gap-4 md:grid-cols-2">
           {userType === "autonomo" && (
             <>
               {/* left column */}

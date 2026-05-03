@@ -197,7 +197,7 @@ export const ModalCreateService = (props: IProps) => {
 
   return (
     <Dialog open={isModalOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="max-w-2xl bg-white border border-slate-200 rounded-2xl p-0 overflow-hidden">
+      <DialogContent className="w-[85%] sm:w-full max-w-2xl bg-white border border-slate-200 rounded-2xl p-0 overflow-hidden">
         <form onSubmit={handleSubmit}>
           <div className="px-6 py-5 border-b border-slate-200">
             <DialogTitle className="text-xl text-slate-900">

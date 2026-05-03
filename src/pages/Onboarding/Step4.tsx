@@ -164,7 +164,7 @@ export default function Step4({ onSkip }: { onSkip?: () => void } = {}) {
 
   return (
     <div>
-      <h3 className="text-2xl font-semibold">Adicione colaboradores</h3>
+      <h3 className="text-xl sm:text-2xl font-semibold">Adicione colaboradores</h3>
       <p className="text-sm text-muted-foreground mb-4">
         Adicione os membros da equipe que irão atender no Sched. Você pode
         adicionar vários e ajustar cargos depois.
@@ -196,7 +196,7 @@ export default function Step4({ onSkip }: { onSkip?: () => void } = {}) {
                 key={c.id}
                 className="flex flex-col w-full items-start gap-4 bg-white border border-neutral-100 rounded-lg p-4 shadow-sm"
               >
-                <div className="flex items-center gap-3 w-full">
+                <div className="flex flex-col gap-3 w-full sm:flex-row sm:items-center">
                   <div className="flex items-center gap-3">
                     <div className="h-12 w-12 rounded-full bg-blue-500 text-white flex items-center justify-center font-semibold">
                       {getInitials(c.name) || "?"}
@@ -211,7 +211,7 @@ export default function Step4({ onSkip }: { onSkip?: () => void } = {}) {
                     </div>
                   </div>
                 </div>
-                <div className="flex gap-2 w-full">
+                <div className="flex flex-col gap-3 w-full md:flex-row">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3 flex-1">
                     <Input
                       id={`collab-name-${c.id}`}
@@ -292,7 +292,7 @@ export default function Step4({ onSkip }: { onSkip?: () => void } = {}) {
                     )}
                   </div>
 
-                  <div className="flex self-end">
+                  <div className="flex self-end md:self-auto">
                     <Button
                       type="button"
                       variant="destructive"

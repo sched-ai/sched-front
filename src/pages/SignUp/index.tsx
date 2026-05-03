@@ -197,6 +197,8 @@ export const SignUp = () => {
                     required 
                     placeholder="Ex: John Doe" 
                     className="text-white"
+                    placeholderWhite
+                    noFocusColor
                     onChange={(e) => setName(e.target.value)}
                   />
               </div>
@@ -214,6 +216,8 @@ export const SignUp = () => {
                   required
                   placeholder="scheapp@gmail.com"
                   className="text-white"
+                  placeholderWhite
+                  noFocusColor
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
@@ -232,6 +236,8 @@ export const SignUp = () => {
                     placeholder="Insira sua senha"
                     minLength={8}
                     className="text-white border-white pr-10"
+                    placeholderWhite
+                    noFocusColor
                     onChange={(e) => setPassword(e.target.value)}
                   />
                   <button

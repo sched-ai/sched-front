@@ -92,16 +92,16 @@ export default function Step3({
       <div className="mb-2 flex flex-col items-start">
         {headerLeft && <div className="mb-3">{headerLeft}</div>}
         <div>
-          <h4 className="mb-0 font-semibold text-lg text-[30px]">
+          <h4 className="mb-0 font-semibold text-2xl sm:text-[30px]">
             Seus horários de trabalho
           </h4>
-          <p className="text-muted-foreground mb-4 text-[20px]">
+          <p className="text-muted-foreground mb-4 text-base sm:text-[20px]">
             Defina seus horários padrão. Você poderá alterá-los depois.
           </p>
         </div>
       </div>
       <div className="">
-        <div className="flex gap-4">
+        <div className="flex flex-col gap-4 md:flex-row">
           <div className="flex-1">
             <CustomRadioInput
               label="Horário Fixo"
@@ -146,7 +146,7 @@ export default function Step3({
           <div className="mt-6 grid grid-cols-1 gap-4">
             <div className="flex flex-col gap-4">
               <p className="font-semibold">Selecione o horário de trabalho:</p>
-              <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-center gap-4">
                 <div className="flex flex-col gap-2">
                   <Label>Horário de Início</Label>
                   <Input
@@ -155,7 +155,7 @@ export default function Step3({
                     onChange={(e) => setFixedStart(e.target.value)}
                   />
                 </div>
-                -
+                <span className="hidden sm:block">-</span>
                 <div className="flex flex-col gap-2">
                   <Label>Horário de Término</Label>
                   <Input
@@ -167,7 +167,7 @@ export default function Step3({
               </div>
             </div>
             <p className="font-semibold">Selecione os dias da semana:</p>
-            <div className="mt-2 grid gap-2 grid-cols-2">
+            <div className="mt-2 grid gap-2 grid-cols-1 sm:grid-cols-2">
               {(
                 [
                   "segunda",
@@ -236,7 +236,7 @@ export default function Step3({
                       handleScheduleChange(day, "working", !isWorking);
                     }
                   }}
-                  className={`flex items-center justify-between gap-4 border px-4 py-2 rounded-lg transition-discrete ${
+                  className={`flex flex-col gap-3 border px-4 py-2 rounded-lg transition-discrete sm:flex-row sm:items-center sm:justify-between ${
                     !isWorking
                       ? "bg-gray-100"
                       : "bg-white hover:shadow-[3px_4px_35px_#1417362B]"
@@ -257,7 +257,7 @@ export default function Step3({
                   </div>
 
                   <div
-                    className={`flex items-center gap-2 ${
+                    className={`flex flex-wrap items-center gap-2 w-full sm:w-auto ${
                       !isWorking ? "opacity-60" : ""
                     }`}
                     onClick={(e) => e.stopPropagation()}

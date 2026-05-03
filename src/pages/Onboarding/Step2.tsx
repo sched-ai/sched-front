@@ -137,8 +137,8 @@ export default function Step2({
       <div className="mb-2 flex flex-col items-start">
         {headerLeft && <div className="mb-3">{headerLeft}</div>}
         <div>
-          <h4 className="font-semibold text-[30px] leading-none">Onde você atende?</h4>
-          <p className="text-muted-foreground text-[20px]">
+          <h4 className="font-semibold text-2xl sm:text-[30px] leading-none">Onde você atende?</h4>
+          <p className="text-muted-foreground text-base sm:text-[20px]">
             Cadastre os locais de atendimento.
           </p>
         </div>
@@ -193,7 +193,7 @@ export default function Step2({
             <p className="font-semibold mb-2">
               Em quantos locais você realiza atendimentos?
             </p>
-            <div className="flex gap-4 mb-6 relative z-10">
+            <div className="flex flex-col sm:flex-row gap-4 mb-6 relative z-10">
               <CustomRadioInput
                 label="Local Único"
                 htmlFor="single-local"

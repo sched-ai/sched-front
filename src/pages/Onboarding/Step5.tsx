@@ -106,7 +106,7 @@ export const Step5 = () => {
 
   return (
     <div>
-      <h3 className="text-2xl font-semibold">Sobre os serviços</h3>
+      <h3 className="text-xl sm:text-2xl font-semibold">Sobre os serviços</h3>
       <p className="text-sm text-muted-foreground mb-4">
         Adicione os serviços que você oferece para que seus clientes possam
         agendá-los.
@@ -127,7 +127,7 @@ export const Step5 = () => {
               className="flex flex-col w-full items-start gap-4 bg-white border border-neutral-100 rounded-lg p-4 shadow-sm"
             >
               <div className="flex flex-col justify-between w-full gap-4">
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-4">
                     <span className="text-sm font-medium bg-blue-600 p-2 rounded-full text-white">
                       <BriefcaseBusiness />
@@ -141,7 +141,7 @@ export const Step5 = () => {
                       </span>
                     </div>
                   </div>
-                  <div className="flex items-start">
+                  <div className="flex items-start self-start sm:self-auto">
                     <Button
                       type="button"
                       variant="ghost"

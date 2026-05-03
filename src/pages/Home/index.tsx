@@ -272,39 +272,36 @@ export const Home = () => {
   return (
     <div className="w-full flex flex-col">
       <header className="border-b border-b-[#DADCE0]">
-        <div className="p-4 flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <SidebarTrigger className="md:hidden h-9 w-9 rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50" />
-            <div className="flex items-center gap-3 ml-auto">
+        <div className="p-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-4">
+            <SidebarTrigger className="lg:hidden h-9 w-9 rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50" />
+            <Button
+              variant="outline"
+              className="text-gray-700 font-medium border-gray-200 h-10 px-5 rounded-lg hover:bg-gray-50 hover:text-blue-600 hover:border-blue-100 transition-colors shadow-sm"
+              onClick={handleToday}
+            >
+              HOJE
+            </Button>
+            <h1 className="text-lg md:text-2xl font-semibold text-gray-800 tracking-tight">
+              {`${capitalizeFirst(format(currentDate, "MMMM", { locale: ptBR }))} de ${format(currentDate, "yyyy", { locale: ptBR })}`}
+            </h1>
+            <div className="flex gap-1">
               <Button
-                variant="outline"
-                className="text-gray-700 font-medium border-gray-200 h-10 px-5 rounded-lg hover:bg-gray-50 hover:text-blue-600 hover:border-blue-100 transition-colors shadow-sm"
-                onClick={handleToday}
+                variant="ghost"
+                className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 w-10 h-10 rounded-full p-0"
+                onClick={handlePreviousRange}
               >
-                HOJE
+                &lt;
               </Button>
-              <div className="flex gap-1">
-                <Button
-                  variant="ghost"
-                  className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 w-10 h-10 rounded-full p-0"
-                  onClick={handlePreviousRange}
-                >
-                  &lt;
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 w-10 h-10 rounded-full p-0"
-                  onClick={handleNextRange}
-                >
-                  &gt;
-                </Button>
-              </div>
+              <Button
+                variant="ghost"
+                className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 w-10 h-10 rounded-full p-0"
+                onClick={handleNextRange}
+              >
+                &gt;
+              </Button>
             </div>
           </div>
-
-          <h1 className="text-lg md:text-2xl font-semibold text-gray-800 tracking-tight">
-            {`${capitalizeFirst(format(currentDate, "MMMM", { locale: ptBR }))} de ${format(currentDate, "yyyy", { locale: ptBR })}`}
-          </h1>
 
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap sm:justify-end">
             <div className="inline-flex items-center rounded-lg border border-slate-200 bg-white p-1">
@@ -345,7 +342,7 @@ export const Home = () => {
               <PackagePlus className="w-5 h-5 mr-1" /> Vincular Pacote
             </Button>
             <Button
-              className="h-[48px] !text-[15px] font-medium bg-gradient-to-r bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300 hover:shadow-blue-500/30 rounded-xl px-6"
+              className="hidden lg:inline-flex h-[48px] !text-[15px] font-medium bg-gradient-to-r bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300 hover:shadow-blue-500/30 rounded-xl px-6"
               onClick={() => {
                 setIsScheduleViewOpen(false);
                 setScheduleViewDetails(null);

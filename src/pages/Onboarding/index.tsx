@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import abstract from "../../assets/abstract_dark.png";
 import { RenderStep } from "./renderSteps";
 import logo from "@/assets/logo.png";
@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 export const Onboarding = () => {
   const { userData, userLoading } = useUser();
   const [currentStep, setCurrentStep] = useState<number>(1);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
   useEffect(() => {
     if (typeof userData?.onboardingStep === "number") {
@@ -18,6 +19,13 @@ export const Onboarding = () => {
       setCurrentStep(step);
     }
   }, [userData?.onboardingStep]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const isNonDesktop = window.matchMedia("(max-width: 1023px)").matches;
+    if (!isNonDesktop) return;
+    scrollContainerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  }, [currentStep]);
 
   const steps = [
     {
@@ -107,7 +115,10 @@ export const Onboarding = () => {
             <span>Sair</span>
           </button>
         </div>
-        <div className="flex flex-col xl:justify-center p-6 relative w-full overflow-y-auto h-full max-h-screen">
+        <div
+          ref={scrollContainerRef}
+          className="flex flex-col xl:justify-center p-4 sm:p-6 relative w-full overflow-y-auto h-full max-h-screen"
+        >
           <div className="flex w-full mx-auto justify-center h-full">
             <RenderStep step={currentStep} setStep={setCurrentStep} />
           </div>

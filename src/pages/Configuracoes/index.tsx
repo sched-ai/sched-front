@@ -248,7 +248,7 @@ export const Configuracoes = () => {
   return (
     <div className="min-h-screen bg-background">
       <main className="overflow-auto">
-        <div className="mx-auto p-6 md:p-8">
+        <div className="mx-auto p-4 sm:p-6 md:p-8">
           <div className="mb-8">
             <h1 className="text-2xl font-semibold text-foreground">Configurações</h1>
             <p className="text-muted-foreground mt-2">
@@ -259,7 +259,7 @@ export const Configuracoes = () => {
           <div className="space-y-8">
             <section>
 
-              <div className="border border-border rounded-lg p-6 space-y-4 bg-card shadow-sm flex flex-col">
+              <div className="border border-border rounded-lg p-4 sm:p-6 space-y-4 bg-card shadow-sm flex flex-col">
             <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
               <div className="mb-6">
                 <h2 className="text-xl font-semibold text-foreground">Perfil</h2>
@@ -426,7 +426,7 @@ export const Configuracoes = () => {
 
             <section>
 
-            <div className="border border-border rounded-lg p-6 bg-card shadow-sm">
+            <div className="border border-border rounded-lg p-4 sm:p-6 bg-card shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
               <div>
                 <h2 className="text-xl font-semibold text-foreground">Locais de Atendimento</h2>
@@ -459,7 +459,7 @@ export const Configuracoes = () => {
 
                   return (
                     <article key={location.id} className="rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                      <div className="px-4 md:px-5 py-4 bg-white flex items-center justify-between gap-4">
+                      <div className="px-4 md:px-5 py-4 bg-white flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <button
                           type="button"
                           onClick={() => toggleExpand(location.id ?? "")}
@@ -483,7 +483,7 @@ export const Configuracoes = () => {
                           </div>
                         </button>
 
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 self-start sm:self-auto">
                           <button
                             type="button"
                             className="h-8 w-8 inline-flex items-center justify-center rounded-md border border-slate-200 text-slate-600 hover:bg-slate-100"
