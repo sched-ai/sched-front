@@ -249,7 +249,7 @@ export const Configuracoes = () => {
     <div className="min-h-screen bg-background">
       <main className="overflow-auto">
         <div className="mx-auto p-4 sm:p-6 md:p-8">
-          <div className="mb-8">
+          <div className="mb-8 pl-12 sm:pl-12 md:pl-0">
             <h1 className="text-2xl font-semibold text-foreground">Configurações</h1>
             <p className="text-muted-foreground mt-2">
               Gerencie suas informações pessoais e locais de atendimento

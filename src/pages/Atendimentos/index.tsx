@@ -203,7 +203,7 @@ export const Atendimentos = () => {
   return (
     <div className="min-h-screen">
         <div className="p-6 md:p-8 mx-auto space-y-6">
-          <div className="mb-8">
+          <div className="mb-8 pl-12 sm:pl-12 md:pl-0">
             <h1 className="text-2xl font-semibold text-foreground">Atendimentos</h1>
             <p className="text-muted-foreground mt-2">
              Gerencie e acompanhe todos os atendimentos

@@ -14,7 +14,7 @@ export const Layout = ({ children }: LayoutProps) => {
           <SidebarTrigger className="h-11 w-11 rounded-full border border-slate-200 bg-white text-slate-700 shadow-lg hover:bg-slate-50" />
         </div>
         <AppSidebar />
-        <main className="relative flex-1 min-w-0 md:ml-1 pt-14 lg:pt-0">
+        <main className="relative flex-1 min-w-0 md:ml-1 lg:pt-0">
           {children}
         </main>
       </SidebarProvider>

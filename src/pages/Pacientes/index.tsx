@@ -134,7 +134,7 @@ export const Pacientes = () => {
       <div className="p-6 md:p-8 mx-auto space-y-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
 
-          <div className="mb-8">
+          <div className="mb-8 pl-12 sm:pl-12 md:pl-0">
             <h1 className="text-2xl font-semibold text-foreground">Pacientes</h1>
             <p className="text-muted-foreground mt-2">
              Gerencie os pacientes cadastrados e acompanhe os históricos com rapidez.

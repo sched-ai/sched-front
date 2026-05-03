@@ -272,7 +272,7 @@ export const Home = () => {
     <div className="w-full flex flex-col">
       <header className="border-b border-b-[#DADCE0]">
         <div className="p-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 pl-12 sm:pl-12 md:pl-0">
             <Button
               variant="outline"
               className="text-gray-700 font-medium border-gray-200 h-10 px-5 rounded-lg hover:bg-gray-50 hover:text-blue-600 hover:border-blue-100 transition-colors shadow-sm"

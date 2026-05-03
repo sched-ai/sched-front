@@ -159,7 +159,7 @@ export const Servicos = () => {
     <div className="min-h-screen bg-background">
       <main className="mx-auto p-6 md:p-8 space-y-6">
         <section className="flex items-start justify-between gap-4">
-          <div>
+          <div className="pl-12 sm:pl-12 md:pl-0">
             <h1 className="text-2xl font-semibold text-foreground">Serviços</h1>
             <p className="mt-2 text-[16px] text-muted-foreground">
               Gerencie seus serviços e pacotes em um único lugar.
