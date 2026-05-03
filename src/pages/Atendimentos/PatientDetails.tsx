@@ -393,16 +393,19 @@ function ConsultationTimer({
   }, [initialSeconds, isFinished, isFinalizing, stopInterval]);
 
   const handleFinalize = useCallback(async () => {
-    if (!onFinalizeConsultation || isFinished || isFinalizing) return;
+    const elapsedSeconds = Math.max(0, initialSeconds - timerSeconds);
+    if (!onFinalizeConsultation || isFinished || isFinalizing || elapsedSeconds < 1) return;
 
     stopInterval();
     setRunning(false);
 
-    const elapsedSeconds = Math.max(0, initialSeconds - timerSeconds);
     const durationToPersist = elapsedSeconds > 0 ? elapsedSeconds : initialSeconds;
 
     await onFinalizeConsultation(durationToPersist > 0 ? durationToPersist : undefined);
   }, [initialSeconds, isFinished, isFinalizing, onFinalizeConsultation, stopInterval, timerSeconds]);
+
+  const elapsedSeconds = Math.max(0, initialSeconds - timerSeconds);
+  const canFinalize = elapsedSeconds >= 1 && !isFinished && !isFinalizing;
 
   return (
     <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-5 space-y-4">
@@ -450,7 +453,7 @@ function ConsultationTimer({
       <Button
         type="button"
         onClick={() => void handleFinalize()}
-        disabled={!!isFinished || !!isFinalizing}
+        disabled={!canFinalize}
         className={`w-full h-10 rounded-lg text-white ${
           isFinished
             ? "bg-emerald-600 hover:bg-emerald-600 cursor-default"
