@@ -236,7 +236,7 @@ const CreateClient = () => {
                 {/* Gender Selection */}
                 <div className="pt-2">
                     <label className="text-sm font-medium text-slate-700 mb-3 block">Gênero</label>
-                    <div className="flex items-center gap-6">
+                    <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:gap-6">
                         <label className="flex items-center gap-2 cursor-pointer group">
                              <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${gender === 'masculino' ? 'border-blue-600' : 'border-slate-300 group-hover:border-slate-400'}`}>
                                 {gender === 'masculino' && <div className="w-3 h-3 rounded-full bg-blue-600" />}

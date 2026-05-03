@@ -167,7 +167,7 @@ export const Pacientes = () => {
             </div>
           </div>
 
-          <div className="overflow-hidden">
+          <div className="hidden lg:block overflow-x-auto">
             <table className="w-full table-fixed">
               <colgroup>
                 <col className="w-[17%]" />
@@ -280,6 +280,22 @@ export const Pacientes = () => {
                 )}
               </tbody>
             </table>
+          </div>
+
+          <div className="lg:hidden space-y-3 p-4">
+            {isLoading && (
+              <div className="px-4 py-10 text-center text-slate-400 text-sm">
+                Carregando pacientes...
+              </div>
+            )}
+
+            {!isLoading && pacientes.length > 0 && paginatedCards(pacientes, navigate, handleDeleteClick)}
+
+            {!isLoading && pacientes.length === 0 && (
+              <div className="px-4 py-10 text-center text-slate-400 text-sm">
+                Nenhum paciente encontrado.
+              </div>
+            )}
           </div>
 
           {!isLoading && meta.total > 0 && (
@@ -399,5 +415,79 @@ export const Pacientes = () => {
     </div>
   );
 };
+
+function paginatedCards(
+  pacientes: ClientAPI[],
+  navigate: ReturnType<typeof useNavigate>,
+  onDelete: (client: ClientAPI) => void
+) {
+  return pacientes.map((paciente) => {
+    const createdAt = paciente.createdAt ? format(new Date(paciente.createdAt), "dd/MM/yyyy") : "-";
+    const displayEmail = paciente.email || "-";
+
+    return (
+      <div
+        key={paciente.id}
+        className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm space-y-3"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs text-slate-500">Nome</p>
+            <p className="text-slate-900 font-medium">{paciente.name}</p>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              title="Editar paciente"
+              onClick={() => navigate(`/patients/${paciente.id}/edit`)}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[#141736] hover:bg-blue-50 hover:text-[#141736]/80 transition"
+            >
+              <Pencil className="w-4 h-4" strokeWidth={1.5} />
+            </button>
+            <button
+              type="button"
+              title="Excluir paciente"
+              onClick={() => onDelete(paciente)}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-red-500 hover:bg-red-50 hover:text-red-600 transition"
+            >
+              <Trash2 className="w-4 h-4" strokeWidth={1.5} />
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 text-sm text-slate-700">
+          <div>
+            <p className="text-xs text-slate-500">CPF</p>
+            <p>{paciente.cpf ? formatCpf(paciente.cpf) : "-"}</p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-500">Telefone</p>
+            <p>{paciente.phone ? formatPhone(paciente.phone) : "-"}</p>
+          </div>
+          <div className="col-span-2">
+            <p className="text-xs text-slate-500">E-mail</p>
+            <p className="truncate" title={displayEmail}>{displayEmail}</p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-500">Cadastro</p>
+            <p>{createdAt}</p>
+          </div>
+        </div>
+
+        <div className="flex justify-end">
+          <button
+            type="button"
+            title="Ver histórico do paciente"
+            onClick={() => navigate(`/patients/${paciente.id}/history`, { state: { paciente } })}
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs transition whitespace-nowrap"
+          >
+            Ver
+            <ArrowRight className="w-3 h-3" strokeWidth={1.5} />
+          </button>
+        </div>
+      </div>
+    );
+  });
+}
 
 export default Pacientes;
