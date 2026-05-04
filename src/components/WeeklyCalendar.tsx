@@ -285,10 +285,11 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 			endPos,
 			duration: endPos.totalPosition - startPos.totalPosition
 		};
-	}).filter(event => {
+  }).filter(event => {
     // Hide block events if the day is entirely unavailable
     if (event.type === 'bloqueio' && availableHours && event.dayIdx >= 0) {
-      const dayData = availableHours[String(event.dayIdx)];
+      const dayOfWeek = visibleDates[event.dayIdx]?.getDay();
+      const dayData = dayOfWeek !== undefined ? availableHours[String(dayOfWeek)] : undefined;
       if (!dayData || dayData.startMinute === null || dayData.endMinute === null) {
         return false;
       }
