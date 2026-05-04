@@ -386,7 +386,7 @@ export function TabMonitoramento({ headerAction }: { headerAction?: ReactNode } 
       <div className="bg-white dark:bg-slate-900">
         <div className="flex items-start justify-between mb-4 pb-2">
           <div className="flex items-center gap-3">
-            <div className="mb-2 pl-12 sm:pl-12 md:pl-0">
+            <div className="mb-2">
               <h1 className="text-2xl font-semibold text-foreground">Monitoramento de Conversas</h1>
               <p className="text-muted-foreground mt-2">
                 Acompanhe as conversas da IA com seus pacientes de forma organizada e em tempo real.

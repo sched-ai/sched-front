@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import CustomRadioInput from '@/components/CustomRadioInput';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 
 import { useUser } from '@/context/user';
 import { useCreateWorkplace } from '@/hooks/api/useCreateWorkplace';
@@ -648,11 +649,20 @@ export default function LocationSettings() {
       <main className="mx-auto p-6 md:p-8 space-y-8 pt-2!">
         
         {/* Header Section */}
-        <div className="flex items-center gap-4 mb-2">
-          <Button variant="ghost" onClick={() => navigate('/settings')} className="px-2">
-            <ArrowLeft className="w-5 h-5 text-slate-800" /> Voltar
-          </Button>
-        </div>
+        <header className="flex items-stretch gap-4 mb-2">
+          <SidebarTrigger className="w-11 h-11 min-w-[44px] self-center rounded-lg bg-white border border-slate-200 shadow-sm p-0 hover:bg-slate-50 hover:opacity-80 transition-opacity">
+            <span className="flex flex-col items-center justify-center gap-1">
+              <span className="block h-[2px] w-[18px] rounded-[2px] bg-slate-900/90" />
+              <span className="block h-[2px] w-3 rounded-[2px] bg-slate-900/90" />
+              <span className="block h-[2px] w-[18px] rounded-[2px] bg-slate-900/90" />
+            </span>
+          </SidebarTrigger>
+          <div className="flex-1 flex items-center gap-4">
+            <Button variant="ghost" onClick={() => navigate('/settings')} className="px-2">
+              <ArrowLeft className="w-5 h-5 text-slate-800" /> Voltar
+            </Button>
+          </div>
+        </header>
 
         {!isEditing && (
           <div className="border border-border rounded-lg bg-card shadow-sm p-6 space-y-6">

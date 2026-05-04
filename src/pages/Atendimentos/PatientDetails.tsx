@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { PatientHeader } from "@/components/PatientHeader";
 import { RichTextNoteEditor } from "@/components/RichTextNoteEditor";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useCreateAnnotation } from "@/hooks/api/useCreateAnnotation";
 import { useGetAppointment } from "@/hooks/api/useGetAppointment";
 import { useGetClient } from "@/hooks/api/useGetClient";
@@ -1169,25 +1170,34 @@ export const PatientDetails: React.FC = () => {
   return (
     <div className="h-full">
       <div className="p-6 md:p-8 mx-auto space-y-6 h-full">
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between mb-0">
-          <div className="mb-8">
-            <h1 className="text-2xl font-semibold text-foreground">Detalhes do Atendimento</h1>
-            <p className="text-muted-foreground mt-2">
-             
-              Acompanhe as informações do atendimento e registre observações de forma organizada.
-            
-            </p>
+        <header className="flex items-stretch gap-4">
+          <SidebarTrigger className="w-11 h-11 min-w-[44px] self-center rounded-lg bg-white border border-slate-200 shadow-sm p-0 hover:bg-slate-50 hover:opacity-80 transition-opacity">
+            <span className="flex flex-col items-center justify-center gap-1">
+              <span className="block h-[2px] w-[18px] rounded-[2px] bg-slate-900/90" />
+              <span className="block h-[2px] w-3 rounded-[2px] bg-slate-900/90" />
+              <span className="block h-[2px] w-[18px] rounded-[2px] bg-slate-900/90" />
+            </span>
+          </SidebarTrigger>
+          <div className="flex-1 flex flex-col gap-4 md:flex-row md:items-start md:justify-between mb-0">
+            <div className="mb-8">
+              <h1 className="text-2xl font-semibold text-foreground">Detalhes do Atendimento</h1>
+              <p className="text-muted-foreground mt-2">
+               
+                Acompanhe as informações do atendimento e registre observações de forma organizada.
+              
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigate(-1)}
+              className="inline-flex items-center gap-2 self-start border-slate-300 text-slate-700 hover:bg-slate-100 hover:text-slate-900 h-10 px-4 whitespace-nowrap mb-4 md:mb-0"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Voltar
+            </Button>
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-2 self-start border-slate-300 text-slate-700 hover:bg-slate-100 hover:text-slate-900 h-10 px-4 whitespace-nowrap mb-4 md:mb-0"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Voltar
-          </Button>
-        </div>
+        </header>
 
         <PatientHeader
           name={patient.name}

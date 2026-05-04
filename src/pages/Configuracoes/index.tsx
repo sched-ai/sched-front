@@ -12,6 +12,7 @@ import useToast from "@/hooks/useToast";
 import { formatCnpj, formatCpf, formatPhone } from "@/util/helper";
 import { useNavigate } from "react-router-dom";
 import type { DayKey, LocationData as OriginalLocationData } from "./components/LocationModal";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 type LocationData = OriginalLocationData & {
   rawSchedule: { day: DayKey; start: string; end: string }[];
@@ -249,12 +250,21 @@ export const Configuracoes = () => {
     <div className="min-h-screen bg-background">
       <main className="overflow-auto">
         <div className="mx-auto p-4 sm:p-6 md:p-8">
-          <div className="mb-8 pl-12 sm:pl-12 md:pl-0">
-            <h1 className="text-2xl font-semibold text-foreground">Configurações</h1>
-            <p className="text-muted-foreground mt-2">
-              Gerencie suas informações pessoais e locais de atendimento
-            </p>
-          </div>
+          <header className="flex items-stretch gap-4 mb-8">
+            <SidebarTrigger className="w-11 h-11 min-w-[44px] self-start rounded-lg bg-white border border-slate-200 shadow-sm p-0 hover:bg-slate-50 hover:opacity-80 transition-opacity">
+              <span className="flex flex-col items-center justify-center gap-1">
+                <span className="block h-[2px] w-[18px] rounded-[2px] bg-slate-900/90" />
+                <span className="block h-[2px] w-3 rounded-[2px] bg-slate-900/90" />
+                <span className="block h-[2px] w-[18px] rounded-[2px] bg-slate-900/90" />
+              </span>
+            </SidebarTrigger>
+            <div className="flex-1">
+              <h1 className="text-2xl font-semibold text-foreground">Configurações</h1>
+              <p className="text-muted-foreground mt-2">
+                Gerencie suas informações pessoais e locais de atendimento
+              </p>
+            </div>
+          </header>
 
           <div className="space-y-8">
             <section>

@@ -20,6 +20,7 @@ import { useUser } from "@/context/user";
 import { PackageBindModal } from "@/components/PackageBindModal";
 import { PackagePlus } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export const Home = () => {
   const isMobile = useIsMobile();
@@ -271,86 +272,150 @@ export const Home = () => {
   return (
     <div className="w-full flex flex-col">
       <header className="border-b border-b-[#DADCE0]">
-        <div className="p-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-4 pl-12 sm:pl-12 md:pl-0">
-            <Button
-              variant="outline"
-              className="text-gray-700 font-medium border-gray-200 h-10 px-5 rounded-lg hover:bg-gray-50 hover:text-blue-600 hover:border-blue-100 transition-colors shadow-sm"
-              onClick={handleToday}
-            >
-              HOJE
-            </Button>
-            <h1 className="text-lg md:text-2xl font-semibold text-gray-800 tracking-tight">
-              {`${capitalizeFirst(format(currentDate, "MMMM", { locale: ptBR }))} de ${format(currentDate, "yyyy", { locale: ptBR })}`}
-            </h1>
-            <div className="flex gap-1">
-              <Button
-                variant="ghost"
-                className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 w-10 h-10 rounded-full p-0"
-                onClick={handlePreviousRange}
-              >
-                &lt;
-              </Button>
-              <Button
-                variant="ghost"
-                className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 w-10 h-10 rounded-full p-0"
-                onClick={handleNextRange}
-              >
-                &gt;
-              </Button>
+        <div className="flex items-stretch pl-1.5 pr-1.5">
+          <SidebarTrigger className="w-11 h-11 min-w-[44px] self-center rounded-lg bg-white border border-slate-200 shadow-sm p-0 hover:bg-slate-50 hover:opacity-80 transition-opacity">
+            <span className="flex flex-col items-center justify-center gap-1">
+              <span className="block h-[2px] w-[18px] rounded-[2px] bg-slate-900/90" />
+              <span className="block h-[2px] w-3 rounded-[2px] bg-slate-900/90" />
+              <span className="block h-[2px] w-[18px] rounded-[2px] bg-slate-900/90" />
+            </span>
+          </SidebarTrigger>
+          <div className="flex-1">
+            <div className="p-3 flex items-center justify-between gap-4 flex-wrap md:flex-nowrap">
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="outline"
+                  className="text-gray-700 font-medium border-gray-200 h-10 px-5 rounded-lg hover:bg-gray-50 hover:text-blue-600 hover:border-blue-100 transition-colors shadow-sm"
+                  onClick={handleToday}
+                >
+                  HOJE
+                </Button>
+                <h1 className="text-lg md:text-2xl font-semibold text-gray-800 tracking-tight">
+                  {`${capitalizeFirst(format(currentDate, "MMMM", { locale: ptBR }))} de ${format(currentDate, "yyyy", { locale: ptBR })}`}
+                </h1>
+                <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 w-10 h-10 rounded-full p-0"
+                    onClick={handlePreviousRange}
+                  >
+                    &lt;
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 w-10 h-10 rounded-full p-0"
+                    onClick={handleNextRange}
+                  >
+                    &gt;
+                  </Button>
+                </div>
+              </div>
+
+              <div className="hidden md:flex items-center gap-2 flex-wrap justify-end">
+                <div className="inline-flex items-center rounded-lg border border-slate-200 bg-white p-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setViewMode("day");
+                      setViewModeTouched(true);
+                    }}
+                    className={`px-3 py-1.5 text-sm font-medium rounded-md transition ${
+                      viewMode === "day"
+                        ? "bg-[#141736] text-white"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    Dia
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setViewMode("week");
+                      setViewModeTouched(true);
+                    }}
+                    className={`px-3 py-1.5 text-sm font-medium rounded-md transition ${
+                      viewMode === "week"
+                        ? "bg-[#141736] text-white"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    Semana
+                  </button>
+                </div>
+
+                <Button
+                  className="h-[48px] !text-[15px] font-medium bg-[#141736] text-white transition-all duration-300 hover:shadow-emerald-500/30 rounded-xl px-6"
+                  onClick={() => setIsPackageModalOpen(true)}
+                >
+                  <PackagePlus className="w-5 h-5 mr-1" /> Vincular Pacote
+                </Button>
+                <Button
+                  className="hidden lg:inline-flex h-[48px] !text-[15px] font-medium bg-gradient-to-r bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300 hover:shadow-blue-500/30 rounded-xl px-6"
+                  onClick={() => {
+                    setIsScheduleViewOpen(false);
+                    setScheduleViewDetails(null);
+                    setScheduleFormSelectedDateTime(null);
+                    setIsScheduleFormOpen(true);
+                  }}
+                >
+                  <Plus className="w-5 h-5 mr-1" /> Agendar
+                </Button>
+              </div>
             </div>
           </div>
+        </div>
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap sm:justify-end">
-            <div className="inline-flex items-center rounded-lg border border-slate-200 bg-white p-1">
-              <button
-                type="button"
-                onClick={() => {
-                  setViewMode("day");
-                  setViewModeTouched(true);
-                }}
-                className={`px-3 py-1.5 text-sm font-medium rounded-md transition ${
-                  viewMode === "day"
-                    ? "bg-[#141736] text-white"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                Dia
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setViewMode("week");
-                  setViewModeTouched(true);
-                }}
-                className={`px-3 py-1.5 text-sm font-medium rounded-md transition ${
-                  viewMode === "week"
-                    ? "bg-[#141736] text-white"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                Semana
-              </button>
-            </div>
-
-            <Button
-              className="h-[48px] !text-[15px] font-medium bg-[#141736] text-white transition-all duration-300 hover:shadow-emerald-500/30 rounded-xl px-6"
-              onClick={() => setIsPackageModalOpen(true)}
-            >
-              <PackagePlus className="w-5 h-5 mr-1" /> Vincular Pacote
-            </Button>
-            <Button
-              className="hidden lg:inline-flex h-[48px] !text-[15px] font-medium bg-gradient-to-r bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300 hover:shadow-blue-500/30 rounded-xl px-6"
+        <div className="px-4 pb-4 flex flex-col gap-2 md:hidden">
+          <div className="inline-flex items-center rounded-lg border border-slate-200 bg-white p-1">
+            <button
+              type="button"
               onClick={() => {
-                setIsScheduleViewOpen(false);
-                setScheduleViewDetails(null);
-                setScheduleFormSelectedDateTime(null);
-                setIsScheduleFormOpen(true);
+                setViewMode("day");
+                setViewModeTouched(true);
               }}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition ${
+                viewMode === "day"
+                  ? "bg-[#141736] text-white"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
             >
-              <Plus className="w-5 h-5 mr-1" /> Agendar
-            </Button>
-            {/* <Select
+              Dia
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setViewMode("week");
+                setViewModeTouched(true);
+              }}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition ${
+                viewMode === "week"
+                  ? "bg-[#141736] text-white"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              Semana
+            </button>
+          </div>
+
+          <Button
+            className="h-[48px] !text-[15px] font-medium bg-[#141736] text-white transition-all duration-300 hover:shadow-emerald-500/30 rounded-xl px-6"
+            onClick={() => setIsPackageModalOpen(true)}
+          >
+            <PackagePlus className="w-5 h-5 mr-1" /> Vincular Pacote
+          </Button>
+          <Button
+            className="hidden lg:inline-flex h-[48px] !text-[15px] font-medium bg-gradient-to-r bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300 hover:shadow-blue-500/30 rounded-xl px-6"
+            onClick={() => {
+              setIsScheduleViewOpen(false);
+              setScheduleViewDetails(null);
+              setScheduleFormSelectedDateTime(null);
+              setIsScheduleFormOpen(true);
+            }}
+          >
+            <Plus className="w-5 h-5 mr-1" /> Agendar
+          </Button>
+        </div>
+        {/* <Select
               value={filterType}
               onValueChange={(value: "all" | "consulta" | "bloqueio") =>
                 setFilterType(value)
@@ -374,8 +439,6 @@ export const Home = () => {
                 </SelectItem>
               </SelectContent>
             </Select> */}
-          </div>
-        </div>
       </header>
       <div className="flex">
         <div className="relative w-full">

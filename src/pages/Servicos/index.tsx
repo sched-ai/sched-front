@@ -28,6 +28,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export const Servicos = () => {
   const navigate = useNavigate();
@@ -158,36 +159,45 @@ export const Servicos = () => {
   return (
     <div className="min-h-screen bg-background">
       <main className="mx-auto p-6 md:p-8 space-y-6">
-        <section className="flex items-start justify-between gap-4">
-          <div className="pl-12 sm:pl-12 md:pl-0">
-            <h1 className="text-2xl font-semibold text-foreground">Serviços</h1>
-            <p className="mt-2 text-[16px] text-muted-foreground">
-              Gerencie seus serviços e pacotes em um único lugar.
-            </p>
-          </div>
+        <header className="flex items-stretch gap-4">
+          <SidebarTrigger className="w-11 h-11 min-w-[44px] self-start rounded-lg bg-white border border-slate-200 shadow-sm p-0 hover:bg-slate-50 hover:opacity-80 transition-opacity">
+            <span className="flex flex-col items-center justify-center gap-1">
+              <span className="block h-[2px] w-[18px] rounded-[2px] bg-slate-900/90" />
+              <span className="block h-[2px] w-3 rounded-[2px] bg-slate-900/90" />
+              <span className="block h-[2px] w-[18px] rounded-[2px] bg-slate-900/90" />
+            </span>
+          </SidebarTrigger>
+          <div className="flex-1 flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-semibold text-foreground">Serviços</h1>
+              <p className="mt-2 text-[16px] text-muted-foreground">
+                Gerencie seus serviços e pacotes em um único lugar.
+              </p>
+            </div>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                type="button"
-                className="bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center gap-2 self-start h-11 px-5 rounded-lg whitespace-nowrap"
-              >
-                <Plus className="w-4 h-4" strokeWidth={2} />
-                Novo item
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={handleOpenCreateModal}>
-                <BriefcaseBusiness className="w-4 h-4 mr-2" />
-                Novo Serviço
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/services/packages/new")}>
-                <Package className="w-4 h-4 mr-2" />
-                Novo Pacote
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </section>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  className="bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center gap-2 self-start h-11 px-5 rounded-lg whitespace-nowrap"
+                >
+                  <Plus className="w-4 h-4" strokeWidth={2} />
+                  Novo item
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={handleOpenCreateModal}>
+                  <BriefcaseBusiness className="w-4 h-4 mr-2" />
+                  Novo Serviço
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/services/packages/new")}>
+                  <Package className="w-4 h-4 mr-2" />
+                  Novo Pacote
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </header>
 
         <section className="border border-border rounded-lg p-4 bg-card shadow-sm">
           <div className="flex flex-col gap-4 md:flex-row md:items-center">

@@ -5,6 +5,7 @@ import { useCreateClient } from "@/hooks/api/useCreateClient";
 import { useUpdateClient } from "@/hooks/api/useUpdateClient";
 import { useGetClient } from "@/hooks/api/useGetClient";
 import { ChevronLeft } from "lucide-react";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 // --- Helpers ---
 const maskCPF = (v: string) => {
@@ -153,13 +154,22 @@ const CreateClient = () => {
 
   return (
     <div className="w-full flex flex-col h-full bg-[#fafafa]">
-      <header className="border-b border-b-[#DADCE0] h-full max-h-[80px] p-4 flex items-center gap-4 bg-white">
-        <Button variant="ghost" size="icon" onClick={handleCancel} className="hover:bg-slate-100">
-            <ChevronLeft className="h-5 w-5 text-slate-600" />
-        </Button>
-        <h1 className="text-2xl font-medium text-slate-800">
-            {isEditMode ? "Editar Paciente" : "Novo Paciente"}
-        </h1>
+      <header className="border-b border-b-[#DADCE0] max-h-[80px] bg-white flex items-stretch">
+        <SidebarTrigger className="w-11 h-11 min-w-[44px] self-center rounded-lg bg-white border border-slate-200 shadow-sm p-0 hover:bg-slate-50 hover:opacity-80 transition-opacity">
+          <span className="flex flex-col items-center justify-center gap-1">
+            <span className="block h-[2px] w-[18px] rounded-[2px] bg-slate-900/90" />
+            <span className="block h-[2px] w-3 rounded-[2px] bg-slate-900/90" />
+            <span className="block h-[2px] w-[18px] rounded-[2px] bg-slate-900/90" />
+          </span>
+        </SidebarTrigger>
+        <div className="flex-1 p-4 flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={handleCancel} className="hover:bg-slate-100">
+              <ChevronLeft className="h-5 w-5 text-slate-600" />
+          </Button>
+          <h1 className="text-2xl font-medium text-slate-800">
+              {isEditMode ? "Editar Paciente" : "Novo Paciente"}
+          </h1>
+        </div>
       </header>
 
       <div className="patient-form-scroll p-6 flex-1 overflow-y-auto">

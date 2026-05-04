@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { useGetAllAppointments, type AppointmentAPI } from "@/hooks/api/useGetAllAppointments";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -202,13 +203,24 @@ export const Atendimentos = () => {
 
   return (
     <div className="min-h-screen">
-        <div className="p-6 md:p-8 mx-auto space-y-6">
-          <div className="mb-8 pl-12 sm:pl-12 md:pl-0">
-            <h1 className="text-2xl font-semibold text-foreground">Atendimentos</h1>
-            <p className="text-muted-foreground mt-2">
-             Gerencie e acompanhe todos os atendimentos
-            </p>
-          </div>
+        <div className="p-4 md:p-8 mx-auto space-y-6">
+          <header className="flex gap-4">
+            <SidebarTrigger className="w-11 h-11 min-w-[44px] self-start rounded-lg bg-white border border-slate-200 shadow-sm p-0 hover:bg-slate-50 hover:opacity-80 transition-opacity">
+              <span className="flex flex-col items-center justify-center gap-1">
+                <span className="block h-[2px] w-[18px] rounded-[2px] bg-slate-900/90" />
+                <span className="block h-[2px] w-3 rounded-[2px] bg-slate-900/90" />
+                <span className="block h-[2px] w-[18px] rounded-[2px] bg-slate-900/90" />
+              </span>
+            </SidebarTrigger>
+            <div className="flex-1">
+              <div className="mb-8">
+                <h1 className="text-2xl font-semibold text-foreground">Atendimentos</h1>
+                <p className="text-muted-foreground mt-2">
+                 Gerencie e acompanhe todos os atendimentos
+                </p>
+              </div>
+            </div>
+          </header>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {statsCards.map(({ label, value, icon: Icon, color }) => (

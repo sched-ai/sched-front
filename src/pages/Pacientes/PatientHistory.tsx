@@ -18,6 +18,7 @@ import {
 import { DeleteNoteModal } from "@/components/DeleteNoteModal";
 import { PatientHeader } from "@/components/PatientHeader";
 import { Button } from "@/components/ui/button";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
   type AppointmentAttachmentAPI,
   useAppointmentAttachmentAccessLinksByAppointment,
@@ -304,12 +305,23 @@ export const PatientHistory = () => {
       />
 
       <div className="max-w-7xl mx-auto px-4 py-6 sm:p-8 space-y-6 sm:space-y-8">
-        <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900">Histórico de Atendimentos</h1>
-          <p className="text-sm text-gray-600 mt-2">
-            Visualize e acompanhe todos os atendimentos realizados.
-          </p>
-        </div>
+        <header className="flex items-stretch gap-4">
+          <SidebarTrigger className="w-11 h-11 min-w-[44px] self-center rounded-lg bg-white border border-slate-200 shadow-sm p-0 hover:bg-slate-50 hover:opacity-80 transition-opacity">
+            <span className="flex flex-col items-center justify-center gap-1">
+              <span className="block h-[2px] w-[18px] rounded-[2px] bg-slate-900/90" />
+              <span className="block h-[2px] w-3 rounded-[2px] bg-slate-900/90" />
+              <span className="block h-[2px] w-[18px] rounded-[2px] bg-slate-900/90" />
+            </span>
+          </SidebarTrigger>
+          <div className="flex-1">
+            <div className="mb-6 sm:mb-8">
+              <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900">Histórico de Atendimentos</h1>
+              <p className="text-sm text-gray-600 mt-2">
+                Visualize e acompanhe todos os atendimentos realizados.
+              </p>
+            </div>
+          </div>
+        </header>
 
         <PatientHeader
           name={patient.name}
