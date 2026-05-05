@@ -171,12 +171,13 @@ export const AppoimentContent = ({
   });
 
   useEffect(() => {
+    if (appointmentId) return;
     if (availableWorkplacesForService.length > 0 && (!location || !availableWorkplacesForService.find((w) => String(w.id) === location))) {
       setLocation(String(availableWorkplacesForService[0].id));
     } else if (availableWorkplacesForService.length === 0 && location) {
       setLocation("");
     }
-  }, [availableWorkplacesForService, location, setLocation]);
+  }, [availableWorkplacesForService, location, setLocation, appointmentId]);
 
   const handleCreateConsultation = (e: React.FormEvent) => {
     e.preventDefault();
@@ -323,7 +324,7 @@ export const AppoimentContent = ({
                 }
               }
             }}
-            disabled={availableServices.length === 0}
+            disabled={availableServices.length === 0 || !!appointmentId}
           >
             {availableServices.length === 0 ? (
               <Tooltip>
@@ -375,7 +376,7 @@ export const AppoimentContent = ({
           <Select
             value={location}
             onValueChange={(val: string) => setLocation(val)}
-            disabled={userLoading || availableWorkplacesForService.length <= 1}
+            disabled={userLoading || availableWorkplacesForService.length <= 1 || !!appointmentId}
           >
             <SelectTrigger className="w-full border-0 border-b border-gray-600 rounded-none px-0 bg-transparent text-white data-[placeholder]:text-gray-400 focus:ring-0 focus:border-blue-500 h-10 disabled:opacity-50 disabled:cursor-not-allowed">
               <SelectValue placeholder="Adicionar local" />

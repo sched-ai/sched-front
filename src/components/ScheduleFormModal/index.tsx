@@ -269,7 +269,7 @@ export const ScheduleFormModal = ({
       setEndHour(selectedEvent.end);
       setActiveTab(selectedEvent.type || "consulta");
       setLocation(selectedEvent.workplaceId || "");
-      setService("");
+      setService(selectedEvent.serviceId || "");
       setProfessional(selectedEvent.employeeId || "");
       setRepeatEnabled(false);
       setWeekDays([false, false, false, false, false, false, false]);
@@ -681,13 +681,15 @@ export const ScheduleFormModal = ({
             <TabsList className="bg-transparent p-0 h-auto gap-2 border-0 w-full justify-start">
               <TabsTrigger
                 value="consulta"
-                className="rounded-md px-6 py-2 text-sm font-medium border border-[#2d3152] bg-[#1a1e45] text-gray-300 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:border-blue-600 hover:bg-blue-600/20 data-[state=active]:hover:bg-blue-700 transition-all cursor-pointer h-auto w-full"
+                disabled={Boolean(selectedEvent)}
+                className="rounded-md px-6 py-2 text-sm font-medium border border-[#2d3152] bg-[#1a1e45] text-gray-300 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:border-blue-600 hover:bg-blue-600/20 data-[state=active]:hover:bg-blue-700 transition-all cursor-pointer h-auto w-full disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Consulta
               </TabsTrigger>
               <TabsTrigger
                 value="bloqueio"
-                className="rounded-md px-6 py-2 text-sm font-medium border border-[#2d3152] bg-[#1a1e45] text-gray-300 data-[state=active]:bg-gray-700 data-[state=active]:text-gray-100 data-[state=active]:border-gray-500 hover:bg-gray-700/50 data-[state=active]:hover:bg-gray-600 transition-all cursor-pointer h-auto w-full"
+                disabled={Boolean(selectedEvent)}
+                className="rounded-md px-6 py-2 text-sm font-medium border border-[#2d3152] bg-[#1a1e45] text-gray-300 data-[state=active]:bg-gray-700 data-[state=active]:text-gray-100 data-[state=active]:border-gray-500 hover:bg-gray-700/50 data-[state=active]:hover:bg-gray-600 transition-all cursor-pointer h-auto w-full disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Bloqueio
               </TabsTrigger>
@@ -713,6 +715,7 @@ export const ScheduleFormModal = ({
               onBlur={() => {
                 setTimeout(() => setShowSuggestions(false), 200);
               }}
+              disabled={Boolean(selectedEvent)}
               autoFocus
             />
             <p className="text-xs text-gray-400 mt-1">
