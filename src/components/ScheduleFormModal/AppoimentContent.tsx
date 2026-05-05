@@ -124,6 +124,7 @@ export const AppoimentContent = ({
       : [];
 
   const workplaces = allWorkplaces.filter(wp => {
+    if (appointmentId && String(wp.id) === location) return true;
     if (!selectedDateTime || !startHour) return true;
     
     const dayOfWeek = new Date(
@@ -156,6 +157,7 @@ export const AppoimentContent = ({
   });
 
   const availableServices = services?.filter((s) => {
+    if (appointmentId && String(s.id) === service) return true;
     if (s.type === "PACKAGE") return false;
     if (s.workplaces && s.workplaces.length > 0) {
       return s.workplaces.some(swp => workplaces.some(w => String(w.id) === String(swp.id)));
@@ -164,6 +166,7 @@ export const AppoimentContent = ({
   }) || [];
 
   const availableWorkplacesForService = workplaces.filter(w => {
+    if (appointmentId && String(w.id) === location) return true;
     if (!service) return true;
     const selectedServiceObj = services?.find(s => String(s.id) === String(service));
     if (!selectedServiceObj?.workplaces || selectedServiceObj.workplaces.length === 0) return true;
