@@ -169,10 +169,13 @@ export const AppoimentContent = ({
     return true;
   }) || [];
 
+  const effectiveServiceId = service || (appointmentId && serviceName ? "mock-service-id" : service);
+  const effectiveLocationId = location || (appointmentId && locationName ? "mock-location-id" : location);
+
   const availableServices = [...rawAvailableServices];
-  if (appointmentId && service && !rawAvailableServices.find(s => String(s.id) === service)) {
+  if (appointmentId && effectiveServiceId && !rawAvailableServices.find(s => String(s.id) === effectiveServiceId)) {
     availableServices.push({
-      id: service,
+      id: effectiveServiceId,
       name: serviceName || "Serviço Atual",
       // Adicionando mocks para as propriedades obrigatórias
       description: null,
@@ -193,9 +196,9 @@ export const AppoimentContent = ({
   });
 
   const availableWorkplacesForService = [...rawAvailableWorkplaces];
-  if (appointmentId && location && !rawAvailableWorkplaces.find(w => String(w.id) === location)) {
+  if (appointmentId && effectiveLocationId && !rawAvailableWorkplaces.find(w => String(w.id) === effectiveLocationId)) {
     availableWorkplacesForService.push({
-      id: location,
+      id: effectiveLocationId,
       nickname: locationName || "Local Atual",
       // Adicionando propriedades de mock se o tipo exigir
       companyId: "",
@@ -272,7 +275,7 @@ export const AppoimentContent = ({
       createAppointment(payload);
     }
   };
-
+  
   return (
     <form onSubmit={handleCreateConsultation} className="flex flex-col gap-5">
       {/* Date & Time Section */}
@@ -349,7 +352,7 @@ export const AppoimentContent = ({
         </div>
         <div className="flex-1">
           <Select
-            value={service}
+            value={effectiveServiceId}
             onValueChange={(val: string) => {
               setService(val);
               if (services && startHour) {
@@ -414,7 +417,7 @@ export const AppoimentContent = ({
         </div>
         <div className="flex-1">
           <Select
-            value={location}
+            value={effectiveLocationId}
             onValueChange={(val: string) => setLocation(val)}
             disabled={userLoading || availableWorkplacesForService.length <= 1 || !!appointmentId}
           >
