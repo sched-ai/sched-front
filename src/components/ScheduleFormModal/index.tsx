@@ -136,7 +136,9 @@ export const ScheduleFormModal = ({
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [title, setTitle] = useState<string | undefined>(undefined);
   const [location, setLocation] = useState("");
+  const [locationName, setLocationName] = useState("");
   const [service, setService] = useState("");
+  const [serviceName, setServiceName] = useState("");
   const [professional, setProfessional] = useState("");
   const [activeTab, setActiveTab] = useState("consulta");
   const [repeatEnabled, setRepeatEnabled] = useState(false);
@@ -223,7 +225,9 @@ export const ScheduleFormModal = ({
       setEndHour(fallbackEnd);
       setTitle("");
       setLocation("");
+      setLocationName("");
       setService("");
+      setServiceName("");
       setProfessional("");
       setActiveTab("consulta");
       setRepeatEnabled(false);
@@ -269,7 +273,9 @@ export const ScheduleFormModal = ({
       setEndHour(selectedEvent.end);
       setActiveTab(selectedEvent.type || "consulta");
       setLocation(selectedEvent.workplaceId || "");
+      setLocationName(selectedEvent.workplaceName || "");
       setService(selectedEvent.serviceId || "");
+      setServiceName(selectedEvent.services?.[0] || "");
       setProfessional(selectedEvent.employeeId || "");
       setRepeatEnabled(false);
       setWeekDays([false, false, false, false, false, false, false]);
@@ -637,8 +643,10 @@ export const ScheduleFormModal = ({
     setEndHour,
     location,
     setLocation,
+    locationName,
     service,
     setService,
+    serviceName,
     professional,
     setProfessional,
     onClose,
