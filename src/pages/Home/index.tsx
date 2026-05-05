@@ -273,7 +273,7 @@ export const Home = () => {
     <div className="w-full flex flex-col">
       <header className="border-b border-b-[#DADCE0]">
         <div className="flex items-stretch pl-1.5 pr-1.5">
-          <SidebarTrigger className="w-11 h-11 min-w-[44px] self-center rounded-lg bg-white border border-slate-200 shadow-sm p-0 hover:bg-slate-50 hover:opacity-80 transition-opacity">
+          <SidebarTrigger className="w-11 h-11 min-w-[44px] self-center rounded-lg bg-white border border-slate-200 shadow-sm p-0 hover:bg-slate-50 hover:opacity-80 transition-opacity lg:hidden">
             <span className="flex flex-col items-center justify-center gap-1">
               <span className="block h-[2px] w-[18px] rounded-[2px] bg-slate-900/90" />
               <span className="block h-[2px] w-3 rounded-[2px] bg-slate-900/90" />

@@ -94,9 +94,12 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const leftColumnRef = useRef<HTMLDivElement>(null);
-  const swipeRef = useRef<{ x: number; y: number; swiped: boolean } | null>(null);
+  const swipeContainerRef = useRef<HTMLDivElement>(null);
+  const swipeStateRef = useRef<{ startX: number; startY: number; isSwiping: boolean } | null>(null);
   const isMobile = useIsMobile();
   const timeColumnWidth = isMobile ? 56 : 70;
+  const [swipeOffset, setSwipeOffset] = useState(0);
+  const [isSwipeAnimating, setIsSwipeAnimating] = useState(false);
   const [nowIndicator, setNowIndicator] = useState<{
     top: number;
     dayIdx: number;
@@ -125,6 +128,14 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
       scrollContainerRef.current.scrollTop = scrollPosition;
     }
   }, [currentDate]);
+
+  useEffect(() => {
+    if (!isMobile) {
+      setSwipeOffset(0);
+      setIsSwipeAnimating(false);
+      swipeStateRef.current = null;
+    }
+  }, [isMobile]);
 
   const isCellAllowed = React.useCallback((date: Date, hourIdx: number) => {
     const cellDate = new Date(date);
@@ -354,32 +365,79 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
         ref={scrollContainerRef}
         className="overflow-auto w-full h-full custom-scrollbar relative"
         onTouchStart={(event) => {
-          if (!isMobile) return;
+          if (!isMobile || isSwipeAnimating) return;
           const touch = event.touches[0];
-          swipeRef.current = { x: touch.clientX, y: touch.clientY, swiped: false };
+          swipeStateRef.current = {
+            startX: touch.clientX,
+            startY: touch.clientY,
+            isSwiping: false,
+          };
         }}
         onTouchMove={(event) => {
-          if (!isMobile) return;
-          const data = swipeRef.current;
-          if (!data || data.swiped) return;
+          if (!isMobile || isSwipeAnimating) return;
+          const state = swipeStateRef.current;
+          if (!state) return;
           const touch = event.touches[0];
-          const dx = touch.clientX - data.x;
-          const dy = touch.clientY - data.y;
-          if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
-            data.swiped = true;
-            if (dx > 0) {
-              onNavigatePrev?.();
-            } else {
-              onNavigateNext?.();
+          const dx = touch.clientX - state.startX;
+          const dy = touch.clientY - state.startY;
+
+          if (!state.isSwiping) {
+            if (Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy)) {
+              state.isSwiping = true;
+            } else if (Math.abs(dy) > 12) {
+              return;
             }
+          }
+
+          if (state.isSwiping) {
+            event.preventDefault();
+            const width = swipeContainerRef.current?.offsetWidth ?? 0;
+            const clamped = width ? Math.max(Math.min(dx, width), -width) : dx;
+            setSwipeOffset(clamped);
           }
         }}
         onTouchEnd={() => {
-          if (!isMobile) return;
-          swipeRef.current = null;
+          if (!isMobile || isSwipeAnimating) return;
+          const state = swipeStateRef.current;
+          swipeStateRef.current = null;
+          if (!state?.isSwiping) return;
+
+          const width = swipeContainerRef.current?.offsetWidth ?? 0;
+          const threshold = width ? Math.min(120, width * 0.2) : 80;
+
+          if (Math.abs(swipeOffset) > threshold) {
+            const toRight = swipeOffset > 0;
+            setIsSwipeAnimating(true);
+            setSwipeOffset(toRight && width ? width : toRight ? 200 : width ? -width : -200);
+
+            window.setTimeout(() => {
+              if (toRight) {
+                onNavigatePrev?.();
+              } else {
+                onNavigateNext?.();
+              }
+              setSwipeOffset(0);
+              setIsSwipeAnimating(false);
+            }, 200);
+          } else {
+            setIsSwipeAnimating(true);
+            setSwipeOffset(0);
+            window.setTimeout(() => setIsSwipeAnimating(false), 160);
+          }
         }}
         >
-          <div className={viewMode === "week" ? "min-w-[900px]" : "min-w-0"}>
+          <div
+            ref={swipeContainerRef}
+            className={viewMode === "week" ? (isMobile ? "min-w-0" : "min-w-[900px]") : "min-w-0"}
+            style={
+              isMobile
+                ? {
+                    transform: `translateX(${swipeOffset}px)`,
+                    transition: isSwipeAnimating ? "transform 200ms ease-out" : "none",
+                  }
+                : undefined
+            }
+          >
             {/* Header Sticky */}
             <div className="flex sticky top-0 z-[36] isolate bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
               <div

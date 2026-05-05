@@ -259,7 +259,7 @@ export const CreatePackage = () => {
   return (
     <div className="min-h-screen bg-slate-50/50 flex flex-col h-screen overflow-hidden">
       <header className="bg-white border-b border-slate-200 z-20 shrink-0 flex items-stretch h-16">
-        <SidebarTrigger className="w-11 h-11 min-w-[44px] self-center rounded-lg bg-white border border-slate-200 shadow-sm p-0 hover:bg-slate-50 hover:opacity-80 transition-opacity">
+        <SidebarTrigger className="w-11 h-11 min-w-[44px] self-center rounded-lg bg-white border border-slate-200 shadow-sm p-0 hover:bg-slate-50 hover:opacity-80 transition-opacity lg:hidden">
           <span className="flex flex-col items-center justify-center gap-1">
             <span className="block h-[2px] w-[18px] rounded-[2px] bg-slate-900/90" />
             <span className="block h-[2px] w-3 rounded-[2px] bg-slate-900/90" />

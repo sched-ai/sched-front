@@ -155,7 +155,7 @@ const CreateClient = () => {
   return (
     <div className="w-full flex flex-col h-full bg-[#fafafa]">
       <header className="border-b border-b-[#DADCE0] max-h-[80px] bg-white flex items-stretch">
-        <SidebarTrigger className="w-11 h-11 min-w-[44px] self-center rounded-lg bg-white border border-slate-200 shadow-sm p-0 hover:bg-slate-50 hover:opacity-80 transition-opacity">
+        <SidebarTrigger className="w-11 h-11 min-w-[44px] self-center rounded-lg bg-white border border-slate-200 shadow-sm p-0 hover:bg-slate-50 hover:opacity-80 transition-opacity lg:hidden">
           <span className="flex flex-col items-center justify-center gap-1">
             <span className="block h-[2px] w-[18px] rounded-[2px] bg-slate-900/90" />
             <span className="block h-[2px] w-3 rounded-[2px] bg-slate-900/90" />
