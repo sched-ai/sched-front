@@ -1,7 +1,8 @@
-import { MessageSquareText, ChevronDown, Send, Loader2 } from "lucide-react";
+import { MessageSquareText, ChevronDown, Send, Loader2, ArrowLeft } from "lucide-react";
 import { formatBusinessHour } from "@/lib/dateTime";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ChatWindowProps {
   contact: Contact | null;
@@ -14,6 +15,7 @@ interface ChatWindowProps {
   isSending?: boolean;
   onToggleBot?: (isBotActive: boolean) => void;
   isTogglingBot?: boolean;
+  onBackPressed?: () => void;
 }
 
 export interface Contact {
@@ -112,7 +114,9 @@ export function ChatWindow({
   isSending,
   onToggleBot,
   isTogglingBot,
+  onBackPressed,
 }: ChatWindowProps) {
+  const isMobile = useIsMobile()
   const [inputText, setInputText] = useState("");
   const [isReady, setIsReady] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
@@ -265,7 +269,16 @@ export function ChatWindow({
     <div className="flex-1 flex flex-col relative bg-slate-50 h-full">
       {/* Header updates instantly without animation for a snappier feel */}
       <div className="bg-white p-4 flex items-center gap-3 border-b border-border">
-        <div className="size-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-semibold">
+        {isMobile && onBackPressed && (
+          <button
+            onClick={onBackPressed}
+            className="flex-shrink-0 w-10 h-10 flex items-center justify-center text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+            aria-label="Voltar para lista de conversas"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+        )}
+        <div className="size-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-semibold flex-shrink-0">
           <span className="text-sm">{contact.avatar}</span>
         </div>
         <div className="flex-1 min-w-0">
@@ -277,7 +290,7 @@ export function ChatWindow({
           <button
             onClick={() => onToggleBot(true)}
             disabled={isTogglingBot}
-            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-full transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50"
+            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-full transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50 flex-shrink-0"
           >
             {isTogglingBot ? <Loader2 className="size-3 animate-spin" /> : <MessageSquareText className="size-3.5" />}
             Reativar Agente

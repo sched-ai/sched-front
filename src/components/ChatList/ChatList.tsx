@@ -8,11 +8,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { Contact } from "../ChatWindow/ChatWindow";
+import type { ReactNode } from "react";
 
 interface ChatListProps {
   contacts: Contact[];
   selectedContact: Contact | null;
   onSelectContact: (contact: Contact) => void;
+  headerAction?: ReactNode;
 }
 
 const formatPreviewText = (text: string) => {
@@ -34,7 +36,7 @@ const formatPreviewText = (text: string) => {
   return cleanText.replace(/\\n/g, ' ').replace(/\n/g, ' ');
 };
 
-export function ChatList({ contacts, selectedContact, onSelectContact }: ChatListProps) {
+export function ChatList({ contacts, selectedContact, onSelectContact, headerAction }: ChatListProps) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "bot" | "human">("all");
 
@@ -82,6 +84,7 @@ export function ChatList({ contacts, selectedContact, onSelectContact }: ChatLis
             <h2 className="text-slate-900 font-semibold">Conversas</h2>
             <p className="text-xs text-slate-600 mt-1">Histórico agrupado por usuário</p>
           </div>
+          {headerAction && <div className="flex items-center">{headerAction}</div>}
         </div>
       </div>
 

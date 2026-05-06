@@ -296,7 +296,7 @@ export const PatientHistory = () => {
   );
 
   return (
-    <div className="w-full h-full bg-gray-50">
+    <div className="w-full h-full">
       <DeleteNoteModal
         isOpen={!!noteToDelete}
         onClose={() => setNoteToDelete(null)}
@@ -304,9 +304,9 @@ export const PatientHistory = () => {
         noteId={noteToDelete}
       />
 
-      <div className="max-w-7xl mx-auto px-4 py-6 sm:p-8 space-y-6 sm:space-y-8">
+      <div className="mx-auto px-4 py-6 sm:p-8 space-y-6 sm:space-y-8">
         <header className="flex items-stretch gap-4">
-          <SidebarTrigger className="w-11 h-11 min-w-[44px] self-center rounded-lg bg-white border border-slate-200 shadow-sm p-0 hover:bg-slate-50 hover:opacity-80 transition-opacity lg:hidden">
+          <SidebarTrigger className="w-11 h-11 min-w-[44px] self-start rounded-lg bg-white border border-slate-200 shadow-sm p-0 hover:bg-slate-50 hover:opacity-80 transition-opacity lg:hidden">
             <span className="flex flex-col items-center justify-center gap-1">
               <span className="block h-[2px] w-[18px] rounded-[2px] bg-slate-900/90" />
               <span className="block h-[2px] w-3 rounded-[2px] bg-slate-900/90" />
