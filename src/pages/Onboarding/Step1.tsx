@@ -261,7 +261,7 @@ export default function Step1({
                 </div>
               </div>
             <div className="w-full">
-            <label className="block mb-2 font-medium text-[16px] text-[#384455]">Onde você nos conheceu?</label>
+            <label className="block mb-2 font-medium text-[16px] text-[#384455]">Onde você nos conheceu? <span className="text-red-500">*</span></label>
             <Select value={referrer} onValueChange={(v) => setReferrer(v)}>
               <SelectTrigger className="w-full h-10 px-4 py-6 rounded-[10px]">
                 <SelectValue placeholder="Selecione a categoria" />

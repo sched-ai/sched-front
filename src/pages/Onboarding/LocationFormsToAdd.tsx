@@ -213,22 +213,20 @@ export const LocationFormsToAdd = ({
                    isRequired
                  />
        
-        {multipleLocations && (
-          <Input
-            type="text"
-            label="Apelido do Local"
-            value={locationForm.name}
-            onChange={(e) =>
-              setLocationForm((p: Location) => ({
-                ...p,
-                name: e.target.value,
-              }))
-            }
-            tooltipMessage="Este campo se refere a como este endereço será chamado no sistema para facilitar suas interações."
-            required
-            isRequired
-          />
-        )}
+        <Input
+          type="text"
+          label="Apelido do Local"
+          value={locationForm.name}
+          onChange={(e) =>
+            setLocationForm((p: Location) => ({
+              ...p,
+              name: e.target.value,
+            }))
+          }
+          tooltipMessage="Este campo se refere a como este endereço será chamado no sistema para facilitar suas interações."
+          required
+          isRequired
+        />
       </div>
       {multipleLocations && (
         <div className="flex gap-2 mt-3 justify-end">

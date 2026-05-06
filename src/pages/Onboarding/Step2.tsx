@@ -145,29 +145,29 @@ export default function Step2({
       </div>
       <div className="flex flex-col gap-4">
     <div className="flex flex-col items-center gap-[25px] mt-2 mb-2 md:flex-row md:flex-wrap md:justify-between h-fit">
-          <label className={`relative flex items-start gap-2 border p-4 rounded-lg w-full md:flex-1 md:min-w-[220px] mx-auto cursor-pointer hover:shadow-[3px_4px_35px_#0015fc2b] transition duration-200 ${attendWorkspace ? 'border-[#141736]' : 'border-gray-400'}`}>
+          <label className={`relative flex items-start gap-2 border p-4 rounded-xl w-full md:flex-1 md:min-w-[220px] mx-auto cursor-pointer bg-white shadow-sm transition duration-200 hover:shadow-md ${attendWorkspace ? 'border-[#121535] ring-1 ring-[#121535]/10' : 'border-slate-200'}`}>
             <Checkbox
               className="sr-only"
               checked={attendWorkspace}
               onCheckedChange={(v) => setAttendWorkspace(Boolean(v))}
             />
-            <div className={`flex flex-col w-full justify-center text-center gap-4 transition-colors duration-200 ease-in-out ${attendWorkspace ? 'text-[#141736]' : 'text-[#A8A7A7]'}`}>
+            <div className={`flex flex-col w-full justify-center text-center gap-3 transition-colors duration-200 ease-in-out ${attendWorkspace ? 'text-[#121535]' : 'text-slate-500'}`}>
               <span className="select-none font-semibold text-[20px]">Endereço Físico</span>
-              <MapPin className={`self-center ${attendWorkspace ? 'text-black' : 'text[#A8A7A7]'}`} size={48} />
+              <MapPin className={`self-center ${attendWorkspace ? 'text-[#121535]' : 'text-slate-400'}`} size={48} />
             </div>
-            <div className={`absolute top-4 right-4 h-5 w-5 rounded-full border ${attendWorkspace ? 'bg-[#141736] border-[#141736]' : 'bg-white border-gray-500'}`} />
+            <div className={`absolute top-4 right-4 h-5 w-5 rounded-full border ${attendWorkspace ? 'bg-[#121535] border-[#121535]' : 'bg-white border-slate-300'}`} />
           </label>
-          <label className={`relative flex items-start gap-2 border p-4 rounded-lg w-full md:flex-1 md:min-w-[220px] mx-auto cursor-pointer hover:shadow-[3px_4px_35px_#0015fc2b] transition duration-200 ${attendOnline ? 'border-[#141736]' : 'border-gray-400'}`}>
+          <label className={`relative flex items-start gap-2 border p-4 rounded-xl w-full md:flex-1 md:min-w-[220px] mx-auto cursor-pointer bg-white shadow-sm transition duration-200 hover:shadow-md ${attendOnline ? 'border-[#121535] ring-1 ring-[#121535]/10' : 'border-slate-200'}`}>
             <Checkbox
               className="sr-only"
               checked={attendOnline}
               onCheckedChange={(v) => setAttendOnline(Boolean(v))}
             />
-            <div className={`flex flex-col w-full justify-center text-center gap-4 transition-colors duration-200 ease-in-out ${attendOnline ? 'text-[#141736]' : 'text-[#A8A7A7]'}`}>
+            <div className={`flex flex-col w-full justify-center text-center gap-3 transition-colors duration-200 ease-in-out ${attendOnline ? 'text-[#121535]' : 'text-slate-500'}`}>
               <span className="select-none font-semibold text-[20px]">Online</span>
-              <Globe className={`self-center ${attendOnline ? 'text-black' : 'text[#A8A7A7]'}`} size={48} />
+              <Globe className={`self-center ${attendOnline ? 'text-[#121535]' : 'text-slate-400'}`} size={48} />
             </div>
-            <div className={`absolute top-4 right-4 h-5 w-5 rounded-full border ${attendOnline ? 'bg-[#141736] border-[#141736]' : 'bg-white border-gray-500'}`} />
+            <div className={`absolute top-4 right-4 h-5 w-5 rounded-full border ${attendOnline ? 'bg-[#121535] border-[#121535]' : 'bg-white border-slate-300'}`} />
           </label>
           {/* <label className={`relative flex items-start gap-2 border p-4 rounded-lg w-[80%] md:flex-1 md:min-w-[220px] md:max-w-[32%] mx-auto cursor-pointer hover:shadow-[3px_4px_35px_#0015fc2b] transition duration-200 ${attendHome ? 'border-[#141736]' : 'border-gray-400'}`}>
             <Checkbox

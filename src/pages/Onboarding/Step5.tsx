@@ -8,7 +8,7 @@ import Input from "@/components/ui/input";
 //   SelectTrigger,
 //   SelectValue,
 // } from "@/components/ui/select";
-import { Trash2, Plus, BriefcaseBusiness, MapPin } from "lucide-react";
+import { Plus, BriefcaseBusiness, MapPin, Trash2 } from "lucide-react";
 import { useNextStep } from "@/hooks/api/useNextStep";
 import { useCreateService } from "@/hooks/api/useCreateService";
 import { toast } from "sonner";
@@ -145,9 +145,10 @@ export const Step5 = () => {
                     <Button
                       type="button"
                       variant="ghost"
-                      className="h-[52px] w-10 p-0 flex items-center justify-center text-red-500 hover:text-red-600"
+                      className="h-[52px] w-10 p-0 flex items-center justify-center text-red-500 hover:text-red-600 disabled:opacity-40 disabled:hover:text-red-500"
                       onClick={() => removeService(c.id)}
                       aria-label="Remover serviço"
+                      disabled={services.length <= 1}
                     >
                       <Trash2 />
                     </Button>
@@ -175,6 +176,7 @@ export const Step5 = () => {
                     label="Descrição"
                     placeholder="Descrição do serviço"
                     value={c.description as string}
+                    isRequired
                     onChange={(e) =>
                       updateService(c.id, {
                         description: (e.target as HTMLInputElement).value,
@@ -222,18 +224,19 @@ export const Step5 = () => {
                   />
 
                   <div className="flex flex-col gap-2">
-                    <label className="text-sm font-medium text-[#384455]">Duração</label>
+                    <label className="text-sm font-medium text-[#384455]">
+                      Duração
+                      <span className="text-red-500 text-[16px] ml-1">*</span>
+                    </label>
                     <div className="h-[52px] flex items-center">
                       <TimePickerField 
                         value={c.duration || "00:00"} 
                         onChange={(val) => updateService(c.id, { duration: val })} 
                         ariaLabel="Duração do serviço"
-                        className="schedule-time-picker--light"
+                        className="schedule-time-picker--light schedule-time-picker--onboarding"
                       />
                     </div>
                   </div>
-                </div>
-
                 <div className="w-full space-y-2 mt-2">
                   <label className="text-sm font-medium text-[#384455] flex items-center gap-2">
                     <MapPin className="h-4 w-4" />
@@ -251,6 +254,8 @@ export const Step5 = () => {
                     </p>
                   )}
                 </div>
+                </div>
+
               </div>
             </div>
           ))}
@@ -277,7 +282,11 @@ export const Step5 = () => {
 };
 
 function ActionButtons({ services }: { services: Service[] }) {
-  const { mutate: nextStep } = useNextStep({});
+  const { mutate: nextStep } = useNextStep({
+    onSuccessFn: () => {
+      window.location.href = "/";
+    },
+  });
   const createService = useCreateService({});
   const [isSaving, setIsSaving] = useState(false);
 

@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useAPI from "./useAPI";
 import type { IUseMutationParams } from "@/types";
+import { QueryKeys } from "./index";
 
 
 export const useNextStep = ({ onSuccessFn }: IUseMutationParams) => {
@@ -16,7 +17,7 @@ export const useNextStep = ({ onSuccessFn }: IUseMutationParams) => {
       }),
     
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user"] });
+      queryClient.invalidateQueries({ queryKey: [QueryKeys.current_user] });
       if (onSuccessFn) {
         onSuccessFn()
       }

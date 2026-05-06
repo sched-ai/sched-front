@@ -400,6 +400,25 @@ select:-webkit-autofill:focus {
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
 }
 
+.schedule-time-picker--onboarding.ant-picker {
+  min-height: 52px;
+  height: 52px;
+  border: 2px solid #7079839e;
+  border-radius: 10px;
+  padding: 0 16px;
+  box-shadow: none;
+}
+
+.schedule-time-picker--onboarding.ant-picker:hover {
+  border-color: #141736;
+}
+
+.schedule-time-picker--onboarding.ant-picker-focused,
+.schedule-time-picker--onboarding.ant-picker:focus-within {
+  border-color: #0d1c58;
+  box-shadow: none;
+}
+
 .schedule-time-picker .ant-picker-input > input {
   color: #ffffff;
   text-align: center;
@@ -412,6 +431,12 @@ select:-webkit-autofill:focus {
   color: #0f172a;
   text-align: left;
   font-size: 0.875rem;
+}
+
+.schedule-time-picker--onboarding .ant-picker-input > input {
+  color: #0f172a;
+  text-align: left;
+  font-size: 1rem;
 }
 
 .schedule-time-picker .ant-picker-input > input::placeholder {
