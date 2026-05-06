@@ -54,6 +54,8 @@ interface IProps {
   setLocation: Dispatch<SetStateAction<string>>;
   service: string;
   setService: Dispatch<SetStateAction<string>>;
+  serviceName?: string;
+  locationName?: string;
   professional: string;
   setProfessional: Dispatch<SetStateAction<string>>;
   onClose?: () => void;
@@ -79,6 +81,8 @@ export const AppoimentContent = ({
   setLocation,
   service,
   setService,
+  serviceName,
+  locationName,
   professional,
   onClose,
   appointmentId,
@@ -124,6 +128,7 @@ export const AppoimentContent = ({
       : [];
 
   const workplaces = allWorkplaces.filter(wp => {
+    if (appointmentId && String(wp.id) === location) return true;
     if (!selectedDateTime || !startHour) return true;
     
     const dayOfWeek = new Date(
@@ -155,7 +160,8 @@ export const AppoimentContent = ({
     return true;
   });
 
-  const availableServices = services?.filter((s) => {
+  const rawAvailableServices = services?.filter((s) => {
+    if (appointmentId && String(s.id) === service) return true;
     if (s.type === "PACKAGE") return false;
     if (s.workplaces && s.workplaces.length > 0) {
       return s.workplaces.some(swp => workplaces.some(w => String(w.id) === String(swp.id)));
@@ -163,20 +169,58 @@ export const AppoimentContent = ({
     return true;
   }) || [];
 
-  const availableWorkplacesForService = workplaces.filter(w => {
+  const effectiveServiceId = service || (appointmentId && serviceName ? "mock-service-id" : service);
+  const effectiveLocationId = location || (appointmentId && locationName ? "mock-location-id" : location);
+
+  const availableServices = [...rawAvailableServices];
+  if (appointmentId && effectiveServiceId && !rawAvailableServices.find(s => String(s.id) === effectiveServiceId)) {
+    availableServices.push({
+      id: effectiveServiceId,
+      name: serviceName || "Serviço Atual",
+      // Adicionando mocks para as propriedades obrigatórias
+      description: null,
+      duration: null,
+      price: null,
+      department: null,
+      employee: null,
+      workplaces: null,
+    } as any);
+  }
+
+  const rawAvailableWorkplaces = workplaces.filter(w => {
+    if (appointmentId && String(w.id) === location) return true;
     if (!service) return true;
     const selectedServiceObj = services?.find(s => String(s.id) === String(service));
     if (!selectedServiceObj?.workplaces || selectedServiceObj.workplaces.length === 0) return true;
     return selectedServiceObj.workplaces.some(swp => String(swp.id) === String(w.id));
   });
 
+  const availableWorkplacesForService = [...rawAvailableWorkplaces];
+  if (appointmentId && effectiveLocationId && !rawAvailableWorkplaces.find(w => String(w.id) === effectiveLocationId)) {
+    availableWorkplacesForService.push({
+      id: effectiveLocationId,
+      nickname: locationName || "Local Atual",
+      // Adicionando propriedades de mock se o tipo exigir
+      companyId: "",
+      address: "",
+      number: "",
+      neighborhood: "",
+      city: "",
+      schedule: null,
+      deletedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+  }
+
   useEffect(() => {
+    if (appointmentId) return;
     if (availableWorkplacesForService.length > 0 && (!location || !availableWorkplacesForService.find((w) => String(w.id) === location))) {
       setLocation(String(availableWorkplacesForService[0].id));
     } else if (availableWorkplacesForService.length === 0 && location) {
       setLocation("");
     }
-  }, [availableWorkplacesForService, location, setLocation]);
+  }, [availableWorkplacesForService, location, setLocation, appointmentId]);
 
   const handleCreateConsultation = (e: React.FormEvent) => {
     e.preventDefault();
@@ -231,7 +275,7 @@ export const AppoimentContent = ({
       createAppointment(payload);
     }
   };
-
+  
   return (
     <form onSubmit={handleCreateConsultation} className="flex flex-col gap-5">
       {/* Date & Time Section */}
@@ -308,7 +352,7 @@ export const AppoimentContent = ({
         </div>
         <div className="flex-1">
           <Select
-            value={service}
+            value={effectiveServiceId}
             onValueChange={(val: string) => {
               setService(val);
               if (services && startHour) {
@@ -323,7 +367,7 @@ export const AppoimentContent = ({
                 }
               }
             }}
-            disabled={availableServices.length === 0}
+            disabled={availableServices.length === 0 || !!appointmentId}
           >
             {availableServices.length === 0 ? (
               <Tooltip>
@@ -373,9 +417,9 @@ export const AppoimentContent = ({
         </div>
         <div className="flex-1">
           <Select
-            value={location}
+            value={effectiveLocationId}
             onValueChange={(val: string) => setLocation(val)}
-            disabled={userLoading || availableWorkplacesForService.length <= 1}
+            disabled={userLoading || availableWorkplacesForService.length <= 1 || !!appointmentId}
           >
             <SelectTrigger className="w-full border-0 border-b border-gray-600 rounded-none px-0 bg-transparent text-white data-[placeholder]:text-gray-400 focus:ring-0 focus:border-blue-500 h-10 disabled:opacity-50 disabled:cursor-not-allowed">
               <SelectValue placeholder="Adicionar local" />

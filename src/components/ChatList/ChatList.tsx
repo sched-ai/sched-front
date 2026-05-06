@@ -15,6 +15,25 @@ interface ChatListProps {
   onSelectContact: (contact: Contact) => void;
 }
 
+const formatPreviewText = (text: string) => {
+  if (!text) return "";
+  
+  let cleanText = text.trim();
+  if (cleanText.startsWith('"') && cleanText.endsWith('"')) {
+    try {
+      const parsed = JSON.parse(cleanText);
+      if (typeof parsed === 'string') {
+        cleanText = parsed;
+      }
+    } catch (e) {
+      cleanText = cleanText.slice(1, -1).replace(/\\n/g, ' ').replace(/\\"/g, '"');
+    }
+  }
+  
+  // Replace all types of newlines with spaces for the preview
+  return cleanText.replace(/\\n/g, ' ').replace(/\n/g, ' ');
+};
+
 export function ChatList({ contacts, selectedContact, onSelectContact }: ChatListProps) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "bot" | "human">("all");
@@ -128,7 +147,7 @@ export function ChatList({ contacts, selectedContact, onSelectContact }: ChatLis
                   <span className="text-xs text-slate-500">{contact.timestamp}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <p className="text-sm text-slate-600 truncate">{contact.lastMessage}</p>
+                  <p className="text-sm text-slate-600 truncate">{formatPreviewText(contact.lastMessage)}</p>
                   <div className="flex items-center gap-2">
                     {isManual && (
                       <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-orange-100 text-orange-700 uppercase">
