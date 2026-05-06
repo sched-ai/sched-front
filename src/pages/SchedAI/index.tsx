@@ -1,12 +1,14 @@
 import { Button } from "@/components/ui/button"
 import { SidebarTrigger } from "@/components/ui/sidebar"
-import { Settings, ArrowLeft } from "lucide-react"
+import { Settings, ArrowLeft, BotMessageSquare } from "lucide-react"
 import { useState } from "react"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 import { TabConhecimento } from "./components/TabConhecimento"
 import { TabMonitoramento } from "./components/TabMonitoramento"
 
 export function SchedAI() {
+  const isMobile = useIsMobile()
   const [activeScreen, setActiveScreen] = useState<"monitoramento" | "configuracoes">("monitoramento")
 
   return (
@@ -41,11 +43,28 @@ export function SchedAI() {
             headerAction={
               <Button
                 variant="outline"
-                className="px-4"
+                className={`icon-flip ${isMobile ? "icon-flip-loop" : ""} ${
+                  isMobile ? "px-2 w-8 h-8 flex items-center justify-center" : "px-4"
+                }`}
                 onClick={() => setActiveScreen("configuracoes")}
               >
-                <Settings className="w-4 h-4 mr-2" />
-                Configurações do agente
+                {isMobile ? (
+                  <>
+                    <div className="icon-flip-inner">
+                      <div className="icon-flip-front">
+                        <Settings className="w-3.5 h-3.5" />
+                      </div>
+                      <div className="icon-flip-back">
+                        <BotMessageSquare className="w-3.5 h-3.5" />
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <Settings className="w-4 h-4 mr-2" />
+                    <span>Configurações do agente</span>
+                  </>
+                )}
               </Button>
             }
           />

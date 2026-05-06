@@ -15,6 +15,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { useQueryClient } from "@tanstack/react-query"
 import { StorageService } from "@/services"
 import useAPI from "@/hooks/api/useAPI"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 const toAvatarLabel = (name: string) => {
   const words = name.split(" ").filter(Boolean)
@@ -45,7 +46,9 @@ const mergeOlderMessages = (older: Message[], newer: Message[]) => {
 const NOTIFICATION_SOUND_URI = "data:audio/mp3;base64,//tQxAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAAHAAACjwAHEhISEhISEhIcJycnJycnJycnOUxMTExMTExMTFhjY2NjY2NjY2NyiIiIiIiIiIiIknp6enp6enp6eq+8vLy8vLy8vLzP5+fn5+fn5+fn4QAAAAAAAAAAAAAAAAAAAAAAADhJbmZvAAAADwAAABgAAAEhAHy23wAAAAAAAAAAAAAAAAAAAAAAAEwhBQAOAAABX9fG7q8AAAAAAAAAAAAAAAAAAAAAAABMYXZjNTguMTM0LjEwMAAAAAAAAAAAAAAA//tQxAAAAAMHn7kAAAH8gA70gAAAC8X/2AAAn2AAABQAACfXgAAAAAAAA/v/6//4//x2r6////n9f/n/9/+oAABwAAAHAAAAM2k73c09e3e7ve7ve7ve7ve7vf///wAASAAAAwAAAE+v2/9f9////3+v/5///2AADgAAAcAAAAoE4B2m73d72/d7297e9ve3vb3t7297e9v///wAAAAAAAAA//tQxBwAAAHE2bwAAAIMAAACgAAAAXhZvcAACOQAAAKAAAAAAAAC/1///X+v///wB2D/r/v////8AcAAABwAAAFy/7u97e9ve3vb3t7297e9ve3vb3t72////wAAXAAAAcAAABfr+v/X/////r/6///9fwAwAAADgAAALhLnu7ve3vb3t7297e9ve3vb3t7297e9////AAAsAAAOwAA//tQxEYAAAHOZ/gAAAPoAAACgAAAAXg5/cAAANsAAAKAAAAL8N9f///X/////f3/7///0AAAcAAABwAAAKhJvu7ve3vb3t7297e9ve3vb3t7297e9v///wAAAAAAAABQ////f/////f///4AAOAAAA4AAAAh1ne7ve3vb3t7297e9ve3vb3t7297e9ve3v////AAAAAAAAAAO//tQxGkAAAHm2bYAAANAAAACgAAAAXR5u8AAAJqAAAKAAAAA//4v9/////4//+v///wAA8AAADwAAAHxIru7ve3vb3t7297e9ve3vb3t7297e9ve3////wAASAAAAwAAAC+j/b////9////w////AAAA4AAAA4AAAAf1Lu73t7297e9ve3vb3t7297e9ve3vb3t73////wAASAAAAwAA//tQxJUAAAHSGbkAAAGoAAACgAAAAWj5tsAAAJoAAAKAAAAA+s1/r////7////v/9//8AAAAcAAAAcAAAAeUzvd7297e9ve3vb3t7297e9ve3vb3t7297////AAAAAAAAAE+N/r///X/////7//X/wAAOAAAA4AAABjUy7ve3vb3t7297e9ve3vb3t7297e9ve3vb3////AAAAAAAAAA"
 
 export function TabMonitoramento({ headerAction }: { headerAction?: ReactNode } = {}) {
+  const isMobile = useIsMobile()
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
+  const [mobileActiveView, setMobileActiveView] = useState<"list" | "chat">("list")
   const [sessionCursor, setSessionCursor] = useState(0)
   const [sessionPage, setSessionPage] = useState(1)
   const [loadedMessages, setLoadedMessages] = useState<Message[]>([])
@@ -57,6 +60,15 @@ export function TabMonitoramento({ headerAction }: { headerAction?: ReactNode } 
   const prevUnreadCountsRef = useRef<Record<string, boolean>>({})
 
   const { get } = useAPI<MonitoringMessagesResponse>()
+
+  const handleSelectContactMobile = useCallback((contact: Contact) => {
+    setSelectedContact(contact)
+    setMobileActiveView("chat")
+  }, [])
+
+  const handleBackToListMobile = useCallback(() => {
+    setMobileActiveView("list")
+  }, [])
 
   const { mutateAsync: sendMessage, isPending: isSending } = useSendMonitoringMessage()
   const { mutateAsync: toggleBot, isPending: isTogglingBot } = useToggleClientBotStatus()
@@ -221,7 +233,10 @@ export function TabMonitoramento({ headerAction }: { headerAction?: ReactNode } 
     setLoadedMessages([])
     setHasMoreMessages(true)
     setHasNextPageInSession(false)
-  }, [selectedContact?.id])
+    if (isMobile && selectedContact) {
+      setMobileActiveView("chat")
+    }
+  }, [selectedContact?.id, isMobile])
 
   useEffect(() => {
     if (!sessions.length) {
@@ -317,7 +332,8 @@ export function TabMonitoramento({ headerAction }: { headerAction?: ReactNode } 
     sessionCursor,
     sessionPage,
     sessions,
-    get
+    get,
+    isMobile
   ])
 
   // Auto-load de sessões antigas caso a sessão atual não preencha o limite de 30 mensagens
@@ -393,7 +409,7 @@ export function TabMonitoramento({ headerAction }: { headerAction?: ReactNode } 
               </p>
             </div>
           </div>
-          {headerAction && <div>{headerAction}</div>}
+          {!isMobile && headerAction && <div>{headerAction}</div>}
         </div>
 
         <div className="h-[calc(80vh)] min-h-[560px] w-full rounded-lg border border-slate-200 overflow-hidden">
@@ -401,26 +417,62 @@ export function TabMonitoramento({ headerAction }: { headerAction?: ReactNode } 
             <div className="size-full bg-slate-50 flex items-center justify-center text-sm text-slate-600">
               Carregando usuários do monitoramento...
             </div>
+          ) : isMobile ? (
+            <div className="size-full flex bg-background relative">
+              {/* Mobile: Master-Detail com transição entre lista e chat */}
+              <div
+                className={`size-full transition-all duration-300 ease-out ${
+                  mobileActiveView === "list" ? "translate-x-0" : "-translate-x-full"
+                }`}
+              >
+                <ChatList
+                  contacts={contacts}
+                  selectedContact={selectedContact}
+                  onSelectContact={handleSelectContactMobile}
+                  headerAction={isMobile ? headerAction : undefined}
+                />
+              </div>
+              <div
+                className={`absolute inset-0 rounded-lg size-full transition-all duration-300 ease-out ${
+                  mobileActiveView === "chat" ? "translate-x-0" : "translate-x-full"
+                }`}
+              >
+                <ChatWindow
+                  contact={selectedContact}
+                  messages={loadedMessages}
+                  onLoadOlderMessages={handleLoadOlderMessages}
+                  hasMoreMessages={hasMoreMessages}
+                  isLoadingMessages={isInitialMessagesLoading}
+                  isLoadingOlderMessages={isLoadingOlderMessages}
+                  onSendMessage={handleSendMessage}
+                  isSending={isSending}
+                  onToggleBot={handleToggleBot}
+                  isTogglingBot={isTogglingBot}
+                  onBackPressed={handleBackToListMobile}
+                />
+              </div>
+            </div>
           ) : (
-          <div className="size-full flex bg-background">
-            <ChatList
-              contacts={contacts}
-              selectedContact={selectedContact}
-              onSelectContact={setSelectedContact}
-            />
-            <ChatWindow
-              contact={selectedContact}
-              messages={loadedMessages}
-              onLoadOlderMessages={handleLoadOlderMessages}
-              hasMoreMessages={hasMoreMessages}
-              isLoadingMessages={isInitialMessagesLoading}
-              isLoadingOlderMessages={isLoadingOlderMessages}
-              onSendMessage={handleSendMessage}
-              isSending={isSending}
-              onToggleBot={handleToggleBot}
-              isTogglingBot={isTogglingBot}
-            />
-          </div>
+            <div className="size-full flex bg-background">
+              {/* Desktop: Split view - lista e chat lado a lado */}
+              <ChatList
+                contacts={contacts}
+                selectedContact={selectedContact}
+                onSelectContact={setSelectedContact}
+              />
+              <ChatWindow
+                contact={selectedContact}
+                messages={loadedMessages}
+                onLoadOlderMessages={handleLoadOlderMessages}
+                hasMoreMessages={hasMoreMessages}
+                isLoadingMessages={isInitialMessagesLoading}
+                isLoadingOlderMessages={isLoadingOlderMessages}
+                onSendMessage={handleSendMessage}
+                isSending={isSending}
+                onToggleBot={handleToggleBot}
+                isTogglingBot={isTogglingBot}
+              />
+            </div>
           )}
         </div>
       </div>
