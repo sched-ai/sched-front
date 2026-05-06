@@ -62,6 +62,43 @@ export const ScheduleViewModal = ({
       onClose();
   };
 
+  const [adjustedPosition, setAdjustedPosition] = useState<{ top: number; left: number } | null>(null);
+
+  useEffect(() => {
+    if (!isOpen || isMobile || !position) {
+      setAdjustedPosition(null);
+      return;
+    }
+
+    // Small delay to allow content to render and measure correctly
+    const timer = setTimeout(() => {
+      if (!ref.current) return;
+
+      const modalRect = ref.current.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+
+      let { top, left } = position;
+      const margin = 12;
+
+      // Vertical adjustment
+      if (top + modalRect.height > viewportHeight - margin) {
+        top = Math.max(margin, viewportHeight - modalRect.height - margin);
+      }
+      if (top < margin) top = margin;
+
+      // Horizontal adjustment
+      if (left + modalRect.width > viewportWidth - margin) {
+        left = Math.max(margin, viewportWidth - modalRect.width - margin);
+      }
+      if (left < margin) left = margin;
+
+      setAdjustedPosition({ top, left });
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [isOpen, position, isMobile, details]);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (isDeleteModalOpen) return;
@@ -91,6 +128,8 @@ export const ScheduleViewModal = ({
 
   const isBlock = details.type === 'bloqueio';
 
+  const finalPosition = adjustedPosition || position;
+
   return (
     <>
       {isMobile && (
@@ -107,7 +146,11 @@ export const ScheduleViewModal = ({
             ? "fixed z-50 inset-x-0 bottom-0 w-full bg-white border border-slate-200 text-slate-900 rounded-t-2xl shadow-2xl animate-in fade-in slide-in-from-bottom-8 duration-200 overflow-hidden flex flex-col max-h-[85vh]"
             : "fixed z-50 w-[400px] bg-white border border-slate-200 text-slate-900 rounded-lg shadow-xl animate-in fade-in zoom-in-95 duration-200 overflow-hidden flex flex-col"
           }
-          style={isMobile ? undefined : { top: position!.top, left: position!.left }}
+          style={isMobile ? undefined : { 
+            top: finalPosition?.top, 
+            left: finalPosition?.left,
+            visibility: adjustedPosition ? 'visible' : 'hidden' // Hide until positioned to avoid flicker
+          }}
       >
         <div className="p-6 pb-2">
             <div className="flex items-start justify-between">

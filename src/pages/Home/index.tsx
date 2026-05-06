@@ -222,7 +222,7 @@ export const Home = () => {
     }); 
 
     setSelectedEvent(event);
-  setScheduleDraftEvent(null);
+    setScheduleDraftEvent(null);
     
     // Position Logic
     const targetRect = rect || {
@@ -242,31 +242,14 @@ export const Home = () => {
     if (!isMobile) {
       let left = targetRect.right + 12;
       let top = targetRect.top;
-      const modalWidth = 400;
-      const modalHeight = 420;
 
       if (bounds) {
-        const minLeft = bounds.left + 8;
-        const maxLeft = Math.max(minLeft, bounds.right - modalWidth - 8);
-        const minTop = bounds.top + 8;
-        const maxTop = Math.max(minTop, bounds.bottom - modalHeight - 8);
-
-        if (left > maxLeft) {
-          left = targetRect.left - modalWidth - 12;
+        // Se estiver muito à direita, tenta colocar à esquerda do evento
+        if (left + 400 > bounds.right) {
+          left = targetRect.left - 412;
         }
-
-        left = Math.min(Math.max(left, minLeft), maxLeft);
-        top = Math.min(Math.max(top, minTop), maxTop);
-      } else {
-        if (left + 425 > window.innerWidth) {
-          left = targetRect.left - 437; // 12px gap + 425px width
-        }
-
-        if (top + 400 > window.innerHeight) {
-          top = window.innerHeight - 420;
-        }
-        if (top < 10) top = 10;
-        if (left < 10) left = 10;
+      } else if (left + 400 > window.innerWidth) {
+        left = targetRect.left - 412;
       }
 
       setViewModalPosition({ top, left });
