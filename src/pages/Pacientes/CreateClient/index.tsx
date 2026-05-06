@@ -214,7 +214,7 @@ const CreateClient = () => {
                 </div>
 
                      <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700">Telefone (whatsapp)</label>
+                    <label className="text-sm font-medium text-slate-700">Telefone (whatsapp) <span className="text-red-500">*</span></label>
                     <div className="flex items-center w-full bg-white border border-slate-300 rounded-lg px-3 py-0.5 text-sm transition-all focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 overflow-hidden">
                         <div className="flex items-center gap-2 border-r border-slate-200 text-slate-500 select-none w-fit pr-1">
                             <p className="font-medium leading-none text-[14px]">+55</p>
@@ -261,14 +261,6 @@ const CreateClient = () => {
                              </div>
                              <input type="radio" className="hidden" name="gender" value="feminino" checked={gender === 'feminino'} onChange={() => setGender('feminino')} />
                              <span className={`text-sm ${gender === 'feminino' ? 'text-slate-900 font-medium' : 'text-slate-600 group-hover:text-slate-700'}`}>Feminino</span>
-                        </label>
-
-                         <label className="flex items-center gap-2 cursor-pointer group">
-                             <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${gender === 'outro' ? 'border-blue-600' : 'border-slate-300 group-hover:border-slate-400'}`}>
-                                {gender === 'outro' && <div className="w-3 h-3 rounded-full bg-blue-600" />}
-                             </div>
-                             <input type="radio" className="hidden" name="gender" value="outro" checked={gender === 'outro'} onChange={() => setGender('outro')} />
-                             <span className={`text-sm ${gender === 'outro' ? 'text-slate-900 font-medium' : 'text-slate-600 group-hover:text-slate-700'}`}>Outro</span>
                         </label>
 
                         <label className="flex items-center gap-2 cursor-pointer group">

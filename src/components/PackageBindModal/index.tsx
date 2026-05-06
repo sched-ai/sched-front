@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 interface PackageBindModalProps {
   isOpen: boolean;
@@ -24,6 +25,7 @@ const baseInputClass =
   "w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-colors hover:border-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20";
 
 export function PackageBindModal({ isOpen, onClose }: PackageBindModalProps) {
+  const navigate = useNavigate();
   const [clientId, setClientId] = useState<string | null>(null);
   const [packageId, setPackageId] = useState<string>("");
   const [clientSearch, setClientSearch] = useState("");
@@ -68,6 +70,41 @@ export function PackageBindModal({ isOpen, onClose }: PackageBindModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="max-w-md bg-white border border-slate-200 rounded-2xl p-0 overflow-visible">
+        {packages.length === 0 ? (
+          <div>
+            <div className="px-6 py-5 border-b border-slate-200 flex items-center gap-3 rounded-t-2xl">
+              <div className="bg-blue-100 p-2 rounded-lg">
+                <PackagePlus className="text-blue-600" size={20} />
+              </div>
+              <DialogTitle className="text-xl text-slate-900">
+                Vincular Pacote
+              </DialogTitle>
+            </div>
+            <div className="px-6 py-6 text-sm text-slate-600">
+              Voce ainda nao tem pacotes adicionados. Crie um pacote para continuar.
+            </div>
+            <div className="px-6 py-4 border-t border-slate-200 flex justify-end gap-2 rounded-b-2xl bg-white">
+              <Button
+                type="button"
+                variant="outline"
+                className="px-4 text-slate-700 hover:text-slate-900 hover:bg-slate-50"
+                onClick={handleClose}
+              >
+                Fechar
+              </Button>
+              <Button
+                type="button"
+                className="bg-blue-600 px-2 hover:bg-blue-700 text-white"
+                onClick={() => {
+                  handleClose();
+                  navigate("/services/packages/new");
+                }}
+              >
+                Criar Pacote
+              </Button>
+            </div>
+          </div>
+        ) : (
         <form onSubmit={handleBind}>
           <div className="px-6 py-5 border-b border-slate-200 flex items-center gap-3 rounded-t-2xl">
             <div className="bg-blue-100 p-2 rounded-lg">
@@ -80,7 +117,10 @@ export function PackageBindModal({ isOpen, onClose }: PackageBindModalProps) {
 
           <div className="px-6 py-5 space-y-4">
             <div className="space-y-2 relative">
-              <label className="text-sm font-medium text-slate-700">Paciente</label>
+              <label className="text-sm font-medium text-slate-700">
+                Paciente
+                <span className="text-red-500 text-[16px] ml-1">*</span>
+              </label>
               <input
                 type="text"
                 placeholder="Buscar paciente..."
@@ -123,7 +163,10 @@ export function PackageBindModal({ isOpen, onClose }: PackageBindModalProps) {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Pacote</label>
+              <label className="text-sm font-medium text-slate-700">
+                Pacote
+                <span className="text-red-500 text-[16px] ml-1">*</span>
+              </label>
               <Select value={packageId} onValueChange={setPackageId}>
                 <SelectTrigger className={cn(baseInputClass, "!h-[42px] px-3 w-full border-slate-300 text-slate-900")}>
                   <SelectValue placeholder="Selecione o pacote" />
@@ -154,6 +197,7 @@ export function PackageBindModal({ isOpen, onClose }: PackageBindModalProps) {
             </Button>
           </div>
         </form>
+        )}
       </DialogContent>
     </Dialog>
   );

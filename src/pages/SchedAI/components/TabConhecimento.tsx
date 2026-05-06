@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
-import { Trash2, Plus, Play, TriangleAlert } from "lucide-react"
+import { Trash2, Plus, TriangleAlert } from "lucide-react"
 import { useState } from "react"
 import { BotPlaygroundDrawer } from "./BotPlaygroundDrawer"
 import { useGetFaqs } from "@/hooks/api/useGetFaqs"
@@ -79,10 +79,10 @@ export function TabConhecimento() {
               Ligue ou desligue o atendimento automático da IA.
             </p>
           </div>
-          <Button variant="outline" onClick={() => setDrawerOpen(true)}>
+          {/* <Button variant="outline" onClick={() => setDrawerOpen(true)}>
             <Play className="w-4 h-4 mr-2" />
             Testar Agente
-          </Button>
+          </Button> */}
         </div>
           <div className="flex items-center gap-3 mt-4">
             <button
@@ -218,20 +218,20 @@ export function TabConhecimento() {
 
           <div className="px-6 py-5 space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="trigger">Pergunta Gatilho</Label>
+              <Label htmlFor="trigger">Pergunta Gatilho <span className="text-red-500">*</span></Label>
               <input
                 id="trigger"
-                placeholder="Ex: Qual o horário de funcionamento?"
+                placeholder="Ex: O atendimento costuma atrasar?"
                 value={newTrigger}
                 onChange={(e) => setNewTrigger(e.target.value)}
                 className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-colors hover:border-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="answer">Resposta Base</Label>
+              <Label htmlFor="answer">Resposta Base <span className="text-red-500">*</span></Label>
               <textarea
                 id="answer"
-                placeholder="Ex: De segunda a sexta das 08:00 às 18:00."
+                placeholder="Ex: Não, nosso atendimento é pontual. Em casos raros de atraso, informamos o paciente com antecedência."
                 rows={4}
                 value={newAnswer}
                 onChange={(e) => setNewAnswer(e.target.value)}

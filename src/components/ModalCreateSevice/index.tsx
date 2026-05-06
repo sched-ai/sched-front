@@ -207,7 +207,10 @@ export const ModalCreateService = (props: IProps) => {
 
           <div className="px-6 py-5 space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Nome do serviço</label>
+              <label className="text-sm font-medium text-slate-700">
+                Nome do serviço
+                <span className="text-red-500 text-[16px] ml-1">*</span>
+              </label>
               <input
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
@@ -220,7 +223,10 @@ export const ModalCreateService = (props: IProps) => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Valor (R$)</label>
+                <label className="text-sm font-medium text-slate-700">
+                  Valor (R$)
+                  <span className="text-red-500 text-[16px] ml-1">*</span>
+                </label>
                 <input
                   value={price}
                   onChange={(e) => setPrice(formatBRL(e.target.value))}
@@ -232,7 +238,10 @@ export const ModalCreateService = (props: IProps) => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Duração (h)</label>
+                <label className="text-sm font-medium text-slate-700">
+                  Duração (h)
+                  <span className="text-red-500 text-[16px] ml-1">*</span>
+                </label>
                 <div className="h-[42px] flex items-center">
                   <TimePickerField 
                     value={duration} 
@@ -250,6 +259,7 @@ export const ModalCreateService = (props: IProps) => {
               <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-slate-500" />
                 Locais de realização
+                <span className="text-red-500 text-[16px] ml-1">*</span>
               </label>
               
               <WorkplaceMultiSelect 
@@ -294,6 +304,7 @@ export const ModalCreateService = (props: IProps) => {
             <div className="space-y-2">
             <label className="text-sm font-medium text-slate-700">
               Descrição do serviço
+              <span className="text-red-500 text-[16px] ml-1">*</span>
             </label>
             <textarea
               value={descricao}

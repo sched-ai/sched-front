@@ -13,6 +13,7 @@ import { formatCnpj, formatCpf, formatPhone } from "@/util/helper";
 import { useNavigate } from "react-router-dom";
 import type { DayKey, LocationData as OriginalLocationData } from "./components/LocationModal";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 
 type LocationData = OriginalLocationData & {
   rawSchedule: { day: DayKey; start: string; end: string }[];
@@ -315,7 +316,10 @@ export const Configuracoes = () => {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-slate-700">Nome</label>
+                <label className="text-sm font-medium text-slate-700">
+                  Nome
+                  <span className="text-red-500 text-[16px] ml-1">*</span>
+                </label>
                 <input
                   type="text"
                   value={profileForm.name}
@@ -325,7 +329,10 @@ export const Configuracoes = () => {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-slate-700">Tipo de conta</label>
+                <label className="text-sm font-medium text-slate-700">
+                  Tipo de conta
+                  <span className="text-red-500 text-[16px] ml-1">*</span>
+                </label>
                 <input
                   type="text"
                   disabled
@@ -338,6 +345,7 @@ export const Configuracoes = () => {
                 <div className="flex items-center gap-2 mb-1">
                   <label className="text-sm font-medium text-slate-700">
                     {hasCnpj && isAutonomo ? "CNPJ" : (!hasCnpj && isAutonomo ? "CPF" : "CNPJ/CPF")}
+                    <span className="text-red-500 text-[16px] ml-1">*</span>
                   </label>
                   {isAutonomo && (
                     <div className="flex items-center gap-1.5 ml-auto text-sm text-slate-600 cursor-pointer">
@@ -370,7 +378,10 @@ export const Configuracoes = () => {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-slate-700">Telefone</label>
+                <label className="text-sm font-medium text-slate-700">
+                  Telefone
+                  <span className="text-red-500 text-[16px] ml-1">*</span>
+                </label>
                 <div className="flex items-center w-full bg-slate-100 border border-slate-200 rounded-lg px-3 py-0.5 text-sm transition-all overflow-hidden cursor-not-allowed opacity-80">
                     <div className="flex items-center gap-2 border-r border-slate-200 text-slate-500 select-none w-fit pr-1">
                         <p className="font-medium leading-none text-[14px]">+55</p>
@@ -386,7 +397,10 @@ export const Configuracoes = () => {
               </div>
 
               <div className="space-y-1.5 md:col-span-2">
-                <label className="text-sm font-medium text-slate-700">Email</label>
+                <label className="text-sm font-medium text-slate-700">
+                  Email
+                  <span className="text-red-500 text-[16px] ml-1">*</span>
+                </label>
                 <input
                   type="email"
                   value={profileForm.email}
@@ -467,6 +481,7 @@ export const Configuracoes = () => {
                   const locationTypeLabel = location.serviceType === "ONLINE" ? "Online" : "Presencial";
                   const panelId = `location-panel-${location.id}`;
 
+                  const disableDelete = locations.length <= 1;
                   return (
                     <article key={location.id} className="rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                       <div className="px-4 md:px-5 py-4 bg-white flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -505,9 +520,13 @@ export const Configuracoes = () => {
 
                           <button
                             type="button"
-                            className="h-8 w-8 inline-flex items-center justify-center rounded-md border border-red-200 text-red-600 hover:bg-red-50"
-                            onClick={() => setLocationToDelete(location)}
+                            className={cn(
+                              "h-8 w-8 inline-flex items-center justify-center rounded-md border border-red-200 text-red-600 hover:bg-red-50",
+                              disableDelete && "opacity-40 cursor-not-allowed hover:bg-transparent"
+                            )}
+                            onClick={() => !disableDelete && setLocationToDelete(location)}
                             aria-label={`Excluir ${location.name}`}
+                            disabled={disableDelete}
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>

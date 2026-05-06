@@ -334,7 +334,10 @@ export const CreatePackage = () => {
                 <div className="p-6 space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700">Nome do Pacote</label>
+                      <label className="text-sm font-medium text-slate-700">
+                        Nome do Pacote
+                        <span className="text-red-500 text-[16px] ml-1">*</span>
+                      </label>
                       <input
                         value={nome}
                         onChange={(e) => setNome(e.target.value)}
@@ -346,7 +349,10 @@ export const CreatePackage = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700">Valor de Venda (R$)</label>
+                      <label className="text-sm font-medium text-slate-700">
+                        Valor de Venda (R$)
+                        <span className="text-red-500 text-[16px] ml-1">*</span>
+                      </label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">R$</span>
                         <input
@@ -362,7 +368,10 @@ export const CreatePackage = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700">Descrição</label>
+                    <label className="text-sm font-medium text-slate-700">
+                      Descrição
+                      <span className="text-red-500 text-[16px] ml-1">*</span>
+                    </label>
                     <textarea
                       value={descricao}
                       onChange={(e) => setDescricao(e.target.value)}
@@ -405,7 +414,9 @@ export const CreatePackage = () => {
                             </div>
                             <div className="flex items-center gap-3">
                                <div className="flex flex-col items-center">
-                                  <label className="text-[10px] uppercase font-bold text-slate-400 mb-1">Quantidade</label>
+                                  <label className="text-[10px] uppercase font-bold text-slate-400 mb-1">
+                                    Quantidade
+                                  </label>
                                   <div className="flex items-center gap-2">
                                      <input
                                       type="number"
