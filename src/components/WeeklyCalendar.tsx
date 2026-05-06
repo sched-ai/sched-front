@@ -41,7 +41,7 @@ interface WeeklyCalendarProps {
 	events: EventType[];
 	currentDate: Date;
 	onDateClick?: (date: { day: number; month: number; year: number }, hour: string, rect?: DOMRect) => void;
-	onEventClick?: (event: EventType, rect: DOMRect) => void;
+  onEventClick?: (event: EventType, rect: DOMRect, bounds?: DOMRect) => void;
 	filterType?: 'all' | 'consulta' | 'bloqueio';
 	availableHours?: AvailableHours;
   isDraftVisible?: boolean;
@@ -394,10 +394,10 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
     }
   };
 
-	const handleEventClick = (event: EventType, e: React.MouseEvent<HTMLDivElement>) => {
+  const handleEventClick = (event: EventType, e: React.MouseEvent<HTMLDivElement>) => {
 		e.stopPropagation();
 		if (onEventClick) {
-			onEventClick(event, e.currentTarget.getBoundingClientRect());
+      onEventClick(event, e.currentTarget.getBoundingClientRect(), swipeAreaRef.current?.getBoundingClientRect());
 		}
   
   
@@ -553,7 +553,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                     {renderedDates.map((date, dayIdx) => (
                       <div
                         key={date.toISOString()}
-                        className={`flex flex-col relative ${
+                        className={`flex flex-col relative overflow-hidden ${
                           date.getDay() >= 5 ? "bg-gray-50/20" : ""
                         }`}
                       >
@@ -719,7 +719,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                                 title={tooltipText}
                                 className={`absolute rounded-lg border ${color.border} ${
                                   `z-20` + (isConsultation ? ` hover:shadow-md ${color.hoverShadow}` : '')
-                                } ${hasOverlap ? 'px-1.5 py-1' : 'px-2.5 py-2'} cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:z-30 active:scale-[0.98] overflow-hidden group shadow-sm`}
+                                } ${hasOverlap ? 'px-1.5 py-1' : 'px-2.5 py-2'} cursor-pointer transition-all duration-200 hover:z-30 active:opacity-95 hover:brightness-[1.02] overflow-hidden group shadow-sm`}
                                 style={{
                                   top: `${top + 1}px`,
                                   height: `${height - 3}px`,

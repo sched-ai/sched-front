@@ -181,7 +181,7 @@ export const Home = () => {
     setViewModalPosition(null);
   };
 
-  const handleEventClick = (event: EventType, rect: DOMRect) => {
+  const handleEventClick = (event: EventType, rect: DOMRect, bounds?: DOMRect) => {
     // Calcula a data do evento dentro da semana atual
     const weekStart = new Date(currentDate);
     weekStart.setDate(currentDate.getDate() - currentDate.getDay());
@@ -242,15 +242,32 @@ export const Home = () => {
     if (!isMobile) {
       let left = targetRect.right + 12;
       let top = targetRect.top;
+      const modalWidth = 400;
+      const modalHeight = 420;
 
-      if (left + 425 > window.innerWidth) {
-         left = targetRect.left - 437; // 12px gap + 425px width
-      }
-      
-      if (top + 400 > window.innerHeight) {
+      if (bounds) {
+        const minLeft = bounds.left + 8;
+        const maxLeft = Math.max(minLeft, bounds.right - modalWidth - 8);
+        const minTop = bounds.top + 8;
+        const maxTop = Math.max(minTop, bounds.bottom - modalHeight - 8);
+
+        if (left > maxLeft) {
+          left = targetRect.left - modalWidth - 12;
+        }
+
+        left = Math.min(Math.max(left, minLeft), maxLeft);
+        top = Math.min(Math.max(top, minTop), maxTop);
+      } else {
+        if (left + 425 > window.innerWidth) {
+          left = targetRect.left - 437; // 12px gap + 425px width
+        }
+
+        if (top + 400 > window.innerHeight) {
           top = window.innerHeight - 420;
+        }
+        if (top < 10) top = 10;
+        if (left < 10) left = 10;
       }
-      if (top < 10) top = 10;
 
       setViewModalPosition({ top, left });
     } else {
