@@ -141,7 +141,8 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
       const scrollPosition = 6 * CELL_HEIGHT;
       scrollContainerRef.current.scrollTop = scrollPosition;
     }
-  }, [currentDate]);
+    console.log("Rendered Dates:");
+  }, [currentDate, viewMode, CELL_HEIGHT]);
 
   useEffect(() => {
     const mql = window.matchMedia("(max-width: 1023px)");
@@ -182,16 +183,18 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
   }, [currentDate, viewMode, swipeAreaWidth, isSwipeEnabled]);
 
   const isCellAllowed = React.useCallback((date: Date, hourIdx: number) => {
-    const cellDate = new Date(date);
-    cellDate.setHours(hourIdx, 0, 0, 0);
+    const cellStart = new Date(date);
+    cellStart.setHours(hourIdx, 0, 0, 0);
+    const cellEnd = new Date(date);
+    cellEnd.setHours(hourIdx + 1, 0, 0, 0);
     const now = new Date();
 
-    if (cellDate < now) {
+    if (cellEnd <= now) {
       return false;
     }
 
     if (availableHours) {
-      const dayData = availableHours[String(cellDate.getDay())];
+      const dayData = availableHours[String(cellStart.getDay())];
       if (!dayData || dayData.startMinute === null || dayData.endMinute === null) {
         return false;
       }
@@ -375,11 +378,16 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
     return blocked;
   }, [eventMap]);
 
-  const handleCellClick = (dayIdx: number, hour: string, e: React.MouseEvent<HTMLDivElement>) => {
+  const handleCellClick = (dayIdx: number, hourIdx: number, hour: string, e: React.MouseEvent<HTMLDivElement>) => {
     const dateObj = renderedDates[dayIdx];
     if (!dateObj) return;
-    const defaultEndHour = addMinutesToTime(hour, 5);
-    setTempBox({ dayIdx, startHour: hour, endHour: defaultEndHour, date: dateObj, type: 'consulta' });
+    const now = new Date();
+    const isToday = isSameDay(dateObj, now);
+    const adjustedStartHour = (isToday && hourIdx === now.getHours())
+      ? addMinutesToTime(hour, Math.ceil(now.getMinutes() / 5) * 5)
+      : hour;
+    const defaultEndHour = addMinutesToTime(adjustedStartHour, 5);
+    setTempBox({ dayIdx, startHour: adjustedStartHour, endHour: defaultEndHour, date: dateObj, type: 'consulta' });
     if (onDateClick) {
       const rect = e.currentTarget.getBoundingClientRect();
       onDateClick(
@@ -388,7 +396,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
           month: dateObj.getMonth() + 1,
           year: dateObj.getFullYear(),
         },
-        hour,
+        adjustedStartHour,
         rect
       );
     }
@@ -597,6 +605,10 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                         )}
                         {/* Grid Lines */}
                         {hours.map((hour, hourIdx) => {
+                          const now = new Date();
+                          const isToday = isSameDay(date, now);
+                          const isCurrentHour = isToday && hourIdx === now.getHours();
+                          const pastHeight = isCurrentHour ? (now.getMinutes() / 60) * CELL_HEIGHT : 0;
                           const isAllowed = isCellAllowed(date, hourIdx);
                           const isBlockedByEvent = blockedCells.has(`${dayIdx}-${hourIdx}`);
                           const isInteractive = isAllowed && !isBlockedByEvent;
@@ -609,9 +621,15 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                               }`}
                               style={{ height: `${CELL_HEIGHT}px` }}
                               onClick={(e) => {
-                                if (isInteractive) handleCellClick(dayIdx, hour, e);
+                                if (isInteractive) handleCellClick(dayIdx, hourIdx, hour, e);
                               }}
                             >
+                              {isCurrentHour && pastHeight > 0 && (
+                                <div
+                                  className="absolute inset-x-0 top-0 bg-[#f5f5f5] pointer-events-none"
+                                  style={{ height: `${pastHeight}px` }}
+                                />
+                              )}
                               {/* Hover Plus Icon */}
                               {isInteractive && (
                                 <div className="absolute inset-0 z-[35] pointer-events-none flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
