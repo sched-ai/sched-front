@@ -126,6 +126,7 @@ export const Atendimentos = () => {
 
   let appointments: AppointmentAPI[] = [];
   let meta = { total: 0, totalPages: 1, page: 1, limit: itensPorPagina };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   let estatisticas = { total: 0, concluidos: 0, agendados: 0, cancelados: 0 };
 
   if (Array.isArray(responseAny)) {
@@ -204,7 +205,7 @@ export const Atendimentos = () => {
   return (
     <div className="min-h-screen">
         <div className="p-4 md:p-8 mx-auto space-y-6">
-          <header className="flex gap-4">
+          <header className="flex gap-4 mb-0">
             <SidebarTrigger className="w-11 h-11 min-w-[44px] self-start rounded-lg bg-white border border-slate-200 shadow-sm p-0 hover:bg-slate-50 hover:opacity-80 transition-opacity lg:hidden">
               <span className="flex flex-col items-center justify-center gap-1">
                 <span className="block h-[2px] w-[18px] rounded-[2px] bg-slate-900/90" />
@@ -213,7 +214,7 @@ export const Atendimentos = () => {
               </span>
             </SidebarTrigger>
             <div className="flex-1">
-              <div className="mb-8">
+              <div className="mb-6">
                 <h1 className="text-2xl font-semibold text-foreground">Atendimentos</h1>
                 <p className="text-muted-foreground mt-2">
                  Gerencie e acompanhe todos os atendimentos

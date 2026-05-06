@@ -132,8 +132,8 @@ export const Pacientes = () => {
 
   return (
     <div className="min-h-screen">
-      <div className="p-6 md:p-8 mx-auto space-y-6">
-        <header className="flex items-stretch gap-4">
+      <div className="p-6 md:p-8 mx-auto">
+        <header className="flex items-stretch gap-4 mb-0">
           <SidebarTrigger className="w-11 h-11 min-w-[44px] self-start rounded-lg bg-white border border-slate-200 shadow-sm p-0 hover:bg-slate-50 hover:opacity-80 transition-opacity lg:hidden">
             <span className="flex flex-col items-center justify-center gap-1">
               <span className="block h-[2px] w-[18px] rounded-[2px] bg-slate-900/90" />
@@ -142,7 +142,7 @@ export const Pacientes = () => {
             </span>
           </SidebarTrigger>
           <div className="flex-1 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-            <div className="mb-8">
+            <div className="mb-6">
               <h1 className="text-2xl font-semibold text-foreground">Pacientes</h1>
               <p className="text-muted-foreground mt-2">
                Gerencie os pacientes cadastrados e acompanhe os históricos com rapidez.
