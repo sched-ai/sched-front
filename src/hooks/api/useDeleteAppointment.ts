@@ -11,11 +11,11 @@ export const useDeleteAppointment = ({ onSuccessFn }: IUseMutationParams) => {
   const { patch } = useAPI();
 
   return useMutation({
-    mutationFn: (id: string) =>
+    mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
       patch({
         endpoint: `appointment/${id}/cancel`,
         label: "Agendamento",
-        body: {}
+        body: { reason }
       }),
 
     onSuccess: () => {

@@ -24,6 +24,7 @@ export const DeleteConfirmationModal = ({
 }: IProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const [deleteType, setDeleteType] = useState<"single" | "following">("single");
+  const [reason, setReason] = useState("");
 
   const { mutate: deleteAppointment, isPending: isDeletingAppt } = useDeleteAppointment({
     onSuccessFn: onSuccess
@@ -46,11 +47,12 @@ export const DeleteConfirmationModal = ({
       type: selectedEvent.type, 
       id: selectedEvent.id, 
       isRecurring: selectedEvent.isRecurring,
-      deleteType
+      deleteType,
+      reason
     });
 
     if (selectedEvent.type === 'consulta') {
-       deleteAppointment(String(selectedEvent.id));
+       deleteAppointment({ id: String(selectedEvent.id), reason });
     } else if (selectedEvent.type === 'bloqueio') {
        if (selectedEvent.isRecurring) {
          const pad = (v: number) => String(v).padStart(2, "0");
@@ -76,6 +78,7 @@ export const DeleteConfirmationModal = ({
 
     if (isOpen) {
       setDeleteType("single");
+      setReason("");
       setTimeout(() => document.addEventListener("mousedown", handleClickOutside), 0);
     }
     return () => {
@@ -130,6 +133,20 @@ export const DeleteConfirmationModal = ({
               )}
             </div>
           </div>
+
+          {!isBlock && (
+            <div className="mt-5 animate-in slide-in-from-top-2 duration-300">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Motivo do cancelamento (opcional)
+              </label>
+              <textarea
+                className="w-full min-h-[80px] p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#141736]/20 focus:border-[#141736] outline-none text-sm transition-all resize-none"
+                placeholder="Descreva o motivo (será enviado por WhatsApp ao paciente)..."
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+              />
+            </div>
+          )}
 
           {showRecurrenceOptions && (
             <div className="mt-5 space-y-3">
