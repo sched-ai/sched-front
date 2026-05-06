@@ -84,6 +84,15 @@ function getStatusVisual(status: string) {
   return statusConfig[label] || { color: "text-slate-600", dot: "bg-slate-400" };
 }
 
+function formatAppointmentTime(startDate: string) {
+  if (!startDate) return "-";
+
+  const rawTime = startDate.split("T")[1]?.substring(0, 5);
+  if (rawTime) return rawTime;
+
+  return format(new Date(startDate), "HH:mm");
+}
+
 export const Atendimentos = () => {
   const navigate = useNavigate();
   const statusDropdownRef = useRef<HTMLDivElement | null>(null);
@@ -437,7 +446,7 @@ function paginatedRows(appointments: AppointmentAPI[], navigate: ReturnType<type
         <td className="px-5 py-4 text-slate-900">{atendimento.clientName || atendimento.client?.name || "Sem nome"}</td>
         <td className="px-5 py-4 text-slate-600">{atendimento.service?.name || "-"}</td>
         <td className="px-5 py-4 text-slate-600">{format(start, "dd/MM/yyyy")}</td>
-        <td className="px-5 py-4 text-slate-600">{format(start, "HH:mm")}</td>
+        <td className="px-5 py-4 text-slate-600">{formatAppointmentTime(atendimento.startDate)}</td>
         <td className="px-5 py-4">
           {atendimento.createdByAI ? (
             <span className="inline-flex items-center gap-1.5 rounded-full w-[86px] justify-between bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
