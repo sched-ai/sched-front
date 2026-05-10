@@ -3,6 +3,7 @@ import { capitalizeFirst } from "@/util/helper";
 import { CalendarDays, Clock, TriangleAlert } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useDeleteAppointment } from "@/hooks/api/useDeleteAppointment";
+import { useDeleteAppointmentInstance } from "@/hooks/api/useDeleteAppointmentInstance";
 import { useDeleteTimeBlock } from "@/hooks/api/useDeleteTimeBlock";
 import { useDeleteTimeBlockInstance } from "@/hooks/api/useDeleteTimeBlockInstance";
 import type { EventType } from "../WeeklyCalendar";
@@ -30,6 +31,10 @@ export const DeleteConfirmationModal = ({
     onSuccessFn: onSuccess
   });
 
+  const { mutate: deleteAppointmentInstance, isPending: isDeletingApptInstance } = useDeleteAppointmentInstance({
+    onSuccessFn: onSuccess
+  });
+
   const { mutate: deleteTimeBlock, isPending: isDeletingBlock } = useDeleteTimeBlock({
     onSuccessFn: onSuccess
   });
@@ -38,30 +43,27 @@ export const DeleteConfirmationModal = ({
     onSuccessFn: onSuccess
   });
 
-  const isPending = isDeletingAppt || isDeletingBlock || isDeletingInstance;
+  const isPending = isDeletingAppt || isDeletingApptInstance || isDeletingBlock || isDeletingInstance;
 
   const confirmDelete = () => {
     if (!selectedEvent) return;
-    
-    console.log('Confirm Delete:', { 
-      type: selectedEvent.type, 
-      id: selectedEvent.id, 
-      isRecurring: selectedEvent.isRecurring,
-      deleteType,
-      reason
-    });
+
+    const pad = (v: number) => String(v).padStart(2, "0");
 
     if (selectedEvent.type === 'consulta') {
-       deleteAppointment({ id: String(selectedEvent.id), reason });
+      if (selectedEvent.isRecurring) {
+        const dateISO = `${selectedEvent.year}-${pad(Number(selectedEvent.month))}-${pad(Number(selectedEvent.dayNumber))}`;
+        deleteAppointmentInstance({ id: String(selectedEvent.id), date: dateISO, deleteType });
+      } else {
+        deleteAppointment({ id: String(selectedEvent.id) });
+      }
     } else if (selectedEvent.type === 'bloqueio') {
        if (selectedEvent.isRecurring) {
-         const pad = (v: number) => String(v).padStart(2, "0");
          const dateISO = `${selectedEvent.year}-${pad(Number(selectedEvent.month))}-${pad(Number(selectedEvent.dayNumber))}`;
-         console.log('Deleting Instance:', { id: selectedEvent.id, dateISO, deleteType });
-         deleteTimeBlockInstance({ 
-           id: String(selectedEvent.id), 
-           date: dateISO, 
-           deleteType 
+         deleteTimeBlockInstance({
+           id: String(selectedEvent.id),
+           date: dateISO,
+           deleteType
          });
        } else {
          deleteTimeBlock(String(selectedEvent.id));
@@ -89,7 +91,8 @@ export const DeleteConfirmationModal = ({
   if (!isOpen || !selectedEvent) return null;
 
   const isBlock = selectedEvent.type === 'bloqueio';
-  const showRecurrenceOptions = isBlock && selectedEvent.isRecurring;
+  const isRecurring = !!selectedEvent.isRecurring;
+  const showRecurrenceOptions = isRecurring;
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 animate-in fade-in duration-300 px-4">
@@ -104,14 +107,16 @@ export const DeleteConfirmationModal = ({
             </div>
             <div className="mt-1">
               <h2 className="text-lg font-semibold text-slate-900 leading-none">
-                {isBlock ? "Excluir bloqueio" : "Cancelar agendamento"}
+                {isBlock ? "Excluir bloqueio" : isRecurring ? "Excluir agendamento recorrente" : "Cancelar agendamento"}
               </h2>
               <p className="text-sm text-slate-500 mt-2">
-                {isBlock 
-                  ? selectedEvent.isRecurring 
-                    ? "Este bloqueio faz parte de uma série recorrente. O que você deseja excluir?" 
+                {isBlock
+                  ? isRecurring
+                    ? "Este bloqueio faz parte de uma série recorrente. O que você deseja excluir?"
                     : "Tem certeza que deseja excluir este bloqueio?"
-                  : "Tem certeza que deseja cancelar este agendamento?"}
+                  : isRecurring
+                    ? "Este agendamento faz parte de uma série recorrente. O que você deseja excluir?"
+                    : "Tem certeza que deseja cancelar este agendamento?"}
               </p>
             </div>
           </div>
@@ -161,7 +166,7 @@ export const DeleteConfirmationModal = ({
                 <div className="flex flex-1">
                   <div className="flex flex-col">
                     <span className={`block text-sm font-medium ${deleteType === "single" ? "text-[#141736]" : "text-slate-900"}`}>
-                      Apenas este bloqueio
+                      {isBlock ? "Apenas este bloqueio" : "Apenas este agendamento"}
                     </span>
                     <span className="mt-1 flex items-center text-xs text-slate-500 pr-4">
                       Exclui este dia específico e mantém o resto da série intacta.
@@ -186,7 +191,7 @@ export const DeleteConfirmationModal = ({
                 <div className="flex flex-1">
                   <div className="flex flex-col">
                     <span className={`block text-sm font-medium ${deleteType === "following" ? "text-[#141736]" : "text-slate-900"}`}>
-                      Este e os bloqueios futuros
+                      {isBlock ? "Este e os bloqueios futuros" : "Este e os agendamentos futuros"}
                     </span>
                     <span className="mt-1 flex items-center text-xs text-slate-500 pr-4">
                       Remove esta e todas as ocorrências seguintes da série.
