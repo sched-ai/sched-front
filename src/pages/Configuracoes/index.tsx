@@ -262,7 +262,7 @@ export const Configuracoes = () => {
             <div className="flex-1">
               <h1 className="text-2xl font-semibold text-foreground">Configurações</h1>
               <p className="text-muted-foreground mt-2">
-                Teste mudança de texto para verificar quebra de linha e espaçamento. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec vehicula, nisl eget consectetur sagittis, nisl nunc consectetur nisi, euismod aliquam nisl nunc euismod nisi.
+                Gerencie suas informações pessoais e locais de atendimento
               </p>
             </div>
           </header>
