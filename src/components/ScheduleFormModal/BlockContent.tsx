@@ -313,15 +313,13 @@ export const BlockContent = ({
         </div>
       </div>
 
-      <div className="mt-4 flex flex-col gap-2">
-        <div className="h-[60px] w-full flex items-center justify-center">
+      <div className="sticky bottom-0 bg-[#121535] border-t border-white/10 pt-3 pb-4 space-y-2">
         {error ? (
-            <div className="bg-red-900/20 border border-red-900/50 rounded-md p-3 text-sm text-red-400 w-full leading-tight">
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              {(error as any)?.response?.data?.error || (error as any)?.response?.data?.message || (error as any)?.message || "Ocorreu um erro"}
-            </div>
-          ) : null}
-        </div>
+          <div className="bg-red-900/20 border border-red-900/50 rounded-md p-3 text-sm text-red-400 leading-tight">
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            {(error as any)?.response?.data?.error || (error as any)?.response?.data?.message || (error as any)?.message || "Ocorreu um erro"}
+          </div>
+        ) : null}
         <div className="flex justify-end">
           <Button
             type="button"

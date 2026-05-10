@@ -1,6 +1,6 @@
-import { Clock, MapPin, Briefcase } from "lucide-react";
-// plain import removed
+import { Clock, MapPin, Briefcase, Repeat } from "lucide-react";
 import { Button } from "../ui/button";
+import { Switch } from "../ui/switch";
 import { DatePicker } from "../DatePicker";
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect } from "react";
@@ -34,7 +34,7 @@ const buildLocalIso = (date: { day: number; month: number; year: number }, hour:
   const h = Number(hStr);
   const m = Number(mStr);
 
-  return `${date.year}-${pad2(date.month)}-${pad2(date.day)}T${pad2(h)}:${pad2(m)}:00`;
+  return `${date.year}-${pad2(date.month)}-${pad2(date.day)}T${pad2(h)}:${pad2(m)}:00.000Z`;
 };
 
 interface IProps {
@@ -68,6 +68,18 @@ interface IProps {
   endMaxTime?: string;
   startDisabledTime?: TimePickerProps["disabledTime"];
   endDisabledTime?: TimePickerProps["disabledTime"];
+  repeatEnabled: boolean;
+  setRepeatEnabled: (val: boolean) => void;
+  weekDays: boolean[];
+  setWeekDays: Dispatch<SetStateAction<boolean[]>>;
+  frequency: "DAILY" | "WEEKLY" | "MONTHLY";
+  setFrequency: (val: "DAILY" | "WEEKLY" | "MONTHLY") => void;
+  recurringEndDate: string | undefined;
+  setRecurringEndDate: (val: string | undefined) => void;
+  occurrences: number | undefined;
+  setOccurrences: (val: number | undefined) => void;
+  endOption: "never" | "onDate" | "afterOccurrences";
+  setEndOption: (val: "never" | "onDate" | "afterOccurrences") => void;
 }
 
 export const AppoimentContent = ({
@@ -94,6 +106,18 @@ export const AppoimentContent = ({
   endMaxTime,
   startDisabledTime,
   endDisabledTime,
+  repeatEnabled,
+  setRepeatEnabled,
+  weekDays,
+  setWeekDays,
+  frequency,
+  setFrequency,
+  recurringEndDate,
+  setRecurringEndDate,
+  occurrences,
+  setOccurrences,
+  endOption,
+  setEndOption,
 }: IProps) => {
   const { userData, userLoading } = useUser();
   const { data: services } = useGetAllServices();
@@ -259,6 +283,12 @@ export const AppoimentContent = ({
       }
     }
 
+    const convertDateFormat = (dateStr: string | undefined): string | null => {
+      if (!dateStr) return null;
+      const [d, m, y] = dateStr.split("/");
+      return `${y}-${m}-${d}`;
+    };
+
     const payload = {
       clientId: clientId || undefined,
       serviceId: service || undefined,
@@ -267,6 +297,20 @@ export const AppoimentContent = ({
       startDate: buildLocalIso({ day, month, year }, startHour),
       duration,
       packageCreditId: matchingCredit?.id,
+      ...(repeatEnabled && !appointmentId && {
+        isInfiniteRecurring: repeatEnabled,
+        frequency: frequency,
+        days_of_week:
+          frequency === "WEEKLY"
+            ? weekDays.map((sel, i) => (sel ? i : -1)).filter((i) => i !== -1)
+            : [],
+        recurringUntilDate:
+          endOption === "onDate" && recurringEndDate
+            ? convertDateFormat(recurringEndDate)
+            : null,
+        recurringOccurrences:
+          endOption === "afterOccurrences" ? occurrences : null,
+      }),
     };
 
     if (appointmentId) {
@@ -435,16 +479,125 @@ export const AppoimentContent = ({
         </div>
       </div>
 
-      <div className="mt-4 flex flex-col gap-2">
-        <div className="flex justify-end">
-          <Button
-            type="submit"
-            disabled={isPending}
-            className="bg-blue-600 hover:bg-blue-700 text-white rounded-md px-6 py-2 min-w-[100px]"
-          >
-            {isPending ? "Salvando..." : "Salvar"}
-          </Button>
+      {/* Repeat Section — apenas ao criar, não ao editar */}
+      {!appointmentId && (
+        <div className="flex items-start gap-4">
+          <div className="mt-0.5">
+            <Repeat className={`transform transition-colors ${repeatEnabled ? "text-blue-500" : "text-gray-400"}`} size={20} />
+          </div>
+          <div className="flex-1 flex flex-col gap-4">
+            <div className="flex items-center gap-3">
+              <span className="text-white">Repetir</span>
+              <Switch
+                checked={repeatEnabled}
+                onCheckedChange={(val) => setRepeatEnabled(Boolean(val))}
+                className="data-[state=checked]:bg-blue-600 data-[state=unchecked]:bg-gray-600"
+              />
+            </div>
+
+            {repeatEnabled && (
+              <div className="pl-0 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="border-l-2 border-gray-700 pl-4 space-y-4">
+                  <div>
+                    <label className="text-sm text-gray-400 mb-2 block">Frequência</label>
+                    <div className="flex flex-col gap-4">
+                      <div className="flex gap-2">
+                        {(["DAILY", "WEEKLY", "MONTHLY"] as const).map((opt) => (
+                          <Button
+                            key={opt}
+                            type="button"
+                            onClick={() => setFrequency(opt)}
+                            className={`rounded-full px-4 h-8 text-xs font-medium transition-all ${
+                              frequency === opt
+                                ? "bg-blue-600 text-white hover:bg-blue-700"
+                                : "bg-gray-800 text-gray-400 hover:bg-gray-700 border border-gray-700"
+                            }`}
+                          >
+                            {opt === "DAILY" ? "Diário" : opt === "WEEKLY" ? "Semanal" : "Mensal"}
+                          </Button>
+                        ))}
+                      </div>
+
+                      {frequency === "WEEKLY" && (
+                        <div className="flex flex-col gap-2 animate-in fade-in zoom-in-95 duration-200">
+                          <label className="text-xs text-gray-400">Repetir em:</label>
+                          <div className="flex gap-1.5 flex-wrap">
+                            {["D", "S", "T", "Q", "Q", "S", "S"].map((day, i) => (
+                              <button
+                                key={i}
+                                type="button"
+                                onClick={() => {
+                                  setWeekDays((prev) => {
+                                    const next = [...prev];
+                                    next[i] = !next[i];
+                                    return next;
+                                  });
+                                }}
+                                className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-bold transition-all duration-200 ${
+                                  weekDays[i]
+                                    ? "bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-900/40 transform scale-110"
+                                    : "bg-gray-800/40 border-gray-700 text-gray-500 hover:border-gray-500 hover:text-gray-300"
+                                }`}
+                              >
+                                {day}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex flex-col gap-2">
+                        <label className="text-xs text-gray-400">Encerramento</label>
+                        <div className="flex flex-col gap-2">
+                          {(["never", "onDate", "afterOccurrences"] as const).map((opt) => (
+                            <label key={opt} className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="radio"
+                                name="appt-endOption"
+                                checked={endOption === opt}
+                                onChange={() => setEndOption(opt)}
+                                className="accent-blue-500"
+                              />
+                              <span className="text-sm text-gray-300">
+                                {opt === "never" ? "Nunca" : opt === "onDate" ? "Na data" : "Após ocorrências"}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                        {endOption === "onDate" && (
+                          <DatePicker
+                            initialValue={recurringEndDate}
+                            onChange={(val) => setRecurringEndDate(val || undefined)}
+                          />
+                        )}
+                        {endOption === "afterOccurrences" && (
+                          <input
+                            type="number"
+                            min={1}
+                            value={occurrences ?? ""}
+                            onChange={(e) => setOccurrences(e.target.value ? Number(e.target.value) : undefined)}
+                            placeholder="Nº de ocorrências"
+                            className="w-40 bg-gray-800 border border-gray-600 rounded-md px-3 py-1.5 text-sm text-white focus:outline-none focus:border-blue-500"
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
+      )}
+
+      <div className="sticky bottom-0 bg-[#121535] border-t border-white/10 pt-3 pb-4 flex justify-end">
+        <Button
+          type="submit"
+          disabled={isPending}
+          className="bg-blue-600 hover:bg-blue-700 text-white rounded-md px-6 py-2 min-w-[100px]"
+        >
+          {isPending ? "Salvando..." : "Salvar"}
+        </Button>
       </div>
     </form>
   );

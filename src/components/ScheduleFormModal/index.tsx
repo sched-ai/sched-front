@@ -4,9 +4,8 @@ import type { SetStateAction } from "react";
 import type { TimePickerProps } from "antd";
 import { Button } from "../ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DndContext, useDraggable } from "@dnd-kit/core";
+import { DndContext, useDraggable, type Modifier } from "@dnd-kit/core";
 import type { DragEndEvent } from "@dnd-kit/core";
-import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 import type { EventType } from "@/components/WeeklyCalendar";
 import { BlockContent } from "./BlockContent";
 import { AppoimentContent } from "./AppoimentContent";
@@ -18,6 +17,15 @@ import { useIsMobile } from "@/hooks/use-mobile";
 const MODAL_WIDTH = 400;
 const MODAL_HEIGHT = 600;
 const MINUTES_IN_DAY = 24 * 60;
+
+const restrictToTopAndLeftEdges: Modifier = ({ transform, draggingNodeRect }) => {
+  if (!draggingNodeRect) return transform;
+  return {
+    ...transform,
+    x: Math.max(-draggingNodeRect.left, transform.x),
+    y: Math.max(-draggingNodeRect.top, transform.y),
+  };
+};
 
 const timeToMinutes = (time?: string) => {
   if (!time || !time.includes(":")) return null;
@@ -104,7 +112,7 @@ const DraggableModalContent = ({
       >
         <GripHorizontal size={20} className="text-white/70" />
       </div>
-      <div className="flex-1 overflow-y-auto py-8 custom-scrollbar">
+      <div className="flex-1 min-h-0 overflow-y-auto pt-8 pb-0 custom-scrollbar">
         {children}
       </div>
     </div>
@@ -147,6 +155,12 @@ export const ScheduleFormModal = ({
   const [endDate, setEndDate] = useState<string | undefined>(undefined);
   const [occurrences, setOccurrences] = useState<number | undefined>(1);
   const [frequency, setFrequency] = useState<"DAILY" | "WEEKLY" | "MONTHLY">("DAILY");
+  const [apptRepeatEnabled, setApptRepeatEnabled] = useState(false);
+  const [apptWeekDays, setApptWeekDays] = useState<boolean[]>([false, false, false, false, false, false, false]);
+  const [apptEndOption, setApptEndOption] = useState<"never" | "onDate" | "afterOccurrences">("never");
+  const [apptRecurringEndDate, setApptRecurringEndDate] = useState<string | undefined>(undefined);
+  const [apptOccurrences, setApptOccurrences] = useState<number | undefined>(1);
+  const [apptFrequency, setApptFrequency] = useState<"DAILY" | "WEEKLY" | "MONTHLY">("DAILY");
   const [clientId, setClientId] = useState<string | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const wasOpenRef = useRef(false);
@@ -235,6 +249,12 @@ export const ScheduleFormModal = ({
       setEndOption("never");
       if (!keepEndDate) setEndDate(formatDate(fallbackDate));
       setOccurrences(1);
+      setApptRepeatEnabled(false);
+      setApptWeekDays([false, false, false, false, false, false, false]);
+      setApptEndOption("never");
+      setApptRecurringEndDate(undefined);
+      setApptOccurrences(1);
+      setApptFrequency("DAILY");
       setClientId(null);
       setShowSuggestions(false);
       setSelectedDateState({
@@ -281,6 +301,12 @@ export const ScheduleFormModal = ({
       setWeekDays([false, false, false, false, false, false, false]);
       setEndOption("never");
       setOccurrences(1);
+      setApptRepeatEnabled(false);
+      setApptWeekDays([false, false, false, false, false, false, false]);
+      setApptEndOption("never");
+      setApptRecurringEndDate(undefined);
+      setApptOccurrences(1);
+      setApptFrequency("DAILY");
       setClientId((selectedEvent as EventType & { clientId?: string }).clientId || null);
       setShowSuggestions(false);
 
@@ -322,6 +348,12 @@ export const ScheduleFormModal = ({
       setWeekDays([false, false, false, false, false, false, false]);
       setEndOption("never");
       setOccurrences(1);
+      setApptRepeatEnabled(false);
+      setApptWeekDays([false, false, false, false, false, false, false]);
+      setApptEndOption("never");
+      setApptRecurringEndDate(undefined);
+      setApptOccurrences(1);
+      setApptFrequency("DAILY");
       setClientId(null);
       setShowSuggestions(false);
 
@@ -636,7 +668,7 @@ export const ScheduleFormModal = ({
     title,
     setTitle,
     selectedDateTime: selectedDateState,
-  setSelectedDateTime: handleSelectedDateChange,
+    setSelectedDateTime: handleSelectedDateChange,
     startHour,
     setStartHour,
     endHour,
@@ -658,6 +690,18 @@ export const ScheduleFormModal = ({
     endMinTime,
     endMaxTime,
     startDisabledTime,
+    repeatEnabled: apptRepeatEnabled,
+    setRepeatEnabled: setApptRepeatEnabled,
+    weekDays: apptWeekDays,
+    setWeekDays: setApptWeekDays,
+    frequency: apptFrequency,
+    setFrequency: setApptFrequency,
+    recurringEndDate: apptRecurringEndDate,
+    setRecurringEndDate: setApptRecurringEndDate,
+    occurrences: apptOccurrences,
+    setOccurrences: setApptOccurrences,
+    endOption: apptEndOption,
+    setEndOption: setApptEndOption,
   };
 
   if (!isOpen) return null;
@@ -796,7 +840,7 @@ export const ScheduleFormModal = ({
   }
 
   return (
-    <DndContext onDragEnd={handleDragEnd} modifiers={[restrictToWindowEdges]}>
+    <DndContext onDragEnd={handleDragEnd} modifiers={[restrictToTopAndLeftEdges]}>
       <DraggableModalContent position={position}>
         {modalInner}
       </DraggableModalContent>

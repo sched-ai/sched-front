@@ -32,6 +32,8 @@ interface AppointmentAPI {
   employeeId?: string | null;
   professionalName?: string | null;
   createdByAI?: boolean | null;
+  frequency?: string | null;
+  isInfiniteRecurring?: boolean;
 }
 
 interface ICalendar {
@@ -141,6 +143,7 @@ const toAppointmentEvent = (a: AppointmentAPI): EventType => {
     month: monthFromParts(start),
     year: yearFromParts(start),
     type: "consulta",
+    isRecurring: !!a.frequency || !!a.isInfiniteRecurring,
   };
 };
 

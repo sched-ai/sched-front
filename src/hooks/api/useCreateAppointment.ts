@@ -11,6 +11,11 @@ export interface ICreateServicePayload {
   duration?: number;
   description?: string;
   packageCreditId?: string;
+  frequency?: 'DAILY' | 'WEEKLY' | 'MONTHLY' | null;
+  days_of_week?: number[];
+  isInfiniteRecurring?: boolean;
+  recurringUntilDate?: string | null;
+  recurringOccurrences?: number | null;
 }
 
 export const getAppointmentErrorMessage = (error: unknown, defaultMessage: string) => {
