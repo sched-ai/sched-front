@@ -163,8 +163,33 @@ export const getUserDateTimeParts = (value: string | Date): UserDateTimeParts | 
 }
 
 export const getUserDisplayParts = (value: string | Date): UserDisplayParts | null => {
-  const date = value instanceof Date ? value : new Date(value)
+  if (!value) return null
 
+  // Adhere to UTC-as-local convention: if we have an ISO string, extract the wall-clock parts directly
+  if (typeof value === "string") {
+    const raw = value.trim()
+    const localDateTimeMatch = raw.match(
+      /^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})/
+    )
+
+    if (localDateTimeMatch) {
+      const [, yearStr, monthStr, dayStr, hourStr, minuteStr] = localDateTimeMatch
+      const monthNames = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"]
+      const monthNum = parseInt(monthStr, 10)
+      const monthShort = monthNames[monthNum - 1]
+
+      return {
+        day: dayStr,
+        month: monthStr,
+        monthShort,
+        year: yearStr,
+        time: `${hourStr}:${minuteStr}`,
+      }
+    }
+  }
+
+  // Fallback for Date objects
+  const date = value instanceof Date ? value : new Date(value)
   if (Number.isNaN(date.getTime())) return null
 
   const parts = toPartsMap(USER_DISPLAY_FORMATTER, date)
