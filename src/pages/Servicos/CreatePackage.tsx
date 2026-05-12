@@ -16,8 +16,9 @@ import {
   GripVertical,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { DndContext, useDraggable, useDroppable, type DragEndEvent, DragOverlay, defaultDropAnimationSideEffects } from "@dnd-kit/core";
+import { DndContext, useDraggable, useDroppable, type DragEndEvent, DragOverlay, defaultDropAnimationSideEffects, MouseSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { toast } from "sonner";
 
 // --- Helpers ---
 
@@ -45,7 +46,7 @@ const baseInputClass =
 
 // --- DND Components ---
 
-const DraggableServiceItem = ({ service }: { service: IService }) => {
+const DraggableServiceItem = ({ service, onAdd }: { service: IService; onAdd: (service: IService) => void }) => {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `draggable-${service.id}`,
     data: service,
@@ -54,14 +55,16 @@ const DraggableServiceItem = ({ service }: { service: IService }) => {
   return (
     <div
       ref={setNodeRef}
-      {...listeners}
       {...attributes}
       className={cn(
-        "group flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl cursor-grab active:cursor-grabbing hover:border-blue-300 hover:shadow-sm transition-all",
+        "group flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl hover:border-blue-300 hover:shadow-sm transition-all",
         isDragging && "opacity-50 border-blue-500 shadow-md"
       )}
     >
-      <div className="text-slate-400 group-hover:text-blue-500 transition-colors">
+      <div
+        {...listeners}
+        className="text-slate-400 group-hover:text-blue-500 transition-colors cursor-grab active:cursor-grabbing touch-none"
+      >
         <GripVertical className="w-4 h-4" />
       </div>
       <div className="flex-1 min-w-0">
@@ -70,9 +73,14 @@ const DraggableServiceItem = ({ service }: { service: IService }) => {
           {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(service.price))}
         </p>
       </div>
-      <div className="bg-slate-100 p-1.5 rounded-lg text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-500 transition-all">
-        <Plus className="w-3.5 h-3.5" />
-      </div>
+      <button
+        type="button"
+        onClick={() => onAdd(service)}
+        className="bg-blue-50 lg:bg-slate-100 p-2 lg:p-1.5 rounded-lg text-blue-500 lg:text-slate-400 hover:bg-blue-100 hover:text-blue-600 active:scale-90 active:bg-blue-200 transition-all cursor-pointer"
+        aria-label={`Adicionar ${service.name} ao pacote`}
+      >
+        <Plus className="w-4 h-4 lg:w-3.5 lg:h-3.5" strokeWidth={2.5} />
+      </button>
     </div>
   );
 };
@@ -117,6 +125,31 @@ export const CreatePackage = () => {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isOverDroppable, setIsOverDroppable] = useState(false);
+  const [summaryBumpKey, setSummaryBumpKey] = useState(0);
+
+  const handleAddServiceToPackage = (svc: IService) => {
+    const existingIndex = packageItems.findIndex(p => p.serviceId === svc.id);
+    if (existingIndex !== -1) {
+      const newQty = packageItems[existingIndex].quantity + 1;
+      handleUpdatePackageItem(existingIndex, { quantity: newQty });
+      toast.success(`${svc.name} (${newQty}x)`, {
+        position: "top-right",
+        duration: 1500,
+      });
+    } else {
+      setPackageItems(prev => [...prev, { serviceId: svc.id, quantity: 1 }]);
+      toast.success(`${svc.name} adicionado`, {
+        position: "top-right",
+        duration: 1500,
+      });
+    }
+    setSummaryBumpKey(k => k + 1);
+  };
+
+  const sensors = useSensors(
+    useSensor(MouseSensor),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } })
+  );
 
   const serviceToEdit = allServices?.find(s => s.id === id);
   const availableServices = (allServices || []).filter(s => s.type === "SERVICE" && s.id !== id);
@@ -183,8 +216,8 @@ export const CreatePackage = () => {
     if (!nome.trim()) newErrors.nome = "O nome é obrigatório";
     if (!descricao.trim()) newErrors.descricao = "A descrição é obrigatória";
     if (!price || (parseBRL(price) || 0) === 0) newErrors.price = "O valor é obrigatório";
-    if (packageItems.length === 0) newErrors.packageItems = "Arraste pelo menos um serviço para o pacote";
-    if (packageItems.some(item => !item.serviceId || item.quantity <= 0)) newErrors.packageItems = "Preencha todos os serviços e quantidades";
+    if (packageItems.length === 0) newErrors.packageItems = "Adicione pelo menos um serviço ao pacote";
+    if (packageItems.some(item => !item.serviceId || item.quantity <= 0)) newErrors.packageItems = "Preencha a quantidade de todos os serviços adicionados";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -233,13 +266,7 @@ export const CreatePackage = () => {
     if (over && over.id === "package-droppable-area") {
       const draggedService = active.data.current as IService;
       if (draggedService) {
-        // Check if service already exists in package, if so just increment quantity
-        const existingIndex = packageItems.findIndex(p => p.serviceId === draggedService.id);
-        if (existingIndex !== -1) {
-          handleUpdatePackageItem(existingIndex, { quantity: packageItems[existingIndex].quantity + 1 });
-        } else {
-          setPackageItems(prev => [...prev, { serviceId: draggedService.id, quantity: 1 }]);
-        }
+        handleAddServiceToPackage(draggedService);
       }
     }
   };
@@ -257,7 +284,7 @@ export const CreatePackage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/50 flex flex-col h-screen overflow-hidden">
+    <div className="bg-slate-50/50 flex flex-col lg:h-screen lg:overflow-hidden">
       <header className="bg-white border-b border-slate-200 z-20 shrink-0 flex items-stretch h-16">
         <SidebarTrigger className="w-11 h-11 min-w-[44px] self-center rounded-lg bg-white border border-slate-200 shadow-sm p-0 hover:bg-slate-50 hover:opacity-80 transition-opacity lg:hidden">
           <span className="flex flex-col items-center justify-center gap-1">
@@ -278,21 +305,22 @@ export const CreatePackage = () => {
             </Button>
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-semibold text-slate-900">
-                {isEditMode ? "Editar Pacote" : "Novo Pacote de Serviços"}
+                {isEditMode ? "Editar Pacote" : "Novo Pacote"}
               </h1>
             </div>
           </div>
         </div>
       </header>
 
-      <DndContext 
+      <DndContext
+        sensors={sensors}
         onDragStart={(e) => setActiveId(e.active.id.toString())}
         onDragOver={(e) => setIsOverDroppable(e.over?.id === "package-droppable-area")}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex flex-col lg:flex-row lg:overflow-hidden">
           {/* Sidebar: Lista de Serviços */}
-          <aside className="w-80 bg-white border-r border-slate-200 flex flex-col shrink-0">
+          <aside className="w-full lg:w-80 bg-white border-b lg:border-b-0 lg:border-r border-slate-200 flex flex-col shrink-0">
             <div className="p-5 border-b border-slate-100">
               <h2 className="text-sm font-semibold text-slate-800 mb-4 flex items-center gap-2">
                 Catálogo de Serviços
@@ -307,12 +335,19 @@ export const CreatePackage = () => {
                 />
               </div>
             </div>
-            
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin custom-scrollbar">
-              <p className="text-[10px] uppercase font-bold text-slate-400 px-1 mb-1">Arraste para adicionar</p>
+
+            <div className="max-h-64 lg:max-h-none lg:flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin custom-scrollbar">
+              <p className="text-[10px] uppercase font-bold text-slate-400 px-1 mb-1">
+                <span className="hidden lg:inline">Arraste para adicionar</span>
+                <span className="lg:hidden">Toque em + para adicionar</span>
+              </p>
               {filteredSidebarServices.length > 0 ? (
                 filteredSidebarServices.map(s => (
-                  <DraggableServiceItem key={s.id} service={s} />
+                  <DraggableServiceItem
+                    key={s.id}
+                    service={s}
+                    onAdd={handleAddServiceToPackage}
+                  />
                 ))
               ) : (
                 <div className="text-center py-8 text-slate-400">
@@ -323,8 +358,8 @@ export const CreatePackage = () => {
           </aside>
           {/* Área Principal: Formulário */}
           <main className="flex-1 overflow-y-auto bg-slate-50/30 p-5 scrollbar-thin custom-scrollbar">
-          
-            <div className="max-w-4xl mx-auto space-y-8">
+
+            <div className="max-w-4xl mx-auto space-y-8 pb-36 lg:pb-0">
               {/* Informações Básicas */}
               <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
@@ -415,16 +450,26 @@ export const CreatePackage = () => {
                             <div className="flex items-center gap-3">
                                <div className="flex flex-col items-center">
                                   <label className="text-[10px] uppercase font-bold text-slate-400 mb-1">
-                                    Quantidade
+                                    Qtd.
                                   </label>
-                                  <div className="flex items-center gap-2">
-                                     <input
-                                      type="number"
-                                      min="1"
-                                      value={item.quantity}
-                                      onChange={(e) => handleUpdatePackageItem(index, { quantity: parseInt(e.target.value) || 1 })}
-                                      className={cn(baseInputClass, "w-20 h-9 px-2 text-center font-semibold")}
-                                    />
+                                  <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleUpdatePackageItem(index, { quantity: Math.max(1, item.quantity - 1) })}
+                                      className="w-8 h-9 flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors"
+                                    >
+                                      <span className="text-base font-medium leading-none">−</span>
+                                    </button>
+                                    <span className="w-8 h-9 flex items-center justify-center text-sm font-semibold text-slate-800 border-x border-slate-200">
+                                      {item.quantity}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleUpdatePackageItem(index, { quantity: item.quantity + 1 })}
+                                      className="w-8 h-9 flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors"
+                                    >
+                                      <Plus className="w-3.5 h-3.5" />
+                                    </button>
                                   </div>
                                </div>
                                <Button
@@ -448,7 +493,10 @@ export const CreatePackage = () => {
                       </div>
                       <div className="space-y-1">
                         <p className="text-sm font-medium text-slate-600">Nenhum serviço adicionado</p>
-                        <p className="text-xs text-slate-400">Arraste serviços do catálogo à esquerda para começar.</p>
+                        <p className="text-xs text-slate-400">
+                        <span className="hidden lg:inline">Arraste serviços do catálogo à esquerda para começar.</span>
+                        <span className="lg:hidden">Toque em + para adicionar serviços do catálogo acima.</span>
+                      </p>
                       </div>
                     </div>
                   )}
@@ -462,8 +510,8 @@ export const CreatePackage = () => {
             </div>
           </main>
 
-          {/* Coluna da Direita: Resumo Financeiro */}
-          <aside className="w-80 bg-white border-l border-slate-200 flex flex-col shrink-0">
+          {/* Coluna da Direita: Resumo Financeiro (desktop apenas) */}
+          <aside className="hidden lg:flex w-full lg:w-80 bg-white border-t lg:border-t-0 lg:border-l border-slate-200 flex-col shrink-0">
              
              <div className="p-6 space-y-8 flex-1 overflow-y-auto scrollbar-thin custom-scrollbar">
                 <div className="space-y-4">
@@ -561,6 +609,66 @@ export const CreatePackage = () => {
           ) : null}
         </DragOverlay>
       </DndContext>
+
+      {/* Resumo compacto fixo no rodapé (mobile/tablet) */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-[0_-6px_20px_rgba(0,0,0,0.08)] z-40">
+        <div className="px-4 py-3">
+          <div className="flex items-center justify-between text-xs mb-2">
+            <span className="text-slate-500 font-medium">
+              {packageItems.length === 0
+                ? "Nenhum item"
+                : `${packageItems.length} ${packageItems.length === 1 ? "item" : "itens"}`}
+              {calculateSuggestedPrice() > 0 && (
+                <>
+                  {" · "}
+                  <span className="line-through opacity-70">
+                    {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(calculateSuggestedPrice())}
+                  </span>
+                </>
+              )}
+            </span>
+            {(parseBRL(price) || 0) > 0 && calculateSuggestedPrice() > 0 && (() => {
+              const final = parseBRL(price) || 0;
+              const suggested = calculateSuggestedPrice();
+              const percentage = Math.round((1 - final / suggested) * 100);
+              if (percentage > 0) {
+                return (
+                  <span className="bg-green-50 text-green-700 px-2 py-0.5 rounded-full font-semibold">
+                    {percentage}% off
+                  </span>
+                );
+              }
+              if (percentage < 0) {
+                return (
+                  <span className="bg-red-50 text-red-700 px-2 py-0.5 rounded-full font-semibold">
+                    {Math.abs(percentage)}% acima
+                  </span>
+                );
+              }
+              return null;
+            })()}
+          </div>
+          <div className="flex items-end gap-3">
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] uppercase font-bold text-slate-400 leading-tight">Preço Final</p>
+              <span
+                key={summaryBumpKey}
+                className="block text-xl font-bold text-slate-900 truncate animate-in zoom-in-95 duration-300"
+              >
+                {price || "R$ 0,00"}
+              </span>
+            </div>
+            <Button
+              onClick={handleSubmit}
+              disabled={isPending || !isFormValid}
+              title={!isFormValid ? "Preencha todos os campos para salvar" : ""}
+              className="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white h-12 px-5 rounded-xl font-semibold shadow-lg shadow-blue-100 transition-all active:scale-[0.98] whitespace-nowrap"
+            >
+              {isPending ? "..." : "Salvar"}
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
