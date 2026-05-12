@@ -67,9 +67,9 @@ const toPartsMap = (formatter: Intl.DateTimeFormat, date: Date) => {
   return Object.fromEntries(formatter.formatToParts(date).map(({ type, value }) => [type, value]))
 }
 
-const hasExplicitTimezone = (value: string) => {
-  return /(?:Z|[+-]\d{2}:?\d{2})$/i.test(value)
-}
+// const hasExplicitTimezone = (value: string) => {
+//   return /(?:Z|[+-]\d{2}:?\d{2})$/i.test(value)
+// }
 
 export type BusinessDateTimeParts = {
   year: number
@@ -190,12 +190,13 @@ export const formatBusinessHour = (value: string | null | undefined, emptyLabel 
   const raw = String(value).trim()
   if (!raw) return emptyLabel
 
-  // Preserve local wall-clock values when backend sends datetime without timezone.
+  // Preserve local wall-clock values when backend sends datetime without timezone,
+  // or with timezone (UTC-as-local convention).
   const localDateTimeMatch = raw.match(
-    /^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})(?::\d{2}(?:\.\d{1,3})?)?$/
+    /^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})/
   )
 
-  if (localDateTimeMatch && !hasExplicitTimezone(raw)) {
+  if (localDateTimeMatch) {
     const [, , , , hour, minute] = localDateTimeMatch
     return `${hour}:${minute}`
   }
@@ -223,11 +224,13 @@ export const formatUserHour = (value: string | Date | null | undefined, emptyLab
   const raw = String(value).trim()
   if (!raw) return emptyLabel
 
+  // Preserve local wall-clock values when backend sends datetime without timezone,
+  // or with timezone (UTC-as-local convention).
   const localDateTimeMatch = raw.match(
-    /^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})(?::\d{2}(?:\.\d{1,3})?)?$/
+    /^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})/
   )
 
-  if (localDateTimeMatch && !hasExplicitTimezone(raw)) {
+  if (localDateTimeMatch && typeof value === 'string') {
     const [, , , , hour, minute] = localDateTimeMatch
     return `${hour}:${minute}`
   }
