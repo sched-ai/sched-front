@@ -72,11 +72,12 @@ type ApiDateParts = {
 
 const parseApiDateParts = (value: string): ApiDateParts => {
   const raw = String(value).trim();
+  const hasExplicitTimezone = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(raw);
   const wallClockMatch = raw.match(
     /^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})/
   );
 
-  if (wallClockMatch) {
+  if (wallClockMatch && !hasExplicitTimezone) {
     const [, yearStr, monthStr, dayStr, hourStr, minuteStr] = wallClockMatch;
     const year = Number(yearStr);
     const month = Number(monthStr);
