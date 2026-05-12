@@ -32,8 +32,13 @@ const buildLocalIso = (date: { day: number; month: number; year: number }, hour:
   const h = Number(hStr);
   const m = Number(mStr);
 
-  const localDate = new Date(date.year, date.month - 1, date.day, h, m, 0, 0);
-  return localDate.toISOString();
+  const yyyy = String(date.year).padStart(4, "0");
+  const mm = String(date.month).padStart(2, "0");
+  const dd = String(date.day).padStart(2, "0");
+  const hh = String(h).padStart(2, "0");
+  const min = String(m).padStart(2, "0");
+
+  return `${yyyy}-${mm}-${dd}T${hh}:${min}:00`;
 };
 
 interface IProps {

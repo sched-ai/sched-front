@@ -15,8 +15,13 @@ const buildUtcLikeIso = (year: number, month: number, day: number, hour: string)
   const h = Number(hStr);
   const m = Number(mStr);
 
-  const localDate = new Date(year, month - 1, day, h, m, 0, 0);
-  return localDate.toISOString();
+  const yyyy = String(year).padStart(4, "0");
+  const mm = String(month).padStart(2, "0");
+  const dd = String(day).padStart(2, "0");
+  const hh = String(h).padStart(2, "0");
+  const min = String(m).padStart(2, "0");
+
+  return `${yyyy}-${mm}-${dd}T${hh}:${min}:00`;
 };
 
 interface IProps {
