@@ -3,6 +3,7 @@ import { format, startOfWeek, addDays, isSameDay } from "date-fns";
 import { BotMessageSquare, Plus } from "lucide-react";
 import type { AvailableHours } from "@/hooks/api/useGetCalendar";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { getUserDayAvailability, type DayAvailability } from "@/lib/dateTime";
 
 const weekDays = [
   "Domingo",
@@ -79,6 +80,10 @@ function addMinutesToTime(time: string, minutesToAdd: number) {
   return `${String(nextHour).padStart(2, "0")}:${String(nextMinute).padStart(2, "0")}`;
 }
 
+const getDateKey = (date: Date) => {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+};
+
 export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ 
   events, 
   currentDate,
@@ -136,6 +141,21 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
   const swipeBaseOffset = isSwipeReady ? -swipeAreaWidth : 0;
   const swipeTranslateX = swipeBaseOffset + swipeOffset;
 
+  const availabilityByDate = React.useMemo(() => {
+    if (!availableHours) return new Map<string, DayAvailability | null>();
+
+    const map = new Map<string, DayAvailability | null>();
+    renderedDates.forEach((date) => {
+      map.set(getDateKey(date), getUserDayAvailability(date, availableHours));
+    });
+    return map;
+  }, [availableHours, renderedDates]);
+
+  const getAvailabilityForDate = React.useCallback(
+    (date: Date) => availabilityByDate.get(getDateKey(date)) ?? null,
+    [availabilityByDate]
+  );
+
   useEffect(() => {
     if (scrollContainerRef.current) {
       const scrollPosition = 6 * CELL_HEIGHT;
@@ -182,32 +202,33 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
     setIsSwipeAnimating(false);
   }, [currentDate, viewMode, swipeAreaWidth, isSwipeEnabled]);
 
-  const isCellAllowed = React.useCallback((date: Date, hourIdx: number) => {
-    const cellStart = new Date(date);
-    cellStart.setHours(hourIdx, 0, 0, 0);
-    const cellEnd = new Date(date);
-    cellEnd.setHours(hourIdx + 1, 0, 0, 0);
-    const now = new Date();
+  const isCellAllowed = React.useCallback(
+    (date: Date, hourIdx: number) => {
+      const cellStart = new Date(date);
+      cellStart.setHours(hourIdx, 0, 0, 0);
+      const cellEnd = new Date(date);
+      cellEnd.setHours(hourIdx + 1, 0, 0, 0);
+      const now = new Date();
 
-    if (cellEnd <= now) {
-      return false;
-    }
+      if (cellEnd <= now) {
+        return false;
+      }
 
-    if (availableHours) {
-      const dayData = availableHours[String(cellStart.getDay())];
-      if (!dayData || dayData.startMinute === null || dayData.endMinute === null) {
+      const availability = getAvailabilityForDate(cellStart);
+      if (!availability || availability.startMinute === null || availability.endMinute === null) {
         return false;
       }
 
       const blockStartMin = hourIdx * 60;
       const blockEndMin = (hourIdx + 1) * 60;
-      if (blockEndMin <= dayData.startMinute || blockStartMin >= dayData.endMinute) {
+      if (blockEndMin <= availability.startMinute || blockStartMin >= availability.endMinute) {
         return false;
       }
-    }
 
-    return true;
-  }, [availableHours]);
+      return true;
+    },
+    [getAvailabilityForDate]
+  );
 
   const controlledTempBox = React.useMemo(() => {
     if (!draftEvent) return null;
@@ -345,10 +366,10 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 		};
   }).filter(event => {
     // Hide block events if the day is entirely unavailable
-    if (event.type === 'bloqueio' && availableHours && event.dayIdx >= 0) {
-      const dayOfWeek = renderedDates[event.dayIdx]?.getDay();
-      const dayData = dayOfWeek !== undefined ? availableHours[String(dayOfWeek)] : undefined;
-      if (!dayData || dayData.startMinute === null || dayData.endMinute === null) {
+    if (event.type === 'bloqueio' && event.dayIdx >= 0) {
+      const date = renderedDates[event.dayIdx];
+      const availability = date ? getAvailabilityForDate(date) : null;
+      if (!availability || availability.startMinute === null || availability.endMinute === null) {
         return false;
       }
     }

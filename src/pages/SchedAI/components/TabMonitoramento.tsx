@@ -9,7 +9,7 @@ import {
   useMarkMonitoringUserAsRead,
   type MonitoringMessagesResponse,
 } from "@/hooks/api/useSchedAiMonitoring"
-import { formatBusinessHour } from "@/lib/dateTime"
+import { formatUserHour } from "@/lib/dateTime"
 import { formatPhone } from "@/util/helper"
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { useQueryClient } from "@tanstack/react-query"
@@ -25,7 +25,7 @@ const toAvatarLabel = (name: string) => {
 }
 
 const formatListTimestamp = (value: string | null) => {
-  return formatBusinessHour(value, "Sem horário")
+  return formatUserHour(value, "Sem horário")
 }
 
 const mergeOlderMessages = (older: Message[], newer: Message[]) => {

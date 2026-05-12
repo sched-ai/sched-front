@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import {
   ChevronDown,
   ChevronRight,
@@ -26,6 +24,7 @@ import {
 import { type AppointmentAPI, useGetAllAppointments } from "@/hooks/api/useGetAllAppointments";
 import { useGetClient } from "@/hooks/api/useGetClient";
 import useToast from "@/hooks/useToast";
+import { getUserDisplayParts } from "@/lib/dateTime";
 import { normalizeRichTextContent, richTextToPlainText } from "@/util/richText";
 
 type SignedLinkCacheEntry = {
@@ -347,11 +346,11 @@ export const PatientHistory = () => {
             )}
 
             {displayAppointments.map((appointment) => {
-              const dateObj = new Date(appointment.startDate);
-              const day = format(dateObj, "dd");
-              const month = format(dateObj, "MMM", { locale: ptBR }).toUpperCase().replace(".", "");
-              const year = format(dateObj, "yyyy");
-              const time = format(dateObj, "HH:mm");
+              const dateParts = getUserDisplayParts(appointment.startDate);
+              const day = dateParts?.day ?? "--";
+              const month = dateParts?.monthShort ?? "--";
+              const year = dateParts?.year ?? "--";
+              const time = dateParts?.time ?? "--:--";
 
               const serviceName = appointment.service?.name || "Atendimento";
               const professionalName = appointment.employee?.name || "Profissional não informado";
@@ -533,7 +532,10 @@ export const PatientHistory = () => {
                           <div className="flex flex-col gap-3">
                             {[latestAnnotation].map((note) => {
                               const noteDate = new Date(note.createdAt);
-                              const noteDateFormatted = format(noteDate, "dd/MM/yyyy 'às' HH:mm");
+                              const noteParts = getUserDisplayParts(noteDate);
+                              const noteDateFormatted = noteParts
+                                ? `${noteParts.day}/${noteParts.month}/${noteParts.year} às ${noteParts.time}`
+                                : "";
                               const noteContentHtml = normalizeRichTextContent(note.content || "");
                               const noteContentPlain = richTextToPlainText(noteContentHtml);
                               const isExpanded = expandedCards[note.id];

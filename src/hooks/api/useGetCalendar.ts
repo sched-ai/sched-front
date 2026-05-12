@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import useAPI from "./useAPI";
 import type { EventType } from "@/components/WeeklyCalendar";
+import { getUserDateTimeParts } from "@/lib/dateTime";
 
 interface UseGetCalendarParams {
   referenceDate?: Date;
@@ -70,20 +71,8 @@ type ApiDateParts = {
 };
 
 const parseApiDateParts = (value: string): ApiDateParts => {
-  // Preserve wall-clock values from API ISO string to avoid timezone shifts in UI.
-  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
-
-  if (match) {
-    const [, y, m, d, hh, mm] = match;
-    const year = Number(y);
-    const month = Number(m);
-    const day = Number(d);
-    const hour = Number(hh);
-    const minute = Number(mm);
-    const dayIdx = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
-
-    return { year, month, day, hour, minute, dayIdx };
-  }
+  const parts = getUserDateTimeParts(value);
+  if (parts) return parts;
 
   const date = new Date(value);
   return {

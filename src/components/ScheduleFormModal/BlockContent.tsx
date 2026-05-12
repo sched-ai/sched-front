@@ -10,14 +10,13 @@ import type { Matcher } from "react-day-picker";
 import type { TimePickerProps } from "antd";
 import { TimePickerField } from "./TimePickerField";
 
-const pad2 = (value: number) => String(value).padStart(2, "0");
-
 const buildUtcLikeIso = (year: number, month: number, day: number, hour: string) => {
   const [hStr = "0", mStr = "0"] = hour.split(":");
   const h = Number(hStr);
   const m = Number(mStr);
 
-  return `${year}-${pad2(month)}-${pad2(day)}T${pad2(h)}:${pad2(m)}:00.000Z`;
+  const localDate = new Date(year, month - 1, day, h, m, 0, 0);
+  return localDate.toISOString();
 };
 
 interface IProps {

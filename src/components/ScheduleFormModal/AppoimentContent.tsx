@@ -27,14 +27,13 @@ import { TimePickerField } from "./TimePickerField";
 import { Gift } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-const pad2 = (value: number) => String(value).padStart(2, "0");
-
 const buildLocalIso = (date: { day: number; month: number; year: number }, hour: string) => {
   const [hStr = "0", mStr = "0"] = hour.split(":");
   const h = Number(hStr);
   const m = Number(mStr);
 
-  return `${date.year}-${pad2(date.month)}-${pad2(date.day)}T${pad2(h)}:${pad2(m)}:00.000Z`;
+  const localDate = new Date(date.year, date.month - 1, date.day, h, m, 0, 0);
+  return localDate.toISOString();
 };
 
 interface IProps {
@@ -219,6 +218,7 @@ export const AppoimentContent = ({
     return selectedServiceObj.workplaces.some(swp => String(swp.id) === String(w.id));
   });
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const availableWorkplacesForService = [...rawAvailableWorkplaces];
   if (appointmentId && effectiveLocationId && !rawAvailableWorkplaces.find(w => String(w.id) === effectiveLocationId)) {
     availableWorkplacesForService.push({

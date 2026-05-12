@@ -13,6 +13,7 @@ import { useSearchClients } from "@/hooks/api/useSearchClients";
 import { useNavigate } from "react-router-dom";
 import type { AvailableHours } from "@/hooks/api/useGetCalendar";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { getUserDayAvailability } from "@/lib/dateTime";
 
 const MODAL_WIDTH = 400;
 const MODAL_HEIGHT = 600;
@@ -169,10 +170,10 @@ export const ScheduleFormModal = ({
   const navigate = useNavigate();
 
   const getDayAvailability = useCallback((date: Date) => {
-    const dayData = availableHours?.[String(date.getDay())];
-    if (!dayData || dayData.startMinute === null || dayData.endMinute === null) return null;
-    if (dayData.endMinute <= dayData.startMinute) return null;
-    return { startMinute: dayData.startMinute, endMinute: dayData.endMinute };
+    const availability = getUserDayAvailability(date, availableHours);
+    if (!availability || availability.startMinute === null || availability.endMinute === null) return null;
+    if (availability.endMinute <= availability.startMinute) return null;
+    return { startMinute: availability.startMinute, endMinute: availability.endMinute };
   }, [availableHours]);
 
   const getEffectiveBounds = useCallback((date: Date) => {

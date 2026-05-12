@@ -1,5 +1,5 @@
 import { MessageSquareText, ChevronDown, Send, Loader2, ArrowLeft } from "lucide-react";
-import { formatBusinessHour } from "@/lib/dateTime";
+import { formatUserHour } from "@/lib/dateTime";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -39,7 +39,7 @@ export interface Message {
 }
 
 const formatMessageTime = (value: string) => {
-  return formatBusinessHour(value, "Sem horário");
+  return formatUserHour(value, "Sem horário");
 };
 
 const toDateKey = (value: string) => {
@@ -59,7 +59,7 @@ const formatDateBadge = (value: string) => {
   if (value === "sem-data") return "Sem data";
 
   const today = new Date();
-  const todayKey = `${today.getUTCFullYear()}-${String(today.getUTCMonth() + 1).padStart(2, "0")}-${String(today.getUTCDate()).padStart(2, "0")}`;
+  const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
   if (value === todayKey) return "HOJE";
 
   const parsed = new Date(`${value}T00:00:00`);

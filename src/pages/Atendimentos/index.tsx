@@ -16,6 +16,7 @@ import {
 import { format } from "date-fns";
 import { useGetAllAppointments, type AppointmentAPI } from "@/hooks/api/useGetAllAppointments";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { formatUserHour } from "@/lib/dateTime";
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -87,10 +88,7 @@ function getStatusVisual(status: string) {
 function formatAppointmentTime(startDate: string) {
   if (!startDate) return "-";
 
-  const rawTime = startDate.split("T")[1]?.substring(0, 5);
-  if (rawTime) return rawTime;
-
-  return format(new Date(startDate), "HH:mm");
+  return formatUserHour(startDate, "-");
 }
 
 export const Atendimentos = () => {
@@ -534,7 +532,7 @@ function paginatedCards(appointments: AppointmentAPI[], navigate: ReturnType<typ
           </div>
           <div>
             <p className="text-xs text-slate-500">Horário</p>
-            <p>{format(start, "HH:mm")}</p>
+            <p>{formatAppointmentTime(atendimento.startDate)}</p>
           </div>
           <div>
             <p className="text-xs text-slate-500">Origem</p>
