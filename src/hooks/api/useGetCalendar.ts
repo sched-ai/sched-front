@@ -71,6 +71,32 @@ type ApiDateParts = {
 };
 
 const parseApiDateParts = (value: string): ApiDateParts => {
+  const raw = String(value).trim();
+  // We use UTC-as-local convention, so we always extract the wall clock
+  // time from the string regardless of whether it has a 'Z' or timezone offset.
+  const wallClockMatch = raw.match(
+    /^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})/
+  );
+
+  if (wallClockMatch) {
+    const [, yearStr, monthStr, dayStr, hourStr, minuteStr] = wallClockMatch;
+    const year = Number(yearStr);
+    const month = Number(monthStr);
+    const day = Number(dayStr);
+    const hour = Number(hourStr);
+    const minute = Number(minuteStr);
+    const dayIdx = new Date(year, month - 1, day).getDay();
+
+    return {
+      year,
+      month,
+      day,
+      hour,
+      minute,
+      dayIdx,
+    };
+  }
+
   const parts = getUserDateTimeParts(value);
   if (parts) return parts;
 

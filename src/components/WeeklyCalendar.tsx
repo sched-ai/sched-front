@@ -1,9 +1,10 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useCallback } from "react";
 import { format, startOfWeek, addDays, isSameDay } from "date-fns";
 import { BotMessageSquare, Plus } from "lucide-react";
 import type { AvailableHours } from "@/hooks/api/useGetCalendar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getUserDayAvailability, type DayAvailability } from "@/lib/dateTime";
+import { findSmartSlot, timeToMin, minToTime, type TimeInterval } from "@/lib/slotUtils";
 
 const weekDays = [
   "Domingo",
@@ -399,6 +400,19 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
     return blocked;
   }, [eventMap]);
 
+  // Convert eventMap entries for a given day into TimeInterval[] for slotUtils
+  const getDayEventsAsIntervals = useCallback(
+    (dayIdx: number): TimeInterval[] =>
+      eventMap
+        .filter((ev) => ev.dayIdx === dayIdx)
+        .map((ev) => ({
+          startMin: timeToMin(ev.start),
+          endMin: timeToMin(ev.end),
+        }))
+        .filter((iv) => iv.endMin > iv.startMin),
+    [eventMap],
+  );
+
   const handleCellClick = (dayIdx: number, hourIdx: number, hour: string, e: React.MouseEvent<HTMLDivElement>) => {
     const dateObj = renderedDates[dayIdx];
     if (!dateObj) return;
@@ -407,8 +421,21 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
     const adjustedStartHour = (isToday && hourIdx === now.getHours())
       ? addMinutesToTime(hour, Math.ceil(now.getMinutes() / 5) * 5)
       : hour;
-    const defaultEndHour = addMinutesToTime(adjustedStartHour, 5);
-    setTempBox({ dayIdx, startHour: adjustedStartHour, endHour: defaultEndHour, date: dateObj, type: 'consulta' });
+
+    // Use findSmartSlot for intelligent 1h default with obstacle awareness
+    const clickedMin = timeToMin(adjustedStartHour);
+    const obstacles = getDayEventsAsIntervals(dayIdx);
+    const avail = getAvailabilityForDate(dateObj);
+    const slot = findSmartSlot(
+      clickedMin,
+      obstacles,
+      avail?.startMinute ?? 0,
+      avail?.endMinute ?? 1440,
+    );
+    const startStr = minToTime(slot.startMin);
+    const endStr = minToTime(slot.endMin);
+
+    setTempBox({ dayIdx, startHour: startStr, endHour: endStr, date: dateObj, type: 'consulta' });
     if (onDateClick) {
       const rect = e.currentTarget.getBoundingClientRect();
       onDateClick(
@@ -417,7 +444,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
           month: dateObj.getMonth() + 1,
           year: dateObj.getFullYear(),
         },
-        adjustedStartHour,
+        startStr,
         rect
       );
     }

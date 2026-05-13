@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { WeeklyCalendar, type EventType } from "@/components/WeeklyCalendar";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { format, addWeeks, subWeeks, addDays, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ScheduleFormModal } from "@/components/ScheduleFormModal";
@@ -21,6 +21,8 @@ import { PackageBindModal } from "@/components/PackageBindModal";
 import { PackagePlus } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { findSmartSlot, timeToMin, minToTime, type TimeInterval } from "@/lib/slotUtils";
+import { getUserDayAvailability } from "@/lib/dateTime";
 
 export const Home = () => {
   const isMobile = useIsMobile();
@@ -92,51 +94,61 @@ export const Home = () => {
     enabled: !!userData && userData.onboardingStep >= 5
   });
 
+  // Helper: get events for a specific date as TimeIntervals
+  const getEventsForDate = useCallback(
+    (date: { day: number; month: number; year: number }): TimeInterval[] => {
+      return data.events
+        .filter((ev: EventType) => {
+          const evMonth = typeof ev.month === 'string' ? Number(ev.month) : ev.month;
+          const evYear = Number(ev.year);
+          if (typeof ev.dayNumber === 'number') {
+            return ev.dayNumber === date.day && evMonth === date.month && evYear === date.year;
+          }
+          // Fallback: match by day name within the week
+          const dayNames = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+          const weekStart = new Date(date.year, date.month - 1, date.day);
+          weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+          const dayIndex = dayNames.indexOf(ev.day);
+          const eventDate = new Date(weekStart);
+          eventDate.setDate(weekStart.getDate() + dayIndex);
+          return eventDate.getDate() === date.day && (eventDate.getMonth() + 1) === date.month && eventDate.getFullYear() === date.year;
+        })
+        .map((ev: EventType) => ({
+          startMin: timeToMin(ev.start),
+          endMin: timeToMin(ev.end),
+        }))
+        .filter((iv) => iv.endMin > iv.startMin);
+    },
+    [data.events],
+  );
+
+  // Helper: get availability bounds for a date
+  const getAvailBoundsForDate = useCallback(
+    (date: { day: number; month: number; year: number }) => {
+      const dateObj = new Date(date.year, date.month - 1, date.day);
+      const avail = getUserDayAvailability(dateObj, data.availableHours);
+      return {
+        start: avail?.startMinute ?? 0,
+        end: avail?.endMinute ?? 1440,
+      };
+    },
+    [data.availableHours],
+  );
+
   const handleDateClick = (
     date: { day: number; month: number; year: number },
     hour: string,
     rect?: DOMRect
   ) => {
-    const weekStart = new Date(date.year, date.month - 1, date.day);
-    weekStart.setDate(weekStart.getDate() - weekStart.getDay()); // get sunday
+    const clickedMin = timeToMin(hour);
+    const obstacles = getEventsForDate(date);
+    const bounds = getAvailBoundsForDate(date);
+    const slot = findSmartSlot(clickedMin, obstacles, bounds.start, bounds.end);
+    const startStr = minToTime(slot.startMin);
+    const endStr = minToTime(slot.endMin);
 
-    const dayNames = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
-
-    const dayEvents = data.events.filter((ev: EventType) => {
-      const evMonth = typeof ev.month === 'string' ? Number(ev.month) : ev.month;
-      const evYear = Number(ev.year);
-      
-      let evDateMatches = false;
-      if (typeof ev.dayNumber === 'number') {
-        evDateMatches = ev.dayNumber === date.day && evMonth === date.month && evYear === date.year;
-      } else {
-        const dayIndex = dayNames.indexOf(ev.day);
-        const eventDate = new Date(weekStart);
-        eventDate.setDate(weekStart.getDate() + dayIndex);
-        evDateMatches = eventDate.getDate() === date.day && (eventDate.getMonth() + 1) === date.month && eventDate.getFullYear() === date.year;
-      }
-      return evDateMatches;
-    });
-
-    const [startH = "0", startM = "0"] = hour.split(":");
-    const hourMin = Number(startH) * 60 + Number(startM);
-    let nextStartMin = hourMin + 60; // Max 1 hour
-
-    for (const ev of dayEvents) {
-      if (!ev.start) continue;
-      const [evH = "0", evM = "0"] = ev.start.split(":");
-      const evMin = Number(evH) * 60 + Number(evM);
-      if (evMin > hourMin && evMin < nextStartMin) {
-        nextStartMin = evMin;
-      }
-    }
-
-    const nextHourRaw = Math.floor(nextStartMin / 60);
-    const nextMinRaw = nextStartMin % 60;
-    const defaultEnd = `${String(nextHourRaw).padStart(2, "0")}:${String(nextMinRaw).padStart(2, "0")}`;
-
-    setScheduleFormSelectedDateTime({ ...date, hour, endHour: defaultEnd });
-    setScheduleDraftEvent({ ...date, startHour: hour, endHour: defaultEnd, type: 'consulta' });
+    setScheduleFormSelectedDateTime({ ...date, hour: startStr, endHour: endStr });
+    setScheduleDraftEvent({ ...date, startHour: startStr, endHour: endStr, type: 'consulta' });
     setSelectedEvent(null);
     
     if (rect && !isMobile) {
