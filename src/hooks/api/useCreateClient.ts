@@ -4,11 +4,13 @@ import type { ClientAPI } from "./useGetAllClients";
 
 interface CreateClientDTO {
   name: string;
-  cpf: string;
+    cpf?: string | null;
   phone?: string;
     email?: string | null;
     gender?: string | null;
   photoUrl?: string;
+    birthDate?: string | null;
+    socialNetwork?: string | null;
 }
 
 export const useCreateClient = () => {

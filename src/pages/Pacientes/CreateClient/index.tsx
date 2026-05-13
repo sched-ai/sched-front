@@ -60,7 +60,14 @@ const CreateClient = () => {
 
   const isPending = isCreating || isUpdating;
 
-  const [formData, setFormData] = useState({ name: initialName, cpf: "", phone: "", email: "" });
+  const [formData, setFormData] = useState({
+    name: initialName,
+    cpf: "",
+    phone: "",
+    email: "",
+    birthDate: "",
+    socialNetwork: "",
+  });
   const [gender, setGender] = useState<Gender | ''>('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -71,6 +78,8 @@ const CreateClient = () => {
         cpf: formatCPFForDisplay(clientToEdit.cpf || ""),
         phone: formatPhoneForDisplay(clientToEdit.phone || ""),
         email: clientToEdit.email || "",
+        birthDate: clientToEdit.birthDate ? String(clientToEdit.birthDate).slice(0, 10) : "",
+        socialNetwork: clientToEdit.socialNetwork || "",
       });
       setGender(isGender(String(clientToEdit.gender || '')) ? (clientToEdit.gender as Gender) : '');
     }
@@ -89,8 +98,9 @@ const CreateClient = () => {
       if (!formData.name.trim()) newErrors.name = "O nome é obrigatório";
       else if (formData.name.trim().length < 3) newErrors.name = "O nome deve ter pelo menos 3 letras";
 
-      if (!formData.cpf.trim()) newErrors.cpf = "O CPF é obrigatório";
-      else if (formData.cpf.replace(/\D/g, '').length !== 11) newErrors.cpf = "CPF inválido";
+      if (formData.cpf.trim() && formData.cpf.replace(/\D/g, '').length !== 11) {
+        newErrors.cpf = "CPF inválido";
+      }
 
       if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
           newErrors.email = "E-mail inválido";
@@ -106,9 +116,11 @@ const CreateClient = () => {
 
       const payload = {
         name: formData.name,
-        cpf: formData.cpf,
+        cpf: formData.cpf.trim() || null,
         phone: formData.phone ? `55${formData.phone.replace(/\D/g, "")}` : "",
         email: formData.email.trim() || null,
+        birthDate: formData.birthDate || null,
+        socialNetwork: formData.socialNetwork.trim() || null,
         gender: gender || null,
         photoUrl: "",
       };
@@ -231,7 +243,7 @@ const CreateClient = () => {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700">CPF <span className="text-red-500">*</span></label>
+                  <label className="text-sm font-medium text-slate-700">CPF</label>
                     <input 
                         value={formData.cpf} 
                         onChange={e => handleInputChange('cpf', e.target.value)} 
@@ -242,6 +254,27 @@ const CreateClient = () => {
                     />
                     {errors.cpf && <p className="text-red-500 text-xs mt-1">{errors.cpf}</p>}
                 </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">Data de nascimento</label>
+                    <input
+                      value={formData.birthDate}
+                      onChange={e => handleInputChange('birthDate', e.target.value)}
+                      className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all"
+                      type="date"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">Rede social</label>
+                    <input
+                      value={formData.socialNetwork}
+                      onChange={e => handleInputChange('socialNetwork', e.target.value)}
+                      className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all"
+                      placeholder="@instagram ou link"
+                      type="text"
+                    />
+                  </div>
 
                 {/* Gender Selection */}
                 <div className="pt-2">
