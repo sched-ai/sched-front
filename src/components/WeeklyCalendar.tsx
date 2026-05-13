@@ -802,17 +802,17 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                                   {/* Left accent bar */}
                                   <div className={`absolute left-[-6px] top-0 bottom-0 w-[3px] ${color.accent} rounded-full`}></div>
 
-                                  <div className={`font-semibold ${hasOverlap ? 'text-[10px]' : 'text-xs'} truncate leading-tight pr-1 tracking-tight`}>
+                                  <div className={`font-semibold ${hasOverlap ? 'text-[10px] lg:text-[11px]' : 'text-[11px] sm:text-xs lg:text-sm'} ${isShort ? 'truncate' : 'line-clamp-2 lg:line-clamp-1 lg:truncate'} leading-tight pr-1 tracking-tight break-words hyphens-auto`}>
                                     {ev.title}
                                   </div>
-                                  {!isShort && !hasOverlap && (
-                                    <div className={`text-[10px] flex items-center gap-1 mt-0.5 font-medium tracking-tight ${isConsultation ? 'opacity-80' : 'text-slate-500'}`}>
-                                      {ev.start} - {ev.end}
+                                  {!isShort && ev.services?.[0] && (
+                                    <div className={`${hasOverlap ? 'text-[9px]' : 'text-[10px]'} truncate mt-0.5 font-medium tracking-tight opacity-75 italic`}>
+                                      {ev.services[0]}
                                     </div>
                                   )}
-                                  {!isShort && hasOverlap && ev.professionalName && (
-                                    <div className={`text-[9px] truncate mt-0.5 font-medium tracking-tight opacity-80`}>
-                                      {ev.professionalName}
+                                  {!isShort && !hasOverlap && (
+                                    <div className={`text-[10px] hidden lg:flex items-center gap-1 mt-0.5 font-medium tracking-tight ${isConsultation ? 'opacity-80' : 'text-slate-500'}`}>
+                                      {ev.start} - {ev.end}
                                     </div>
                                   )}
 
