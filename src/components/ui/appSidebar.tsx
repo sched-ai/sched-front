@@ -47,7 +47,7 @@ export function AppSidebar() {
                   <div className="h-5 bg-gray-500 rounded w-1/2 animate-pulse"></div>
                 </div>
               ) : (isSidebarOpen) && (
-                <div className="mx-4 mt-6 p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 shadow-inner group transition-all duration-300 hover:bg-white/10">
+                <div className="mx-4 mt-6 p-4 rounded-xl bg-white/5 border border-white/10 shadow-inner group transition-colors duration-300 lg:hover:bg-white/10">
                   <p className='text-blue-100/70 text-xs font-medium mb-1 uppercase tracking-wider'>Bem vindo(a)</p>
                   <p className="text-white text-xl font-bold truncate tracking-wide text-shadow-sm">{userData?.name?.trim().split(/\s+/)[0]}</p>
                 </div>
