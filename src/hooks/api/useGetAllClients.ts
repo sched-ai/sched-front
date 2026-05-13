@@ -4,13 +4,15 @@ import useAPI from "./useAPI";
 export interface ClientAPI {
   id: string;
   name: string;
-  cpf: string;
+  cpf?: string | null;
   phone?: string | null;
   email?: string | null;
   gender?: string | null;
   photoUrl?: string | null;
   createdAt?: string; // Prisma specific
   companyId: string;
+  birthDate?: string | null;
+  socialNetwork?: string | null;
 }
 
 export interface ClientsResponse {
