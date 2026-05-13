@@ -425,6 +425,15 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
     // Use findSmartSlot for intelligent 1h default with obstacle awareness
     const clickedMin = timeToMin(adjustedStartHour);
     const obstacles = getDayEventsAsIntervals(dayIdx);
+
+    // Se o clique caiu dentro de um evento existente, ignora — o handleEventClick
+    // do card cobre esse caso. Sem essa guarda, findSmartSlot cai em trySlotBefore
+    // e cria um tempBox espalhando-se pelos horários anteriores ao card clicado.
+    const isInsideExistingEvent = obstacles.some(
+      (obs) => clickedMin >= obs.startMin && clickedMin < obs.endMin,
+    );
+    if (isInsideExistingEvent) return;
+
     const avail = getAvailabilityForDate(dateObj);
     const slot = findSmartSlot(
       clickedMin,
