@@ -4,11 +4,13 @@ import type { ClientAPI } from "./useGetAllClients";
 
 export interface IUpdateClientPayload {
   name: string;
-  cpf: string;
+  cpf?: string | null;
   phone?: string;
   email?: string | null;
   gender?: string | null;
   photoUrl?: string;
+  birthDate?: string | null;
+  socialNetwork?: string | null;
 }
 
 interface IUpdateClientParams {
