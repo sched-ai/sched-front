@@ -9,6 +9,7 @@ import { Error } from '@/pages/Error'
 import { Servicos } from '@/pages/Servicos'
 import Pacientes from '@/pages/Pacientes'
 import { CreatePackage } from '@/pages/Servicos/CreatePackage'
+import CreateService from '@/pages/Servicos/CreateService'
 import CreateClient from '@/pages/Pacientes/CreateClient'
 import PatientHistory from '@/pages/Pacientes/PatientHistory'
 import LandingPage from '../pages/LandingPage'
@@ -114,6 +115,18 @@ export const routesConfig: RouteConfig[] = [
   {
     path: '/services',
     element: <Servicos />,
+    template: true,
+    authRoute: true
+  },
+  {
+    path: '/services/new',
+    element: <CreateService />,
+    template: true,
+    authRoute: true
+  },
+  {
+    path: '/services/:id/edit',
+    element: <CreateService />,
     template: true,
     authRoute: true
   },

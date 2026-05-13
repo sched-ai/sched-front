@@ -15,7 +15,6 @@ import {
   useGetAllServices,
   type IService,
 } from "@/hooks/api/useGetAllServices";
-import { ModalCreateService } from "@/components/ModalCreateSevice";
 import { useDeleteService } from "@/hooks/api/useDeleteService";
 import { ModalAlert } from "@/components/ModalAlert";
 import { useQueryClient } from "@tanstack/react-query";
@@ -34,10 +33,8 @@ export const Servicos = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState<"all" | "service" | "package">("all");
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState<string | null>(null);
-  const [serviceToEdit, setServiceToEdit] = useState<IService | null>(null);
 
   const { data: services } = useGetAllServices();
   const queryClient = useQueryClient();
@@ -46,17 +43,15 @@ export const Servicos = () => {
     setSearchTerm(event.target.value);
   };
 
-  const handleOpenCreateModal = () => {
-    setServiceToEdit(null);
-    setIsModalOpen(true);
+  const handleOpenCreateService = () => {
+    navigate("/services/new");
   };
 
-  const handleOpenEditModal = (service: IService) => {
+  const handleOpenEditService = (service: IService) => {
     if (service.type === "PACKAGE") {
       navigate(`/services/packages/${service.id}/edit`);
     } else {
-      setServiceToEdit(service);
-      setIsModalOpen(true);
+      navigate(`/services/${service.id}/edit`);
     }
   };
 
@@ -145,7 +140,7 @@ export const Servicos = () => {
 
         {showAction && (
           <Button
-            onClick={handleOpenCreateModal}
+            onClick={handleOpenCreateService}
             className="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-4"
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -186,7 +181,7 @@ export const Servicos = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={handleOpenCreateModal}>
+                <DropdownMenuItem onClick={handleOpenCreateService}>
                   <BriefcaseBusiness className="w-4 h-4 mr-2" />
                   Novo Serviço
                 </DropdownMenuItem>
@@ -250,7 +245,7 @@ export const Servicos = () => {
                     <DropdownMenuContent className="w-48" align="end">
                       <DropdownMenuLabel>Ações</DropdownMenuLabel>
                       <DropdownMenuGroup>
-                        <DropdownMenuItem onClick={() => handleOpenEditModal(service)}>
+                        <DropdownMenuItem onClick={() => handleOpenEditService(service)}>
                           Editar
                           <DropdownMenuShortcut>
                             <Edit2 className="h-4 w-4" />
@@ -341,11 +336,6 @@ export const Servicos = () => {
         )}
       </main>
 
-      <ModalCreateService
-        isModalOpen={isModalOpen}
-        setIsModalOpen={setIsModalOpen}
-        service={serviceToEdit}
-      />
       <ModalAlert
         isModalOpen={isDeleteModalOpen}
         setIsModalOpen={setIsDeleteModalOpen}
