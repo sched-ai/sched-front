@@ -6,11 +6,11 @@ import { useUpdateService } from "@/hooks/api/useEditService";
 import { useGetAllServices, type IService } from "@/hooks/api/useGetAllServices";
 import { useGetAllWorkplaces } from "@/hooks/api/useGetAllWorkplaces";
 import { useQueryClient } from "@tanstack/react-query";
-import { 
-  ArrowLeft, 
-  Package, 
-  Plus, 
-  Trash2, 
+import {
+  ChevronLeft,
+  Package,
+  Plus,
+  Trash2,
   Info,
   Search,
   GripVertical,
@@ -285,7 +285,7 @@ export const CreatePackage = () => {
 
   return (
     <div className="bg-slate-50/50 flex flex-col lg:h-screen lg:overflow-hidden">
-      <header className="bg-white border-b border-slate-200 z-20 shrink-0 flex items-stretch h-16">
+      <header className="border-b border-b-[#DADCE0] max-h-[80px] bg-white flex items-center gap-4 px-4 sm:px-6 md:px-8 z-20 shrink-0 h-16">
         <SidebarTrigger className="w-11 h-11 min-w-[44px] self-center rounded-lg bg-white border border-slate-200 shadow-sm p-0 hover:bg-slate-50 hover:opacity-80 transition-opacity lg:hidden">
           <span className="flex flex-col items-center justify-center gap-1">
             <span className="block h-[2px] w-[18px] rounded-[2px] bg-slate-900/90" />
@@ -293,22 +293,13 @@ export const CreatePackage = () => {
             <span className="block h-[2px] w-[18px] rounded-[2px] bg-slate-900/90" />
           </span>
         </SidebarTrigger>
-        <div className="mx-auto px-6 h-full flex-1 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={() => navigate("/services")}
-              className="text-slate-500 hover:text-slate-900"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-semibold text-slate-900">
-                {isEditMode ? "Editar Pacote" : "Novo Pacote"}
-              </h1>
-            </div>
-          </div>
+        <div className="flex-1 p-4 flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate("/services")} className="hover:bg-slate-100">
+            <ChevronLeft className="h-5 w-5 text-slate-600" />
+          </Button>
+          <h1 className="text-2xl font-medium text-slate-800">
+            {isEditMode ? "Editar Pacote" : "Novo Pacote"}
+          </h1>
         </div>
       </header>
 

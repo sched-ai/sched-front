@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Building2, Globe } from 'lucide-react';
+import { ChevronLeft, Building2, Globe } from 'lucide-react';
 import axios from 'axios';
 
 import { Button } from '@/components/ui/button';
@@ -649,7 +649,7 @@ export default function LocationSettings() {
       <main className="mx-auto p-6 md:p-8 space-y-8 pt-2!">
         
         {/* Header Section */}
-        <header className="flex items-stretch gap-4 mb-2">
+        <header className="flex items-center gap-4 mb-2">
           <SidebarTrigger className="w-11 h-11 min-w-[44px] self-center rounded-lg bg-white border border-slate-200 shadow-sm p-0 hover:bg-slate-50 hover:opacity-80 transition-opacity lg:hidden">
             <span className="flex flex-col items-center justify-center gap-1">
               <span className="block h-[2px] w-[18px] rounded-[2px] bg-slate-900/90" />
@@ -658,9 +658,12 @@ export default function LocationSettings() {
             </span>
           </SidebarTrigger>
           <div className="flex-1 flex items-center gap-4">
-            <Button variant="ghost" onClick={() => navigate('/settings')} className="px-2">
-              <ArrowLeft className="w-5 h-5 text-slate-800" /> Voltar
+            <Button variant="ghost" size="icon" onClick={() => navigate('/settings')} className="hover:bg-slate-100">
+              <ChevronLeft className="h-5 w-5 text-slate-600" />
             </Button>
+            <h1 className="text-2xl font-medium text-slate-800">
+              {isEditing ? 'Editar Local' : 'Novo Local'}
+            </h1>
           </div>
         </header>
 

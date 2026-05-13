@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
   Clock,
   Download,
@@ -304,21 +305,19 @@ export const PatientHistory = () => {
       />
 
       <div className="mx-auto px-4 py-6 sm:p-8 space-y-6 sm:space-y-8">
-        <header className="flex items-stretch gap-4">
-          <SidebarTrigger className="w-11 h-11 min-w-[44px] self-start rounded-lg bg-white border border-slate-200 shadow-sm p-0 hover:bg-slate-50 hover:opacity-80 transition-opacity lg:hidden">
+        <header className="flex items-center gap-4">
+          <SidebarTrigger className="w-11 h-11 min-w-[44px] self-center rounded-lg bg-white border border-slate-200 shadow-sm p-0 hover:bg-slate-50 hover:opacity-80 transition-opacity lg:hidden">
             <span className="flex flex-col items-center justify-center gap-1">
               <span className="block h-[2px] w-[18px] rounded-[2px] bg-slate-900/90" />
               <span className="block h-[2px] w-3 rounded-[2px] bg-slate-900/90" />
               <span className="block h-[2px] w-[18px] rounded-[2px] bg-slate-900/90" />
             </span>
           </SidebarTrigger>
-          <div className="flex-1">
-            <div className="mb-6 sm:mb-8">
-              <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900">Histórico de Atendimentos</h1>
-              <p className="text-sm text-gray-600 mt-2">
-                Visualize e acompanhe todos os atendimentos realizados.
-              </p>
-            </div>
+          <div className="flex-1 flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="hover:bg-slate-100">
+              <ChevronLeft className="h-5 w-5 text-slate-600" />
+            </Button>
+            <h1 className="text-2xl font-medium text-slate-800">Histórico de Atendimentos</h1>
           </div>
         </header>
 

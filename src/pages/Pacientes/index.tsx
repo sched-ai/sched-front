@@ -141,22 +141,21 @@ export const Pacientes = () => {
               <span className="block h-[2px] w-[18px] rounded-[2px] bg-slate-900/90" />
             </span>
           </SidebarTrigger>
-          <div className="flex-1 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-            <div className="mb-6">
+          <div className="flex-1 mb-6">
+            <div className="flex items-center justify-between gap-3">
               <h1 className="text-2xl font-semibold text-foreground">Pacientes</h1>
-              <p className="text-muted-foreground mt-2">
-               Gerencie os pacientes cadastrados e acompanhe os históricos com rapidez.
-              </p>
+              <Button
+                type="button"
+                onClick={() => navigate("/patients/new")}
+                className="bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center gap-2 h-11 px-5 rounded-lg whitespace-nowrap shrink-0"
+              >
+                <Plus className="w-4 h-4" strokeWidth={1.5} />
+                Adicionar
+              </Button>
             </div>
-
-            <Button
-              type="button"
-              onClick={() => navigate("/patients/new")}
-              className="bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center gap-2 self-start h-11 px-5 rounded-lg whitespace-nowrap"
-            >
-              <Plus className="w-4 h-4" strokeWidth={1.5} />
-              Adicionar
-            </Button>
+            <p className="text-muted-foreground mt-3 text-sm md:text-base leading-relaxed max-w-2xl">
+              Gerencie os pacientes cadastrados e acompanhe os históricos com rapidez.
+            </p>
           </div>
         </header>
 
