@@ -36,6 +36,7 @@ export interface IPreviewAppointmentRecurrencePayload {
   isInfiniteRecurring?: boolean;
   recurringUntilDate?: string | null;
   recurringOccurrences?: number | null;
+  appointmentId?: string;
 }
 
 export const usePreviewAppointmentRecurrence = () => {

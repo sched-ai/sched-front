@@ -69,6 +69,7 @@ interface IProps {
   setProfessional: Dispatch<SetStateAction<string>>;
   onClose?: () => void;
   appointmentId?: string;
+  isRecurring?: boolean;
   clientId?: string | null;
   disableDate?: Matcher | Matcher[];
   startMinTime?: string;
@@ -107,6 +108,7 @@ export const AppoimentContent = ({
   professional,
   onClose,
   appointmentId,
+  isRecurring,
   clientId,
   disableDate,
   startMinTime,
@@ -332,43 +334,64 @@ export const AppoimentContent = ({
       }),
     };
 
-    if (appointmentId) {
+    // Edit não-recorrente: update direto
+    if (appointmentId && !isRecurring) {
       updateAppointment({ id: appointmentId, payload });
       return;
     }
 
-    if (!repeatEnabled) {
+    // Create não-recorrente: post direto
+    if (!appointmentId && !repeatEnabled) {
       createAppointment(payload);
       return;
     }
 
+    // Recorrente (create ou edit): preview primeiro. No edit, campos de
+    // recorrência omitidos para o backend herdar do registro existente.
     previewRecurrence({
       employeeId: payload.employeeId,
       serviceId: payload.serviceId,
       workplaceId: payload.workplaceId,
       startDate: payload.startDate,
       duration: payload.duration,
-      frequency: payload.frequency ?? null,
-      days_of_week: payload.days_of_week ?? [],
-      isInfiniteRecurring: payload.isInfiniteRecurring ?? false,
-      recurringUntilDate: payload.recurringUntilDate ?? null,
-      recurringOccurrences: payload.recurringOccurrences ?? null,
+      ...(payload.frequency !== undefined && { frequency: payload.frequency }),
+      ...(payload.days_of_week !== undefined && { days_of_week: payload.days_of_week }),
+      ...(payload.isInfiniteRecurring !== undefined && { isInfiniteRecurring: payload.isInfiniteRecurring }),
+      ...(payload.recurringUntilDate !== undefined && { recurringUntilDate: payload.recurringUntilDate }),
+      ...(payload.recurringOccurrences !== undefined && { recurringOccurrences: payload.recurringOccurrences }),
+      appointmentId,
     })
       .then((result) => {
         if (!result || result.conflicts.length === 0) {
-          createAppointment(payload);
+          if (appointmentId) {
+            updateAppointment({ id: appointmentId, payload });
+          } else {
+            createAppointment(payload);
+          }
           return;
         }
+        // No edit, só interessa o conflito do dia literal sendo movido — não as
+        // ocorrências futuras da série (essas continuam como estão).
+        const literalDate = String(payload.startDate).slice(0, 10);
+        const conflictsToShow = appointmentId
+          ? result.conflicts.filter(c => c.date === literalDate)
+          : result.conflicts;
+
+        if (appointmentId && conflictsToShow.length === 0) {
+          // Nenhum conflito no dia editado — segue update normalmente.
+          updateAppointment({ id: appointmentId, payload });
+          return;
+        }
+
         setConflictModal({
           open: true,
-          conflicts: result.conflicts,
+          conflicts: conflictsToShow,
           validCount: result.validOccurrences.length,
           basePayload: payload as Record<string, unknown>,
         });
       })
       .catch((err) => {
-        // NÃO criar silenciosamente em caso de falha no preview — evita criar
-        // agendamento sobre bloqueios/conflitos não validados.
+        // NÃO criar/atualizar silenciosamente em caso de falha no preview.
         console.error('Falha no preview de recorrência:', err);
       });
   };
@@ -377,7 +400,11 @@ export const AppoimentContent = ({
     if (!conflictModal.basePayload) return;
     const exceptionDates = conflictModal.conflicts.map(c => c.date);
     const finalPayload = { ...conflictModal.basePayload, exceptionDates };
-    createAppointment(finalPayload as Parameters<typeof createAppointment>[0]);
+    if (appointmentId) {
+      updateAppointment({ id: appointmentId, payload: finalPayload as Parameters<typeof updateAppointment>[0]['payload'] });
+    } else {
+      createAppointment(finalPayload as Parameters<typeof createAppointment>[0]);
+    }
     setConflictModal({ open: false, conflicts: [], validCount: 0, basePayload: null });
   };
 
@@ -390,7 +417,8 @@ export const AppoimentContent = ({
       onConfirm={handleConfirmConflicts}
       conflicts={conflictModal.conflicts}
       validCount={conflictModal.validCount}
-      isPending={isCreating}
+      isPending={isCreating || isUpdating}
+      mode={appointmentId ? "single" : "summary"}
     />
     <form onSubmit={handleCreateConsultation} className="flex flex-col gap-5">
       {/* Date & Time Section */}

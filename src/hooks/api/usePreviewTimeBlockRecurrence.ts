@@ -13,6 +13,7 @@ export interface IPreviewTimeBlockRecurrencePayload {
   recurringOccurrences?: number | null;
   frequency?: "DAILY" | "WEEKLY" | "MONTHLY" | null;
   days_of_week?: number[];
+  timeBlockId?: string;
 }
 
 export const usePreviewTimeBlockRecurrence = () => {

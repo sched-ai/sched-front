@@ -489,8 +489,9 @@ export const ScheduleFormModal = ({
   const handleSelectedDateChange = (next: SetStateAction<{ day: number; month: number; year: number } | null>) => {
     setSelectedDateState((prev) => {
       const resolvedNext = typeof next === "function" ? next(prev) : next;
-      if (resolvedNext) {
-        onNavigateWeekToDate?.(resolvedNext);
+      if (resolvedNext && onNavigateWeekToDate) {
+        // Defer para depois do commit — updater do setState precisa ser puro.
+        queueMicrotask(() => onNavigateWeekToDate(resolvedNext));
       }
       return resolvedNext;
     });
@@ -588,6 +589,10 @@ export const ScheduleFormModal = ({
 
   useEffect(() => {
     if (!isOpen || !selectedDateState || activeTab !== "consulta") return;
+    // Em modo edição, o usuário pode estar movendo o agendamento intencionalmente
+    // para um horário que cai em cima de um bloqueio — deixe o preview/modal lidar
+    // com o conflito em vez de deslocar silenciosamente o horário.
+    if (selectedEvent) return;
 
     const selectedDate = new Date(selectedDateState.year, selectedDateState.month - 1, selectedDateState.day);
     const bounds = getEffectiveBounds(selectedDate);
@@ -629,6 +634,7 @@ export const ScheduleFormModal = ({
     getEffectiveBounds,
     isOpen,
     selectedDateState,
+    selectedEvent,
     setEndHour,
     setStartHour,
     startHour,
@@ -657,6 +663,7 @@ export const ScheduleFormModal = ({
     setFrequency,
     onClose,
     timeBlockId: selectedEvent?.type === 'bloqueio' ? String(selectedEvent.id) : undefined,
+    isRecurring: selectedEvent?.type === 'bloqueio' ? !!selectedEvent.isRecurring : false,
     disableDate: (date: Date) => !isDateSelectable(date),
     startMinTime,
     startMaxTime,
@@ -684,6 +691,7 @@ export const ScheduleFormModal = ({
     setProfessional,
     onClose,
     appointmentId: selectedEvent?.type === 'consulta' ? String(selectedEvent.id) : undefined,
+    isRecurring: selectedEvent?.type === 'consulta' ? !!selectedEvent.isRecurring : false,
     clientId,
     disableDate: (date: Date) => !isDateSelectable(date),
     startMinTime,

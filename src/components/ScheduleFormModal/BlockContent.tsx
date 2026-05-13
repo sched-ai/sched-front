@@ -59,6 +59,7 @@ interface IProps {
   setFrequency: (val: "DAILY" | "WEEKLY" | "MONTHLY") => void;
   onClose?: () => void;
   timeBlockId?: string;
+  isRecurring?: boolean;
   disableDate?: Matcher | Matcher[];
   startMinTime?: string;
   startMaxTime?: string;
@@ -88,6 +89,7 @@ export const BlockContent = ({
   setFrequency,
   onClose,
   timeBlockId,
+  isRecurring,
   disableDate,
   startMinTime,
   startMaxTime,
@@ -194,34 +196,58 @@ export const BlockContent = ({
     };
 
 
-    if (timeBlockId) {
+    // Edit não-recorrente: update direto
+    if (timeBlockId && !isRecurring) {
       updateTimeBlock({ id: timeBlockId, payload });
       return;
     }
 
-    if (!repeatEnabled) {
+    // Create não-recorrente: post direto
+    if (!timeBlockId && !repeatEnabled) {
       createTimeBlock(payload);
       return;
     }
 
+    // Recorrente (create ou edit): preview primeiro. No edit, campos de
+    // recorrência omitidos para o backend herdar do registro existente.
     previewRecurrence({
       startDate: String(payload.startDate),
       endDate: String(payload.endDate),
       reason: payload.reason,
-      isInfiniteRecurring: payload.isInfiniteRecurring,
-      frequency: payload.frequency,
-      days_of_week: payload.days_of_week,
-      recurringUntilDate: payload.recurringUntilDate ? String(payload.recurringUntilDate) : null,
-      recurringOccurrences: payload.recurringOccurrences ?? null,
+      ...(timeBlockId
+        ? {}
+        : {
+            isInfiniteRecurring: payload.isInfiniteRecurring,
+            frequency: payload.frequency,
+            days_of_week: payload.days_of_week,
+            recurringUntilDate: payload.recurringUntilDate ? String(payload.recurringUntilDate) : null,
+            recurringOccurrences: payload.recurringOccurrences ?? null,
+          }),
+      timeBlockId,
     })
       .then((result) => {
         if (!result || result.conflicts.length === 0) {
-          createTimeBlock(payload);
+          if (timeBlockId) {
+            updateTimeBlock({ id: timeBlockId, payload });
+          } else {
+            createTimeBlock(payload);
+          }
           return;
         }
+        // No edit, só interessa o conflito do dia literal sendo movido.
+        const literalDate = String(payload.startDate).slice(0, 10);
+        const conflictsToShow = timeBlockId
+          ? result.conflicts.filter(c => c.date === literalDate)
+          : result.conflicts;
+
+        if (timeBlockId && conflictsToShow.length === 0) {
+          updateTimeBlock({ id: timeBlockId, payload });
+          return;
+        }
+
         setConflictModal({
           open: true,
-          conflicts: result.conflicts,
+          conflicts: conflictsToShow,
           validCount: result.validOccurrences.length,
           basePayload: payload,
         });
@@ -235,7 +261,12 @@ export const BlockContent = ({
   const handleConfirmConflicts = () => {
     if (!conflictModal.basePayload) return;
     const exceptionDates = conflictModal.conflicts.map(c => c.date);
-    createTimeBlock({ ...conflictModal.basePayload, exceptionDates });
+    const finalPayload = { ...conflictModal.basePayload, exceptionDates };
+    if (timeBlockId) {
+      updateTimeBlock({ id: timeBlockId, payload: finalPayload });
+    } else {
+      createTimeBlock(finalPayload);
+    }
     setConflictModal({ open: false, conflicts: [], validCount: 0, basePayload: null });
   };
 
@@ -247,7 +278,8 @@ export const BlockContent = ({
       onConfirm={handleConfirmConflicts}
       conflicts={conflictModal.conflicts}
       validCount={conflictModal.validCount}
-      isPending={isCreating}
+      isPending={isCreating || isUpdating}
+      mode={timeBlockId ? "single" : "summary"}
     />
     <form className="flex flex-col gap-5">
       {/* Date & Time Section */}
