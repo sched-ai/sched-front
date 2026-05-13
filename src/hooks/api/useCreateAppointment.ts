@@ -16,6 +16,7 @@ export interface ICreateServicePayload {
   isInfiniteRecurring?: boolean;
   recurringUntilDate?: string | null;
   recurringOccurrences?: number | null;
+  exceptionDates?: string[];
 }
 
 export const getAppointmentErrorMessage = (error: unknown, defaultMessage: string) => {

@@ -23,6 +23,7 @@ export interface ICreateTimeBlockPayload {
   recurringOccurrences?: number | null;
   frequency?: RecurrenceFrequency | null;
   days_of_week?: number[];
+  exceptionDates?: string[];
 }
 
 

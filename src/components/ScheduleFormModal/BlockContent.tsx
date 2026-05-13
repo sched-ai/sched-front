@@ -3,12 +3,15 @@ import { Button } from "../ui/button";
 import { DatePicker } from "../DatePicker";
 import { Switch } from "../ui/switch";
 import { Clock, Repeat } from "lucide-react";
-import type { Dispatch, SetStateAction } from "react";
-import { useCreateTimeBlock, type DayOfWeek } from "@/hooks/api/useCreateTimeBlock";
+import { useState, type Dispatch, type SetStateAction } from "react";
+import { useCreateTimeBlock, type DayOfWeek, type ICreateTimeBlockPayload } from "@/hooks/api/useCreateTimeBlock";
 import { useUpdateTimeBlock } from "@/hooks/api/useUpdateTimeBlock";
 import type { Matcher } from "react-day-picker";
 import type { TimePickerProps } from "antd";
 import { TimePickerField } from "./TimePickerField";
+import { RecurrenceConflictModal } from "@/components/RecurrenceConflictModal";
+import { usePreviewTimeBlockRecurrence } from "@/hooks/api/usePreviewTimeBlockRecurrence";
+import type { IPreviewRecurrenceConflict } from "@/hooks/api/usePreviewAppointmentRecurrence";
 
 const buildUtcLikeIso = (year: number, month: number, day: number, hour: string) => {
   const [hStr = "0", mStr = "0"] = hour.split(":");
@@ -106,9 +109,18 @@ export const BlockContent = ({
     },
   });
 
+  const { mutateAsync: previewRecurrence, isPending: isPreviewing } = usePreviewTimeBlockRecurrence();
+
+  const [conflictModal, setConflictModal] = useState<{
+    open: boolean;
+    conflicts: IPreviewRecurrenceConflict[];
+    validCount: number;
+    basePayload: ICreateTimeBlockPayload | null;
+  }>({ open: false, conflicts: [], validCount: 0, basePayload: null });
+
   const error = createError || updateError;
 
-  const isPending = isCreating || isUpdating;
+  const isPending = isCreating || isUpdating || isPreviewing;
 
   const handleCreateTimeBlock = (e: React.FormEvent) => {
     e.preventDefault();
@@ -184,11 +196,59 @@ export const BlockContent = ({
 
     if (timeBlockId) {
       updateTimeBlock({ id: timeBlockId, payload });
-    } else {
-      createTimeBlock(payload);
+      return;
     }
+
+    if (!repeatEnabled) {
+      createTimeBlock(payload);
+      return;
+    }
+
+    previewRecurrence({
+      startDate: String(payload.startDate),
+      endDate: String(payload.endDate),
+      reason: payload.reason,
+      isInfiniteRecurring: payload.isInfiniteRecurring,
+      frequency: payload.frequency,
+      days_of_week: payload.days_of_week,
+      recurringUntilDate: payload.recurringUntilDate ? String(payload.recurringUntilDate) : null,
+      recurringOccurrences: payload.recurringOccurrences ?? null,
+    })
+      .then((result) => {
+        if (!result || result.conflicts.length === 0) {
+          createTimeBlock(payload);
+          return;
+        }
+        setConflictModal({
+          open: true,
+          conflicts: result.conflicts,
+          validCount: result.validOccurrences.length,
+          basePayload: payload,
+        });
+      })
+      .catch((err) => {
+        // NÃO criar silenciosamente em caso de falha no preview.
+        console.error('Falha no preview de recorrência do bloqueio:', err);
+      });
   };
+
+  const handleConfirmConflicts = () => {
+    if (!conflictModal.basePayload) return;
+    const exceptionDates = conflictModal.conflicts.map(c => c.date);
+    createTimeBlock({ ...conflictModal.basePayload, exceptionDates });
+    setConflictModal({ open: false, conflicts: [], validCount: 0, basePayload: null });
+  };
+
   return (
+    <>
+    <RecurrenceConflictModal
+      isOpen={conflictModal.open}
+      onClose={() => setConflictModal({ open: false, conflicts: [], validCount: 0, basePayload: null })}
+      onConfirm={handleConfirmConflicts}
+      conflicts={conflictModal.conflicts}
+      validCount={conflictModal.validCount}
+      isPending={isCreating}
+    />
     <form className="flex flex-col gap-5">
       {/* Date & Time Section */}
       <div className="flex items-start gap-3">
@@ -336,5 +396,6 @@ export const BlockContent = ({
         </div>
       </div>
     </form>
+    </>
   );
 };

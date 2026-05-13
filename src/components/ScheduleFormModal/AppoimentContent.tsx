@@ -3,8 +3,13 @@ import { Button } from "../ui/button";
 import { Switch } from "../ui/switch";
 import { DatePicker } from "../DatePicker";
 import type { Dispatch, SetStateAction } from "react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useUser } from "@/context/user";
+import { RecurrenceConflictModal } from "@/components/RecurrenceConflictModal";
+import {
+  usePreviewAppointmentRecurrence,
+  type IPreviewRecurrenceConflict,
+} from "@/hooks/api/usePreviewAppointmentRecurrence";
 import {
   Select,
   SelectContent,  
@@ -146,7 +151,16 @@ export const AppoimentContent = ({
     },
   });
 
-  const isPending = isCreating || isUpdating;
+  const { mutateAsync: previewRecurrence, isPending: isPreviewing } = usePreviewAppointmentRecurrence();
+
+  const [conflictModal, setConflictModal] = useState<{
+    open: boolean;
+    conflicts: IPreviewRecurrenceConflict[];
+    validCount: number;
+    basePayload: Record<string, unknown> | null;
+  }>({ open: false, conflicts: [], validCount: 0, basePayload: null });
+
+  const isPending = isCreating || isUpdating || isPreviewing;
 
   const rawWorkplaces = userData?.membership.company.workplaces;
   const allWorkplaces = Array.isArray(rawWorkplaces)
@@ -320,12 +334,64 @@ export const AppoimentContent = ({
 
     if (appointmentId) {
       updateAppointment({ id: appointmentId, payload });
-    } else {
-      createAppointment(payload);
+      return;
     }
+
+    if (!repeatEnabled) {
+      createAppointment(payload);
+      return;
+    }
+
+    previewRecurrence({
+      employeeId: payload.employeeId,
+      serviceId: payload.serviceId,
+      workplaceId: payload.workplaceId,
+      startDate: payload.startDate,
+      duration: payload.duration,
+      frequency: payload.frequency ?? null,
+      days_of_week: payload.days_of_week ?? [],
+      isInfiniteRecurring: payload.isInfiniteRecurring ?? false,
+      recurringUntilDate: payload.recurringUntilDate ?? null,
+      recurringOccurrences: payload.recurringOccurrences ?? null,
+    })
+      .then((result) => {
+        if (!result || result.conflicts.length === 0) {
+          createAppointment(payload);
+          return;
+        }
+        setConflictModal({
+          open: true,
+          conflicts: result.conflicts,
+          validCount: result.validOccurrences.length,
+          basePayload: payload as Record<string, unknown>,
+        });
+      })
+      .catch((err) => {
+        // NÃO criar silenciosamente em caso de falha no preview — evita criar
+        // agendamento sobre bloqueios/conflitos não validados.
+        console.error('Falha no preview de recorrência:', err);
+      });
   };
-  
+
+  const handleConfirmConflicts = () => {
+    if (!conflictModal.basePayload) return;
+    const exceptionDates = conflictModal.conflicts.map(c => c.date);
+    const finalPayload = { ...conflictModal.basePayload, exceptionDates };
+    createAppointment(finalPayload as Parameters<typeof createAppointment>[0]);
+    setConflictModal({ open: false, conflicts: [], validCount: 0, basePayload: null });
+  };
+
+
   return (
+    <>
+    <RecurrenceConflictModal
+      isOpen={conflictModal.open}
+      onClose={() => setConflictModal({ open: false, conflicts: [], validCount: 0, basePayload: null })}
+      onConfirm={handleConfirmConflicts}
+      conflicts={conflictModal.conflicts}
+      validCount={conflictModal.validCount}
+      isPending={isCreating}
+    />
     <form onSubmit={handleCreateConsultation} className="flex flex-col gap-5">
       {/* Date & Time Section */}
       <div className="flex items-start gap-3">
@@ -605,5 +671,6 @@ export const AppoimentContent = ({
         </Button>
       </div>
     </form>
+    </>
   );
 };
