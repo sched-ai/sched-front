@@ -6,6 +6,13 @@ import { useUpdateClient } from "@/hooks/api/useUpdateClient";
 import { useGetClient } from "@/hooks/api/useGetClient";
 import { ChevronLeft } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import {
+  AsYouType,
+  parsePhoneNumberFromString,
+  type CountryCode,
+} from "libphonenumber-js";
+import { CountryCodeSelect } from "@/components/CountryCodeSelect";
+import { DEFAULT_COUNTRY } from "@/util/countries";
 
 // --- Helpers ---
 const maskCPF = (v: string) => {
@@ -40,6 +47,27 @@ const formatPhoneForDisplay = (phone: string) => {
   return maskPhone(clean);
 };
 
+const maskPhoneByCountry = (value: string, countryCode: CountryCode): string => {
+  if (countryCode === "BR") return maskPhone(value);
+  const digits = value.replace(/\D/g, "");
+  if (!digits) return "";
+  return new AsYouType(countryCode).input(digits);
+};
+
+const detectCountryAndFormat = (
+  storedPhone: string | null | undefined,
+): { countryCode: CountryCode; display: string } => {
+  if (!storedPhone) return { countryCode: DEFAULT_COUNTRY, display: "" };
+  const parsed = parsePhoneNumberFromString("+" + storedPhone.replace(/\D/g, ""));
+  if (parsed?.country) {
+    if (parsed.country === "BR") {
+      return { countryCode: "BR", display: maskPhone(parsed.nationalNumber) };
+    }
+    return { countryCode: parsed.country, display: parsed.formatNational() };
+  }
+  return { countryCode: DEFAULT_COUNTRY, display: formatPhoneForDisplay(storedPhone) };
+};
+
 type Gender = 'masculino' | 'feminino' | 'outro';
 
 const isGender = (value: string): value is Gender =>
@@ -69,14 +97,17 @@ const CreateClient = () => {
     socialNetwork: "",
   });
   const [gender, setGender] = useState<Gender | ''>('');
+  const [countryCode, setCountryCode] = useState<CountryCode>(DEFAULT_COUNTRY);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
     if (isEditMode && clientToEdit) {
+      const detected = detectCountryAndFormat(clientToEdit.phone);
+      setCountryCode(detected.countryCode);
       setFormData({
         name: clientToEdit.name || "",
         cpf: formatCPFForDisplay(clientToEdit.cpf || ""),
-        phone: formatPhoneForDisplay(clientToEdit.phone || ""),
+        phone: detected.display,
         email: clientToEdit.email || "",
         birthDate: clientToEdit.birthDate ? String(clientToEdit.birthDate).slice(0, 10) : "",
         socialNetwork: clientToEdit.socialNetwork || "",
@@ -88,9 +119,15 @@ const CreateClient = () => {
   const handleInputChange = (field: string, value: string) => {
       let val = value;
       if (field === 'cpf') val = maskCPF(value);
-      if (field === 'phone') val = maskPhone(value);
+      if (field === 'phone') val = maskPhoneByCountry(value, countryCode);
       setFormData(prev => ({ ...prev, [field]: val }));
       if (errors[field]) setErrors(prev => ({ ...prev, [field]: "" }));
+  };
+
+  const handleCountryChange = (iso: CountryCode) => {
+      setCountryCode(iso);
+      setFormData(prev => ({ ...prev, phone: maskPhoneByCountry(prev.phone, iso) }));
+      if (errors.phone) setErrors(prev => ({ ...prev, phone: "" }));
   };
 
   const validate = () => {
@@ -106,6 +143,16 @@ const CreateClient = () => {
           newErrors.email = "E-mail inválido";
       }
 
+      if (formData.phone.trim()) {
+        const phoneDigits = formData.phone.replace(/\D/g, '');
+        const parsedPhone = parsePhoneNumberFromString(phoneDigits, countryCode);
+        if (!parsedPhone || !parsedPhone.isValid()) {
+          newErrors.phone = countryCode === 'BR'
+            ? 'Telefone inválido. Informe DDD + número.'
+            : 'Telefone inválido para o país selecionado.';
+        }
+      }
+
       setErrors(newErrors);
       return Object.keys(newErrors).length === 0;
   };
@@ -114,10 +161,19 @@ const CreateClient = () => {
       e.preventDefault();
       if (!validate()) return;
 
+      const phoneDigits = formData.phone.replace(/\D/g, "");
+      const parsedForSubmit = phoneDigits
+        ? parsePhoneNumberFromString(phoneDigits, countryCode)
+        : null;
+      const phoneToSend = parsedForSubmit
+        ? parsedForSubmit.number.replace("+", "")
+        : "";
+
       const payload = {
         name: formData.name,
         cpf: formData.cpf.trim() || null,
-        phone: formData.phone ? `55${formData.phone.replace(/\D/g, "")}` : "",
+        phone: phoneToSend,
+        countryCode,
         email: formData.email.trim() || null,
         birthDate: formData.birthDate || null,
         socialNetwork: formData.socialNetwork.trim() || null,
@@ -227,19 +283,18 @@ const CreateClient = () => {
 
                      <div className="space-y-2">
                     <label className="text-sm font-medium text-slate-700">Telefone (whatsapp) <span className="text-red-500">*</span></label>
-                    <div className="flex items-center w-full bg-white border border-slate-300 rounded-lg px-3 py-0.5 text-sm transition-all focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 overflow-hidden">
-                        <div className="flex items-center gap-2 border-r border-slate-200 text-slate-500 select-none w-fit pr-1">
-                            <p className="font-medium leading-none text-[14px]">+55</p>
-                        </div>
-                        <input 
-                            value={formData.phone} 
-                            onChange={e => handleInputChange('phone', e.target.value)} 
-                            className="w-full bg-transparent pl-1 pr-3 py-2.5 text-slate-900 placeholder:text-slate-400 focus:outline-none"
-                            placeholder="(00) 00000-0000"
-                            maxLength={15}
+                    <div className={`flex items-center w-full bg-white border border-slate-300 rounded-lg pl-1 pr-3 py-0.5 text-sm transition-all focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 overflow-hidden ${errors.phone ? 'border-red-500 focus-within:border-red-500 focus-within:ring-red-500' : ''}`}>
+                        <CountryCodeSelect value={countryCode} onChange={handleCountryChange} />
+                        <input
+                            value={formData.phone}
+                            onChange={e => handleInputChange('phone', e.target.value)}
+                            className="w-full bg-transparent pl-2 pr-3 py-2.5 text-slate-900 placeholder:text-slate-400 focus:outline-none"
+                            placeholder={countryCode === 'BR' ? "(00) 00000-0000" : "Número de telefone"}
+                            maxLength={25}
                             type="text"
                         />
                     </div>
+                    {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
                 </div>
 
                 <div className="space-y-2">

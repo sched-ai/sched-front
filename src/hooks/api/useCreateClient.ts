@@ -6,6 +6,7 @@ interface CreateClientDTO {
   name: string;
     cpf?: string | null;
   phone?: string;
+    countryCode?: string;
     email?: string | null;
     gender?: string | null;
   photoUrl?: string;
