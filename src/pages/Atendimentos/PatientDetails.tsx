@@ -1,4 +1,5 @@
-﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
@@ -608,6 +609,8 @@ export const PatientDetails: React.FC = () => {
   const statusVisual = getStatusVisual(fetchedAppointment?.status || patient.status);
   const statusLabel = getStatusLabel(fetchedAppointment?.status || patient.status);
   const isFinished = isFinishedStatus(fetchedAppointment?.status || patient.status);
+  const packageName =
+    fetchedAppointment?.packageName || (location.state as any)?.atendimento?.packageName || "";
   const storedImageKey = storedImages.map((attachment) => attachment.id).join("|");
   const storedImageIds = useMemo(
     () => storedImageKey.split("|").filter(Boolean),
@@ -678,6 +681,7 @@ export const PatientDetails: React.FC = () => {
     return () => {
       isCancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, accessLinks, storedImageKey]);
 
   const updateQueuedFile = useCallback((fileId: string, updater: (file: QueuedUploadedFile) => QueuedUploadedFile) => {
@@ -1167,7 +1171,7 @@ export const PatientDetails: React.FC = () => {
             <p className="text-slate-500 mb-6">
               Não é possível visualizar os detalhes de um atendimento que foi cancelado.
             </p>
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => navigate(-1)}>
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white px-2" onClick={() => navigate(-1)}>
               Voltar
             </Button>
           </div>
@@ -1257,6 +1261,11 @@ export const PatientDetails: React.FC = () => {
               <div>
                 <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">Resumo</p>
                 <p className="text-slate-900">{fetchedAppointment?.service?.name || "Atendimento"}</p>
+                {(packageName || fetchedAppointment?.service?.type === "PACKAGE") && (
+                  <p className="text-xs text-blue-600 font-medium mt-2">
+                    Pacote: {packageName || fetchedAppointment?.service?.name}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-3 text-sm">

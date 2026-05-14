@@ -13,18 +13,20 @@ export interface AppointmentAPI {
   clientName: string | null;
   workplaceId: string | null;
   serviceId: string | null;
+  packageCreditId?: string | null;
+  packageName?: string | null;
   createdByAI: boolean;
   employee?: { name: string } | null;
-  client?: { 
+  client?: {
     id?: string;
-    name: string; 
-    cpf?: string; 
-    phone?: string; 
-    email?: string; 
-    address?: string; 
-    birthDate?: string; 
+    name: string;
+    cpf?: string;
+    phone?: string;
+    email?: string;
+    address?: string;
+    birthDate?: string;
   } | null;
-  service?: { name: string } | null;
+  service?: { name: string; type?: 'SERVICE' | 'PACKAGE' } | null;
   description?: string;
   annotations?: Array<{
     id: string;
