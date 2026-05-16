@@ -110,6 +110,7 @@ function getStatusLabel(status?: string) {
 
   if (["concluido", "finished", "done"].includes(normalized)) return "Concluido";
   if (["agendado", "pending", "scheduled", "confirmed"].includes(normalized)) return "Agendado";
+  if (["cancelado", "cancelled"].includes(normalized)) return "Cancelado";
 
   return status || "Status";
 }
@@ -119,6 +120,7 @@ function getStatusVisual(status?: string) {
 
   if (label === "Concluido") return { textClass: "text-green-600", dotClass: "bg-green-600" };
   if (label === "Agendado") return { textClass: "text-blue-600", dotClass: "bg-blue-600" };
+  if (label === "Cancelado") return { textClass: "text-blue-400", dotClass: "bg-blue-400" };
 
   return { textClass: "text-gray-500", dotClass: "bg-gray-400" };
 }
@@ -156,13 +158,13 @@ export const PatientHistory = () => {
   const rawAppointments = appointmentsResponse?.data || [];
   const appointments = rawAppointments.filter((appointment) => {
     const normalizedStatus = appointment.status?.toLowerCase() || "";
-    return ["concluido", "finished", "done"].includes(normalizedStatus);
+    return ["concluido", "finished", "done", "cancelado", "cancelled"].includes(normalizedStatus);
   });
 
   const hasAppointments = !isLoading && appointments.length > 0;
   const displayAppointments = hasAppointments
     ? [...appointments].sort(
-        (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+        (a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
       )
     : [];
 
@@ -352,7 +354,7 @@ export const PatientHistory = () => {
               const time = dateParts?.time ?? "--:--";
 
               const serviceName = appointment.service?.name || "Atendimento";
-              const professionalName = appointment.employee?.name || "Profissional não informado";
+              const packageName = appointment.packageName || "";
               const durationLabel = formatDurationClock(appointment.consultationDurationSeconds);
               const annotations = appointment.annotations || [];
               const latestAnnotation =
@@ -368,24 +370,31 @@ export const PatientHistory = () => {
               const documentAttachments = attachments.filter((attachment) => attachment.category !== "image");
               const statusLabel = getStatusLabel(appointment.status);
               const statusVisual = getStatusVisual(appointment.status);
+              const isCancelledStatus = !!appointment.status && ["cancelado", "cancelled"].includes(appointment.status.toLowerCase());
+              const isPackageEntry = appointment.service?.type === "PACKAGE" || !!packageName;
+              const baseDateBoxClass = isPackageEntry ? "bg-blue-600 text-white shadow-md" : "bg-blue-600 text-white";
+              const dateBoxBgClass = isCancelledStatus ? `${baseDateBoxClass} opacity-60` : baseDateBoxClass;
 
               return (
                 <div key={appointment.id} className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-                  <div className="flex-shrink-0 z-10">
-                    <div className="w-full sm:w-[92px] sm:h-[92px] h-auto py-3 sm:py-0 bg-gray-900 text-white rounded-lg flex flex-col items-center justify-center">
+                  <div className="flex-shrink-0 z-10 self-start">
+                    <div className={`w-full sm:w-[86px] sm:h-[79px] h-auto py-3 sm:py-0 ${dateBoxBgClass} rounded-lg flex flex-col items-center justify-center`}>
                       <span className="text-2xl sm:text-3xl leading-none">{day}</span>
                       <span className="text-xs uppercase">{month}</span>
                       <span className="text-xs opacity-70">{year}</span>
                     </div>
                   </div>
 
-                  <div className="flex-1 bg-white border border-gray-200 rounded-lg p-4 sm:p-6">
+                      {/* `packageName` agora renderizado dentro do cartão para alinhar com o design (ver Figma) */}
+                  <div className={`flex-1 bg-white border rounded-lg shadow-sm p-4 sm:p-6 border-gray-200`}>
                     <div className="flex flex-col gap-4">
                       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                         <div className="space-y-2">
                           <p className="text-gray-900">
-                            <span className="italic">{serviceName}</span>
-                            <span className="text-gray-900"> · {professionalName}</span>
+                            <span className="italic">
+                              {serviceName}
+                              {packageName ? ` - ${packageName}` : ""}
+                            </span>
                           </p>
                           <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
                             <span className="inline-flex items-center gap-2">
@@ -407,7 +416,10 @@ export const PatientHistory = () => {
                               state: { atendimento: appointment, paciente: patient },
                             })
                           }
-                          className="bg-blue-600 hover:bg-blue-700 text-white h-10 px-4 rounded-md inline-flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto"
+                          disabled={isCancelledStatus}
+                          className={`bg-blue-600 hover:bg-blue-700 text-white h-10 px-4 rounded-md inline-flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto ${
+                            isCancelledStatus ? "opacity-60 cursor-not-allowed" : ""
+                          }`}
                         >
                           Acessar atendimento
                           <ChevronRight className="w-4 h-4" />

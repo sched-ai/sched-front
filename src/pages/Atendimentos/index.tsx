@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Users,
@@ -91,6 +91,13 @@ function formatAppointmentTime(startDate: string) {
   return formatUserHour(startDate, "-");
 }
 
+function getPackageLabel(appointment: AppointmentAPI) {
+  if (appointment.packageName) return appointment.packageName;
+  if (appointment.packageCreditId) return "Pacote";
+  if (appointment.service?.type === "PACKAGE") return appointment.service?.name || "Pacote";
+  return "-";
+}
+
 export const Atendimentos = () => {
   const navigate = useNavigate();
   const statusDropdownRef = useRef<HTMLDivElement | null>(null);
@@ -170,10 +177,24 @@ export const Atendimentos = () => {
   );
 
   const pageNumbers = useMemo(() => {
-    return Array.from({ length: meta.totalPages }, (_, index) => index + 1).slice(
-      Math.max(0, paginaAtual - 3),
-      Math.min(meta.totalPages, paginaAtual + 2)
-    );
+    const total = meta.totalPages || 1;
+    const maxVisible = 5; // sempre mostrar até 5 botões de página (ajustar se quiser outro valor)
+
+    if (total <= maxVisible) return Array.from({ length: total }, (_, i) => i + 1);
+
+    const half = Math.floor(maxVisible / 2);
+    let start = paginaAtual - half;
+    let end = paginaAtual + half;
+
+    if (start < 1) {
+      start = 1;
+      end = maxVisible;
+    } else if (end > total) {
+      end = total;
+      start = total - maxVisible + 1;
+    }
+
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   }, [meta.totalPages, paginaAtual]);
 
   const handleSearchChange = (value: string) => {
@@ -291,10 +312,20 @@ export const Atendimentos = () => {
           </div>
 
           <div className="hidden lg:block overflow-x-auto">
-            <table className="w-full min-w-[760px]">
+            <table className="w-full min-w-[760px] table-fixed">
+              <colgroup>
+                <col style={{ width: "24%" }} />
+                <col style={{ width: "18%" }} />
+                <col style={{ width: "12%" }} />
+                <col style={{ width: "10%" }} />
+                <col style={{ width: "8%" }} />
+                <col style={{ width: "12%" }} />
+                <col style={{ width: "8%" }} />
+                <col style={{ width: "8%" }} />
+              </colgroup>
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50">
-                  {["Paciente", "Serviço", "Data", "Horário", "Origem", "Status", ""].map((column) => (
+                  {["Paciente", "Serviço", "Pacote", "Data", "Horário", "Origem", "Status", ""].map((column) => (
                     <th
                       key={column}
                       className="px-5 py-3 text-left text-xs text-slate-500 uppercase tracking-wide font-medium"
@@ -308,17 +339,17 @@ export const Atendimentos = () => {
               <tbody>
                 {isLoading ? (
                   <tr>
-                    <td colSpan={7} className="px-5 py-10 text-center text-slate-400 text-sm">
+                    <td colSpan={8} className="px-5 py-10 text-center text-slate-400 text-sm">
                       Carregando atendimentos...
                     </td>
                   </tr>
                 ) : (
-                  paginatedRows(appointments, navigate)
+                  paginatedRows(appointments, navigate, itensPorPagina)
                 )}
 
                 {!isLoading && appointments.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="px-5 py-10 text-center text-slate-400 text-sm">
+                    <td colSpan={8} className="px-5 py-10 text-center text-slate-400 text-sm">
                       Nenhum atendimento encontrado.
                     </td>
                   </tr>
@@ -421,8 +452,8 @@ export const Atendimentos = () => {
   );
 };
 
-function paginatedRows(appointments: AppointmentAPI[], navigate: ReturnType<typeof useNavigate>) {
-  return appointments.map((atendimento, index) => {
+function paginatedRows(appointments: AppointmentAPI[], navigate: ReturnType<typeof useNavigate>, rowsPerPage = 5) {
+  const rows = appointments.map((atendimento, index) => {
     const start = new Date(atendimento.startDate);
     const status = getStatusLabel(atendimento.status);
     const visual = getStatusVisual(atendimento.status);
@@ -435,6 +466,11 @@ function paginatedRows(appointments: AppointmentAPI[], navigate: ReturnType<type
       >
         <td className="px-5 py-4 text-slate-900">{atendimento.clientName || atendimento.client?.name || "Sem nome"}</td>
         <td className="px-5 py-4 text-slate-600">{atendimento.service?.name || "-"}</td>
+        <td className="px-5 py-4 text-slate-600">
+          <div className="max-w-full truncate" title={getPackageLabel(atendimento)}>
+            {getPackageLabel(atendimento)}
+          </div>
+        </td>
         <td className="px-5 py-4 text-slate-600">{format(start, "dd/MM/yyyy")}</td>
         <td className="px-5 py-4 text-slate-600">{formatAppointmentTime(atendimento.startDate)}</td>
         <td className="px-5 py-4">
@@ -478,6 +514,21 @@ function paginatedRows(appointments: AppointmentAPI[], navigate: ReturnType<type
       </tr>
     );
   });
+
+  // If fewer rows than rowsPerPage, add empty filler rows to keep table height consistent
+  const fillers: JSX.Element[] = [];
+  if (rows.length < rowsPerPage) {
+    const emptyCount = rowsPerPage - rows.length;
+    for (let i = 0; i < emptyCount; i++) {
+      fillers.push(
+        <tr key={`empty-${i}`} className="border-b border-slate-100 h-16">
+          <td colSpan={8} />
+        </tr>
+      );
+    }
+  }
+
+  return [...rows, ...fillers];
 }
 
 function paginatedCards(appointments: AppointmentAPI[], navigate: ReturnType<typeof useNavigate>) {
@@ -508,6 +559,12 @@ function paginatedCards(appointments: AppointmentAPI[], navigate: ReturnType<typ
           <div>
             <p className="text-xs text-slate-500">Serviço</p>
             <p>{atendimento.service?.name || "-"}</p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-500">Pacote</p>
+            <p className="max-w-[160px] truncate" title={getPackageLabel(atendimento)}>
+              {getPackageLabel(atendimento)}
+            </p>
           </div>
           <div>
             <p className="text-xs text-slate-500">Data</p>
